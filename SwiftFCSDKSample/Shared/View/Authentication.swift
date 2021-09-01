@@ -17,7 +17,7 @@ struct Authentication: View {
     @State private var setSecurity = true
     @State private var setCookies = true
     @State private var setTrust = true
-    
+    @EnvironmentObject var monitor: NetworkMonitor
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var authenticationService: AuthenticationService
     @Binding var currentTabIndex: Int
@@ -64,10 +64,13 @@ struct Authentication: View {
         .onAppear {
             self.currentTabIndex = self.parentTabIndex
         }
+        .onTapGesture {
+//            hideKeyboard()
+        }
     }
     
     private func login() {
-        self.authenticationService.loginUser()
+        self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
     }
 }
 

@@ -9,10 +9,9 @@ import SwiftUI
 
 struct Communication: View {
     var body: some View {
-        NavigationView {
-            Text("Communication")
-            Spacer()
-        }
+        ZStack {
+            CommunicationViewControllerRepresenable()
+        }.background(Color.white).ignoresSafeArea(.all)
     }
 }
 

@@ -9,25 +9,7 @@ import Foundation
 import Combine
 import ACBClientSDK
 
-class AuthenticationService: NSObject, ObservableObject, ACBUCDelegate {
-    
-    func ucDidStartSession(_ uc: ACBUC?) {
-        print("Started Session \(String(describing: uc))")
-    }
-    
-    func ucDidFail(toStartSession uc: ACBUC?) {
-        print("Failed to start Session \(String(describing: uc))")
-    }
-    
-    func ucDidReceiveSystemFailure(_ uc: ACBUC?) {
-        print("Received system failure \(String(describing: uc))")
-    }
-    
-    func ucDidLoseConnection(_ uc: ACBUC?) {
-        print("Did lose connection \(String(describing: uc))")
-    }
-    
-
+class AuthenticationService: NSObject, ObservableObject {
     
     static let shared = AuthenticationService()
     
@@ -43,7 +25,7 @@ class AuthenticationService: NSObject, ObservableObject, ACBUCDelegate {
     var subscriptions = Set<AnyCancellable>()
     var acbuc: ACBUC?
     
-    func loginUser() {
+    func loginUser(networkStatus: Bool) {
         let loginCredentials = LoginViewModel(login:
                                                 Login(
                                                     username: username,
@@ -73,21 +55,39 @@ class AuthenticationService: NSObject, ObservableObject, ACBUCDelegate {
                 }
             } receiveValue: { [weak self] payload in
                 guard let _ = self else { return }
-                
-                
-                AuthenticationService.createSession(sessionid: payload.sessionid)
+                print(payload, "Payload")
+                AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
             }
             .store(in: &subscriptions)
     }
-    
-    
-    class func createSession(sessionid: String) {
+
+    class func createSession(sessionid: String, networkStatus: Bool) {
         AuthenticationService.shared.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: AuthenticationService.shared.self)
-        let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "acceptUntrustedCertificates")
+        AuthenticationService.shared.acbuc?.setNetworkReachable(networkStatus)
+        let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
         AuthenticationService.shared.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
-        let useCookies = UserDefaults.standard.bool(forKey: "useCookies")
+        let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         AuthenticationService.shared.acbuc?.useCookies = useCookies
         AuthenticationService.shared.acbuc?.startSession()
     }
 }
 
+extension AuthenticationService: ACBUCDelegate {
+    
+    func ucDidStartSession(_ uc: ACBUC?) {
+        print("Started Session \(String(describing: uc))")
+    }
+    
+    func ucDidFail(toStartSession uc: ACBUC?) {
+        print("Failed to start Session \(String(describing: uc))")
+    }
+    
+    func ucDidReceiveSystemFailure(_ uc: ACBUC?) {
+        print("Received system failure \(String(describing: uc))")
+    }
+    
+    func ucDidLoseConnection(_ uc: ACBUC?) {
+        print("Did lose connection \(String(describing: uc))")
+    }
+    
+}
