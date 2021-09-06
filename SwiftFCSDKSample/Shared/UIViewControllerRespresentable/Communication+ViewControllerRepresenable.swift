@@ -10,11 +10,12 @@ import SwiftUI
 
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
 
-
+    @Binding var contact: Contact
     let communicationViewController: CommunicationViewController
     
 
-    init() {
+    init(contact: Binding<Contact>) {
+        self._contact = contact
         communicationViewController = CommunicationViewController()
     }
     

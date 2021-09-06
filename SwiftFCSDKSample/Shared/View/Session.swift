@@ -16,7 +16,14 @@ struct Session: View {
     
     var body: some View {
         VStack {
-        Text("Session")
+            Button {
+                print("Logout")
+            } label: {
+                Text("Logout")
+                    .font(.title2)
+                    .bold()
+            }
+
         }
         .onAppear {
             self.currentTabIndex = self.parentTabIndex

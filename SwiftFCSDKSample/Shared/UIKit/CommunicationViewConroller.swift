@@ -42,9 +42,9 @@ class CommunicationViewController: UIViewController {
         self.view.addSubview(self.remoteView)
         self.remoteView.addSubview(self.localView)
         self.remoteView.greaterThanHeightAnchors(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
-        self.localView.greaterThanHeightAnchors(top: nil, leading: nil, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 6, paddingRight: 6, width: view.frame.width / 2, height: view.frame.height / 4)
-        self.remoteView.backgroundColor = UIColor.yellow
-        self.localView.backgroundColor = UIColor.blue
+        self.localView.greaterThanHeightAnchors(top: nil, leading: nil, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 100, paddingRight: 8, width: view.frame.width / 2, height: view.frame.height / 4)
+        self.remoteView.backgroundColor = UIColor.black
+        self.localView.backgroundColor = UIColor.darkGray
     }
     
     @objc func draggedView(_ sender:UIPanGestureRecognizer){

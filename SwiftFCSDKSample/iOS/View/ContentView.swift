@@ -7,12 +7,22 @@
 
 import SwiftUI
 
+
+extension AnyTransition {
+    static var moveAndFade: AnyTransition {
+        AnyTransition.slide
+    }
+}
+
 struct ContentView: View {
     
-    @State var currentTabIndex = 0
+
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
     @State var authenticated = false
+    @State var currentTabIndex = 0
+    @State var animateCommunication = false
+    @State var animateAED = false
     
     var body: some View {
         GeometryReader { proxy in
@@ -20,9 +30,25 @@ struct ContentView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
-                        Communication()
+                        if authenticated {
+                            Contacts()
+                        } else {
+                            if self.animateCommunication {
+                                Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
+                                    .animation(.easeInOut(duration: 1.5))
+                                    .transition(.moveAndFade)
+                            }
+                        }
                     } else if currentTabIndex == 1 {
-                        AED()
+                        if authenticated {
+                            AED()
+                        } else {
+                            if self.animateAED {
+                                Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
+                                    .animation(.easeInOut(duration: 1.5))
+                                    .transition(.moveAndFade)
+                            }
+                        }
                     } else {
                         EmptyView()
                     }
@@ -36,10 +62,14 @@ struct ContentView: View {
                                             print("Num == \(num)")
                                             self.selectedParentIndex = num
                                             self.currentTabIndex = num
+                                            self.animateCommunication = true
+                                            self.animateAED = false
                                         } else if num == 1 {
                                             print("Num == \(num)")
                                             self.selectedParentIndex = num
                                             self.currentTabIndex = num
+                                            self.animateCommunication = false
+                                            self.animateAED = true
                                         } else if num == 2 {
                                             print("Num == \(num)")
                                             self.showSubscriptionsSheet.toggle()
@@ -84,7 +114,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                   
+                    
                     .padding(.top, 12)
                     .padding(.bottom, 12)
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
@@ -96,7 +126,14 @@ struct ContentView: View {
                             Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         }
                     }
-                    
+                    .onAppear {
+                        if !self.authenticated {
+                            self.currentTabIndex = 0
+                            self.animateCommunication = true
+                            self.animateAED = false
+                            self.showSubscriptionsSheet.toggle()
+                        }
+                    }
                 }.edgesIgnoringSafeArea(.bottom)
             }.edgesIgnoringSafeArea(.all)
         }
