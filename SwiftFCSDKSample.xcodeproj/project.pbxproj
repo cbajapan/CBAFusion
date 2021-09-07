@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0908679A26E70CA400A83602 /* CallKitController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679926E70CA400A83602 /* CallKitController.swift */; };
+		0908679C26E7590A00A83602 /* PushController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679B26E7590A00A83602 /* PushController.swift */; };
+		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
 		094C313B26E03658007C6A35 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313A26E03658007C6A35 /* Contacts.swift */; };
 		094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313D26E03729007C6A35 /* ContactsCell.swift */; };
 		094C314026E0497F007C6A35 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313F26E0497F007C6A35 /* Welcome.swift */; };
@@ -58,6 +61,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0908679926E70CA400A83602 /* CallKitController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitController.swift; sourceTree = "<group>"; };
+		0908679B26E7590A00A83602 /* PushController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushController.swift; sourceTree = "<group>"; };
+		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
 		094C313A26E03658007C6A35 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		094C313D26E03729007C6A35 /* ContactsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsCell.swift; sourceTree = "<group>"; };
 		094C313F26E0497F007C6A35 /* Welcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
@@ -122,6 +128,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0908679826E70C8300A83602 /* CallKitController */ = {
+			isa = PBXGroup;
+			children = (
+				0908679926E70CA400A83602 /* CallKitController.swift */,
+				0908679B26E7590A00A83602 /* PushController.swift */,
+			);
+			path = CallKitController;
+			sourceTree = "<group>";
+		};
+		0908679F26E75AD900A83602 /* PiP */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = PiP;
+			sourceTree = "<group>";
+		};
 		094C313C26E0370C007C6A35 /* Communication */ = {
 			isa = PBXGroup;
 			children = (
@@ -136,6 +158,7 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
+				0908679D26E75AAE00A83602 /* ringring.wav */,
 				09E3CE9726DE274E00249DD8 /* swift-fcsdk */,
 				094EE33926DCE5AA008C1637 /* SwiftFCSDKSample */,
 				094EE30226DCE211008C1637 /* Products */,
@@ -156,6 +179,8 @@
 		094EE30326DCE211008C1637 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				0908679F26E75AD900A83602 /* PiP */,
+				0908679826E70C8300A83602 /* CallKitController */,
 				09EDF6B026DF403800B34664 /* UIKit */,
 				09EDF6AD26DF3F1300B34664 /* UIViewControllerRespresentable */,
 				09EDF6B726DF83D200B34664 /* UIViewRepresentable */,
@@ -465,6 +490,7 @@
 			files = (
 				094EE30C26DCE212008C1637 /* Preview Assets.xcassets in Resources */,
 				094EE30926DCE212008C1637 /* Assets.xcassets in Resources */,
+				0908679E26E75AAE00A83602 /* ringring.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -508,9 +534,11 @@
 				09EDF6B626DF442C00B34664 /* UIView+Extension.swift in Sources */,
 				09EDF6B426DF410400B34664 /* ViewController.swift in Sources */,
 				09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */,
+				0908679A26E70CA400A83602 /* CallKitController.swift in Sources */,
 				09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */,
 				09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */,
 				094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */,
+				0908679C26E7590A00A83602 /* PushController.swift in Sources */,
 				094C314026E0497F007C6A35 /* Welcome.swift in Sources */,
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
@@ -672,6 +700,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SwiftFCSDKSample/SwiftFCSDKSample.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -696,6 +725,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -709,6 +740,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SwiftFCSDKSample/SwiftFCSDKSample.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -733,6 +765,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

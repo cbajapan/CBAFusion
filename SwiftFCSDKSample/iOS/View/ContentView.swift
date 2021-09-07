@@ -19,7 +19,7 @@ struct ContentView: View {
 
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
-    @State var authenticated = false
+    @State var authenticated = true
     @State var currentTabIndex = 0
     @State var animateCommunication = false
     @State var animateAED = false

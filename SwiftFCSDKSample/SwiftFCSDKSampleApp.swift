@@ -14,6 +14,11 @@ struct SwiftFCSDKSampleApp: App {
     @StateObject private var authenticationService = AuthenticationService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     
+    init() {
+        _ = PushController()
+    }
+    
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
