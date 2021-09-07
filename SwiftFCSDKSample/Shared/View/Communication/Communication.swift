@@ -20,83 +20,106 @@ struct Communication: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-                if self.inCall {
-                    CommunicationViewControllerRepresenable(contact: self.$contact)
-                      .ignoresSafeArea(.all)
+            if self.inCall {
+                CommunicationViewControllerRepresenable(contact: self.$contact)
+                    .ignoresSafeArea(.all)
+                if self.showDetails {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.3))
+                        .animation(.easeInOut(duration: 1))
+                        .edgesIgnoringSafeArea(.all)
+                }
+                VStack(alignment: .trailing) {
                     if self.showDetails {
-                        Rectangle()
-                            .fill(Color.black.opacity(0.3))
-                            .animation(.easeInOut(duration: 1))
-                            .edgesIgnoringSafeArea(.all)
+                        HStack(alignment: .top) {
+                            Button {
+                                self.showSettings = true
+                            } label: {
+                                Text("Settings")
+                                    .fontWeight(.bold)
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundColor(Color.blue)
+                                    .padding()
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                Text(self.contact.name)
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(Color.white)
+                                    .padding()
+                            }
+                        }
                     }
-                    VStack(alignment: .trailing) {
-                        if self.showDetails {
-                            HStack(alignment: .top) {
-                                Button {
-                                    self.showSettings = true
-                                } label: {
-                                    Text("Settings")
-                                        .fontWeight(.bold)
-                                        .multilineTextAlignment(.leading)
-                                        .foregroundColor(Color.blue)
-                                        .padding()
-                                }
-                                Spacer()
-                                VStack(alignment: .trailing) {
-                                    Text(self.contact.name)
-                                        .multilineTextAlignment(.trailing)
-                                        .foregroundColor(Color.white)
-                                        .padding()
-                                }
+                    Spacer()
+                    HStack(alignment: .center) {
+                        Spacer()
+                        Button {
+                            self.hold.toggle()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(self.hold ? Color.white : Color.gray)
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "nosign")
+                                    .resizable()
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(self.hold ? Color.gray : Color.white)
+                                    .frame(width: 25, height: 25)
+                                    .padding()
+                            }
+                        }
+                        Button {
+                            self.muteAudio.toggle()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(self.muteAudio ? Color.white : Color.gray)
+                                    .frame(width: 50, height: 50)
+                            Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.fill")
+                                .resizable()
+                                .frame(width: 25, height: 13)
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
+                                .padding()
+                            }
+                        }
+                        Button {
+                            self.muteVideo.toggle()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(self.muteVideo ? Color.white : Color.gray)
+                                    .frame(width: 50, height: 50)
+                            Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
+                                .resizable()
+                                .frame(width: 25, height: 13)
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
+                                .padding()
+                            }
+                        }
+                        Button {
+                            self.callStarted = false
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "phone.down.fill")
+                                    .resizable()
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 25, height: 13)
+                                    .padding()
                             }
                         }
                         Spacer()
-                        HStack {
-                            Button {
-                                self.hold.toggle()
-                            } label: {
-                                Text( self.hold ? "On Hold" : "Hold Call")
-                                    .bold()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.hold ? Color.gray : Color.green)
-                                    .padding()
-                            }
-                            Button {
-                                self.muteAudio.toggle()
-                            } label: {
-                                Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.fill")
-                                    .resizable()
-                                    .frame(width: 40, height: 30)
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
-                                    .padding()
-                            }
-                            Button {
-                                self.muteVideo.toggle()
-                            } label: {
-                                Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
-                                    .resizable()
-                                    .frame(width: 40, height: 30)
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
-                                    .padding()
-                            }
-                            Button {
-                                self.callStarted = false
-                            } label: {
-                                Image(systemName: "phone.down.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 20)
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(Color.red)
-                                    .padding()
-                            }
-                        }
                     }
-                    .animation(.easeInOut(duration: 1))
-                    .frame(alignment: .trailing)
-                    .navigationBarHidden(true)
                 }
+                .animation(.easeInOut(duration: 1))
+                .frame(alignment: .trailing)
+                .navigationBarHidden(true)
+            }
         }
         .onTapGesture {
             self.showDetails = true
