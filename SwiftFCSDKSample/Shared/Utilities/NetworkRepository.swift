@@ -19,7 +19,16 @@ class NetworkRepository: NSObject {
         let url = "\(scheme)://\(loginReq.server):\(loginReq.port)/csdk-sample/SDK/login"
         print(url, "URL")
         let body = try? JSONEncoder().encode(loginReq.requestLoginObject())
-        return NetworkManager.shared.codableNetworkWrapper(urlString: url, httpMethod: "POST", httpBody: body)
+        return NetworkManager.shared.combineCodableNetworkWrapper(urlString: url, httpMethod: "POST", httpBody: body)
+    }
+    
+    func asyncLogin(loginReq: LoginViewModel) async -> LoginResponse {
+        let scheme = loginReq.secureSwitch ? "https" : "http"
+        let url = "\(scheme)://\(loginReq.server):\(loginReq.port)/csdk-sample/SDK/login"
+        print(url, "URL")
+        let body = try? JSONEncoder().encode(loginReq.requestLoginObject())
+        let data = try! await NetworkManager.shared.asyncCodableNetworkWrapper(type: LoginResponse.self, urlString: url, httpMethod: "POST", httpBody: body)
+        return data
     }
     
     

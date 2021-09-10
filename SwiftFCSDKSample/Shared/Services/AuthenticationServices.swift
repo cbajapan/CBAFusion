@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 import ACBClientSDK
+import SwiftUI
+
 
 class AuthenticationService: NSObject, ObservableObject {
     
@@ -22,10 +24,11 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
+    @Published var connectedToSocket = false
     var subscriptions = Set<AnyCancellable>()
     var acbuc: ACBUC?
     
-    func loginUser(networkStatus: Bool) {
+    func loginUser(networkStatus: Bool) async {
         let loginCredentials = LoginViewModel(login:
                                                 Login(
                                                     username: username,
@@ -46,22 +49,31 @@ class AuthenticationService: NSObject, ObservableObject {
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
-        NetworkRepository.shared.login(loginReq: loginCredentials)
-            .sink { completion in
-                switch completion {
-                case let .failure(error):
-                    print("Couldn't Login user: \(error)")
-                case .finished: break
-                }
-            } receiveValue: { [weak self] payload in
-                guard let _ = self else { return }
-                print(payload, "Payload")
-                AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-            }
-            .store(in: &subscriptions)
+            let payload = await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
+            print(payload, "Payload")
+            await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
+            self.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
+        
+        
+//        else {
+//            NetworkRepository.shared.login(loginReq: loginCredentials)
+//                .sink { completion in
+//                    switch completion {
+//                    case let .failure(error):
+//                        print("Couldn't Login user: \(error)")
+//                    case .finished: break
+//                    }
+//                } receiveValue: { [weak self] payload in
+//                    guard let strongSelf = self else { return }
+//                    print(payload, "Payload")
+//                    await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
+//                    strongSelf.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
+//                }
+//                .store(in: &subscriptions)
+//        }
     }
-
-    class func createSession(sessionid: String, networkStatus: Bool) {
+    
+    class func createSession(sessionid: String, networkStatus: Bool) async {
         AuthenticationService.shared.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: AuthenticationService.shared.self)
         AuthenticationService.shared.acbuc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
@@ -71,6 +83,7 @@ class AuthenticationService: NSObject, ObservableObject {
         AuthenticationService.shared.acbuc?.startSession()
     }
 }
+
 
 extension AuthenticationService: ACBUCDelegate {
     

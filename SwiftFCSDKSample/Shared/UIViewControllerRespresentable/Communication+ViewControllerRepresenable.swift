@@ -11,11 +11,13 @@ import SwiftUI
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
 
     @Binding var contact: Contact
+    @Binding var pip: Bool
     let communicationViewController: CommunicationViewController
     
 
-    init(contact: Binding<Contact>) {
+    init(contact: Binding<Contact>, pip: Binding<Bool>) {
         self._contact = contact
+        self._pip = pip
         communicationViewController = CommunicationViewController()
     }
     
@@ -35,10 +37,11 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     }
     
     
-    func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) -> UIViewController {
+    func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) -> CommunicationViewController {
         return communicationViewController
     }
     
-    func updateUIViewController(_ uiViewController: UIViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
+    func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
+        uiViewController.showPip(show: self.pip)
     }
 }

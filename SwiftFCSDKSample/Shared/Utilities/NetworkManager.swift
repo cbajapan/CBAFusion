@@ -10,9 +10,17 @@ import Combine
 
 class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     
+    
+    enum NetworkErrors: Swift.Error {
+        case requestFailed(String)
+        case responseUnsuccessful(String)
+        case jsonConversionFailure(String)
+    }
+    
+    
     static let shared = NetworkManager()
     
-    func codableNetworkWrapper<T: Codable>(
+    func combineCodableNetworkWrapper<T: Codable>(
         urlString: String,
         httpMethod: String,
         httpBody: Data? = nil,
@@ -54,6 +62,48 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
+    }
+    
+    func asyncCodableNetworkWrapper<T: Codable>(
+        type: T.Type,
+        urlString: String,
+        httpMethod: String,
+        httpBody: Data? = nil,
+        headerField: String = "",
+        headerValue: String = ""
+    ) async throws -> T {
+        
+        let url = URL(string: urlString)
+        var request = URLRequest(url: url!)
+        request.httpMethod = httpMethod
+        
+        if httpMethod == "POST" || httpMethod == "PUT" {
+            request.httpBody = httpBody
+        }
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let allCookies = HTTPCookieStorage.shared.cookies
+        for cookie in allCookies ?? [] {
+            HTTPCookieStorage.shared.deleteCookie(cookie)
+        }
+        
+        let configuration = URLSessionConfiguration.default
+        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkErrors.requestFailed("unvalid response")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
+        }
+        do {
+            let decoder = JSONDecoder()
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw NetworkErrors.jsonConversionFailure(error.localizedDescription)
+        }
     }
     
     

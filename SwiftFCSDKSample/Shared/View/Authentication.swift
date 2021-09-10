@@ -18,10 +18,11 @@ struct Authentication: View {
     @State private var setCookies = true
     @State private var setTrust = true
     @EnvironmentObject var monitor: NetworkMonitor
-    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @Environment(\.presentationMode) var presentationMode
     @Binding var currentTabIndex: Int
     @Binding var showSubscriptionsSheet: Bool
+    
     var parentTabIndex: Int
     
     var body: some View {
@@ -54,9 +55,11 @@ struct Authentication: View {
                 }
                 Button {
                     print("Login")
-                    self.login()
+                    Task {
+                        await self.login()
+                    }
                 } label: {
-                        Text("Login")
+                    Text("Login")
                 }
             }
             .navigationBarTitle("Authentication")
@@ -65,12 +68,16 @@ struct Authentication: View {
             self.currentTabIndex = self.parentTabIndex
         }
         .onTapGesture {
-//            hideKeyboard()
+            //            hideKeyboard()
         }
     }
     
-    private func login() {
-        self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+    private func login() async {
+        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+print(self.authenticationService.connectedToSocket, "CONNECTED?")
+        if self.authenticationService.connectedToSocket {
+            self.presentationMode.wrappedValue.dismiss()
+        }
     }
 }
 

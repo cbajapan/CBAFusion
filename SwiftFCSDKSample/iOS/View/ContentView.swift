@@ -16,10 +16,9 @@ extension AnyTransition {
 
 struct ContentView: View {
     
-
+    @EnvironmentObject private var authenticationService: AuthenticationService
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
-    @State var authenticated = true
     @State var currentTabIndex = 0
     @State var animateCommunication = false
     @State var animateAED = false
@@ -30,22 +29,22 @@ struct ContentView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
-                        if authenticated {
-                            Contacts()
+                        if self.authenticationService.connectedToSocket {
+                            Contacts(call: FCSDKCall(handle: ""))
                         } else {
                             if self.animateCommunication {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                                    .animation(.easeInOut(duration: 1.5))
+                                    .animation(.easeInOut(duration: 1), value: 1)
                                     .transition(.moveAndFade)
                             }
                         }
                     } else if currentTabIndex == 1 {
-                        if authenticated {
+                        if self.authenticationService.connectedToSocket {
                             AED()
                         } else {
                             if self.animateAED {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                                    .animation(.easeInOut(duration: 1.5))
+                                    .animation(.easeInOut(duration: 1), value: 1)
                                     .transition(.moveAndFade)
                             }
                         }
@@ -103,7 +102,7 @@ struct ContentView: View {
                                                     .foregroundColor(currentTabIndex == num ? .blue : .white)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                                                Text(self.authenticated ? "Session" : "Authenticate")
+                                                Text(self.self.authenticationService.connectedToSocket ? "Session" : "Authenticate")
                                                     .font(.system(size: 12))
                                                     .foregroundColor(currentTabIndex == num ? .blue : .white)
                                             }
@@ -120,14 +119,14 @@ struct ContentView: View {
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {
-                        if self.authenticated {
+                        if self.self.authenticationService.connectedToSocket {
                             Session(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         } else {
                             Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         }
                     }
                     .onAppear {
-                        if !self.authenticated {
+                        if !self.authenticationService.connectedToSocket {
                             self.currentTabIndex = 0
                             self.animateCommunication = true
                             self.animateAED = false

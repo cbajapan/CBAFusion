@@ -19,8 +19,10 @@ final class CallKitController: NSObject, CXProviderDelegate {
     
     
     internal let provider: CXProvider?
+    internal let callKitManager: CallKitManager
     
-    override init() {
+    init(callKitManager: CallKitManager) {
+        self.callKitManager = callKitManager
         self.provider = CXProvider(configuration: providerConfiguration)
         super.init()
         self.provider?.setDelegate(self, queue: nil)

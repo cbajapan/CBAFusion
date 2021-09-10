@@ -17,8 +17,8 @@ final class PushController: NSObject, PKPushRegistryDelegate {
     let pushRegistry = PKPushRegistry(queue: DispatchQueue.main)
     
     
-    override init() {
-        self.callkitController = CallKitController()
+    init(callKitManager: CallKitManager) {
+        self.callkitController = CallKitController(callKitManager: callKitManager)
         super.init()
         self.pushRegistry.delegate = self
         self.pushRegistry.desiredPushTypes = [.voIP]

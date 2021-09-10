@@ -19,6 +19,6 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>VoIP Calls</string>
 	<key>CFBundleIdentifier</key>
-	<string></string>
+	<string>com.cba-japan.SwiftFCSDKSample</string>
 </dict>
 </plist>

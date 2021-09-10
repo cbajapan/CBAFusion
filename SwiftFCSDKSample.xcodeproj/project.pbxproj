@@ -20,6 +20,10 @@
 		094EE30C26DCE212008C1637 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 094EE30B26DCE212008C1637 /* Preview Assets.xcassets */; };
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
+		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
+		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
+		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
+		099F54B526E88AAB005500BF /* CallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B426E88AAB005500BF /* CallSheet.swift */; };
 		09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A026DDAD0700B73ADA /* Communication.swift */; };
 		09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A226DDAD1200B73ADA /* AED.swift */; };
 		09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A426DDAD1E00B73ADA /* Session.swift */; };
@@ -78,6 +82,10 @@
 		094EE31B26DCE212008C1637 /* SwiftFCSDKSampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftFCSDKSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
+		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
+		099F54B226E88239005500BF /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
+		099F54B426E88AAB005500BF /* CallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallSheet.swift; sourceTree = "<group>"; };
 		09B4A0A026DDAD0700B73ADA /* Communication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Communication.swift; sourceTree = "<group>"; };
 		09B4A0A226DDAD1200B73ADA /* AED.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AED.swift; sourceTree = "<group>"; };
 		09B4A0A426DDAD1E00B73ADA /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
@@ -133,6 +141,7 @@
 			children = (
 				0908679926E70CA400A83602 /* CallKitController.swift */,
 				0908679B26E7590A00A83602 /* PushController.swift */,
+				099F54B226E88239005500BF /* CallKitManager.swift */,
 			);
 			path = CallKitController;
 			sourceTree = "<group>";
@@ -140,6 +149,8 @@
 		0908679F26E75AD900A83602 /* PiP */ = {
 			isa = PBXGroup;
 			children = (
+				099F54AE26E87873005500BF /* PlayerView.swift */,
+				099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */,
 			);
 			path = PiP;
 			sourceTree = "<group>";
@@ -151,6 +162,7 @@
 				094C313A26E03658007C6A35 /* Contacts.swift */,
 				094C313D26E03729007C6A35 /* ContactsCell.swift */,
 				094C314126E078A8007C6A35 /* SettingsSheet.swift */,
+				099F54B426E88AAB005500BF /* CallSheet.swift */,
 			);
 			path = Communication;
 			sourceTree = "<group>";
@@ -519,11 +531,14 @@
 				09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */,
 				094C314226E078A8007C6A35 /* SettingsSheet.swift in Sources */,
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
+				099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */,
 				094C313B26E03658007C6A35 /* Contacts.swift in Sources */,
 				09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */,
 				09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */,
 				09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */,
 				094EE30726DCE211008C1637 /* ContentView.swift in Sources */,
+				099F54AF26E87873005500BF /* PlayerView.swift in Sources */,
+				099F54B326E88239005500BF /* CallKitManager.swift in Sources */,
 				09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */,
 				094EE30526DCE211008C1637 /* SwiftFCSDKSampleApp.swift in Sources */,
 				09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */,
@@ -543,6 +558,7 @@
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
 				09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */,
+				099F54B526E88AAB005500BF /* CallSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -717,7 +733,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -757,7 +773,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
