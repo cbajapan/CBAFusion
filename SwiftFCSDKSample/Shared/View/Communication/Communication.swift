@@ -20,24 +20,23 @@ struct Communication: View {
     @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var callKitManager: CallKitManager
-    @ObservedObject var call: FCSDKCall
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            if self.call.hasStartedConnecting {
+            if self.callKitManager.calls.last?.hasStartedConnecting != nil {
                 Text("Started Connecting")
             }
-            if self.call.hasConnected {
+            else if self.callKitManager.calls.last?.hasConnected != nil {
                 CommunicationViewControllerRepresenable(contact: self.$contact, pip: self.$pip)
                     .ignoresSafeArea(.all)
             }
-            if self.call.isOutgoing {
+            else if self.callKitManager.calls.last?.isOutgoing != nil {
                 Text("Is Outgoing")
             }
-            if self.call.isOnHold {
+            else if self.callKitManager.calls.last?.isOnHold != nil {
                 Text("Is on Hold")
             }
-            if self.call.hasEnded {
+            else if self.callKitManager.calls.last?.hasEnded != nil {
                 Text("Has Ended")
             }
             if self.showDetails {
@@ -133,7 +132,7 @@ struct Communication: View {
                     }
                     Button {
                         Task {
-                            await self.callKitManager.finishEnd(call: self.call)
+                            await self.endCall()
                             self.presentationMode.wrappedValue.dismiss()
                         }
                       
@@ -170,13 +169,15 @@ struct Communication: View {
     }
     
     func endCall() async {
-        await self.callKitManager.finishEnd(call: self.call)
-        
+        //TODO: We have an issue with call.uuid being different from created UUID, Why????
+        guard let call = self.callKitManager.calls.last else { return }
+        await self.callKitManager.finishEnd(call: call)
+        await self.callKitManager.removeCall(call: call)
     }
 }
 
 struct Communication_Previews: PreviewProvider {
     static var previews: some View {
-        Communication(contact: .constant(Contact(name: "", number: "", icon: "")), showFullSheet: .constant(.callSheet), call: FCSDKCall(handle: ""))
+        Communication(contact: .constant(Contact(name: "", number: "", icon: "")), showFullSheet: .constant(.callSheet))
     }
 }

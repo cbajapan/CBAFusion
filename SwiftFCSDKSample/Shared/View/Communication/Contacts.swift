@@ -14,7 +14,6 @@ struct Contacts: View {
     @State var showFullSheet: ActiveSheet?
     @State var callStarted: Bool = false
     @State var contact: Contact = Contact(name: "", number: "", icon: "")
-    @ObservedObject var call: FCSDKCall
     
     var body: some View {
         NavigationView {
@@ -43,7 +42,7 @@ struct Contacts: View {
             case .callSheet:
                 CallSheet(callStarted: self.$callStarted, showFullSheet: self.$showFullSheet)
             case .communincationSheet:
-                Communication(contact: self.$contact, showFullSheet: self.$showFullSheet, call: self.call)
+                Communication(contact: self.$contact, showFullSheet: self.$showFullSheet)
             }
         }
     }
@@ -60,6 +59,6 @@ enum ActiveSheet: Identifiable {
 
 struct Contacts_Previews: PreviewProvider {
     static var previews: some View {
-        Contacts(contact: Contact(name: "", number: "", icon: ""), call: FCSDKCall(handle: ""))
+        Contacts(contact: Contact(name: "", number: "", icon: ""))
     }
 }

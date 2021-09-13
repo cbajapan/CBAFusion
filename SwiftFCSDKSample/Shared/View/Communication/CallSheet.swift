@@ -9,13 +9,13 @@ import SwiftUI
 
 struct CallSheet: View {
     
-    @State var destination: String = ""
-    @State var hasVideo: Bool = false
+    @State private var destination: String = ""
+    @State private var hasVideo: Bool = false
     @Binding var callStarted: Bool
     @Binding var showFullSheet: ActiveSheet?
-    @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var callKitManager: CallKitManager
-    
+    @Environment(\.presentationMode) private var presentationMode
+    @EnvironmentObject private var callKitManager: CallKitManager
+
     var body: some View {
         NavigationView {
             Form {

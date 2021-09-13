@@ -16,13 +16,12 @@ enum CallKitErrors: Swift.Error {
 final class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
+    @Published private(set) var calls = [FCSDKCall]()
     
     func makeCall(handle: String, hasVideo: Bool = false) async {
-        let handle = CXHandle(type: .generic, value: handle)
+        let handle = CXHandle(type: .phoneNumber, value: handle)
         let startCallAction = CXStartCallAction(call: UUID(), handle: handle)
-        
         startCallAction.isVideo = hasVideo
-        
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
         
@@ -54,8 +53,6 @@ final class CallKitManager: NSObject, ObservableObject {
             throw CallKitErrors.failedRequestTransaction("There was an error in \(#function) Error: \(error)")
         }
     }
-
-    @Published private(set) var calls = [FCSDKCall]()
     
     func callWithUUID(uuid: UUID) -> FCSDKCall? {
         guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
@@ -66,7 +63,7 @@ final class CallKitManager: NSObject, ObservableObject {
         calls.append(call)
     }
     
-    func removeCall(call: FCSDKCall) {
+    func removeCall(call: FCSDKCall) async {
         guard let index = calls.firstIndex(where: { $0 === call }) else { return }
         calls.remove(at: index)
     }
@@ -82,9 +79,9 @@ final class CallKitManager: NSObject, ObservableObject {
 
 final class FCSDKCall: ObservableObject {
     
-    let uuid = UUID()
-    let handle: String
-    let isOutgoing: Bool
+    @Published var uuid = UUID()
+    @Published var handle: String
+    @Published var isOutgoing: Bool
     
     //Callbacks
     var stateDidChange: (() -> Void)?

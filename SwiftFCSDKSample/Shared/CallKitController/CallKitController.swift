@@ -48,28 +48,33 @@ final class CallKitController: NSObject, CXProviderDelegate {
     
     //Answer Call
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        print("answer call action")
         action.fulfill()
     }
     
     
     //Start Call
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+        print("start call action")
         action.fulfill()
     }
     
     //End Call
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        print("end call action")
         action.fulfill()
     }
     
     //Mute Call
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
+        print("mute call action")
         action.fulfill()
     }
     
     //Timeout action
     func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
         print("Timed Out")
+        action.fulfill()
     }
     
     //Did Activate audio session
@@ -101,6 +106,7 @@ final class CallKitController: NSObject, CXProviderDelegate {
     
     //setGroup Call
 func provider(_ provider: CXProvider, perform action: CXSetGroupCallAction) {
+    print("set group call")
     action.fulfill()
 }
     

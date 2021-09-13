@@ -30,7 +30,7 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
                         if self.authenticationService.connectedToSocket {
-                            Contacts(call: FCSDKCall(handle: ""))
+                            Contacts()
                         } else {
                             if self.animateCommunication {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)

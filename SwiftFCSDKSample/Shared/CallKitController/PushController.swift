@@ -34,12 +34,13 @@ final class PushController: NSObject, PKPushRegistryDelegate {
            let identifier = payload.dictionaryPayload["identifier"] as? String,
            let uuid = UUID(uuidString: uuidString) {
             let update = CXCallUpdate()
-            update.remoteHandle = CXHandle(type: .generic, value: identifier)
+            update.remoteHandle = CXHandle(type: .phoneNumber, value: identifier)
             update.hasVideo = true
             update.localizedCallerName = identifier
             self.callkitController?.provider?.reportNewIncomingCall(with: uuid, update: update) { error in
                 print(error, "ERROR")
             }
+            print(uuid, "PUSHY")
         }
     }
     

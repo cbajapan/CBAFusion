@@ -15,8 +15,8 @@ struct SwiftFCSDKSampleApp: App {
     
     @StateObject private var authenticationService = AuthenticationService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
-    @State var callKitController: CallKitController?
     @StateObject private var callKitManager = CallKitManager()
+    @State var callKitController: CallKitController?
     
     init() {
         let audioSession = AVAudioSession.sharedInstance()
