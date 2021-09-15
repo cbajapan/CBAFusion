@@ -12,7 +12,7 @@ import AVKit
 @main
 struct SwiftFCSDKSampleApp: App {
     
-    
+    @Environment(\.scenePhase) var scenePhase
     @StateObject private var authenticationService = AuthenticationService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
@@ -21,9 +21,9 @@ struct SwiftFCSDKSampleApp: App {
     init() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
-          try audioSession.setCategory(.playback, mode: .moviePlayback)
+            try audioSession.setCategory(.playback, mode: .moviePlayback)
         } catch {
-          print("Failed to set audioSession category to playback")
+            print("Failed to set audioSession category to playback")
         }
     }
     
@@ -37,7 +37,20 @@ struct SwiftFCSDKSampleApp: App {
                 .onAppear {
                     _ = PushController(callKitManager: callKitManager)
                     self.callKitController = CallKitController(callKitManager: callKitManager)
+                    AppSettings.registerDefaults()
                 }
+        }
+        .onChange(of: scenePhase) { (phase) in
+            switch phase {
+            case .active:
+                print("ScenePhase: active")
+            case .background:
+                print("ScenePhase: background")
+            case .inactive:
+                print("ScenePhase: inactive")
+            @unknown default:
+                print("ScenePhase: unexpected state")
+            }
         }
     }
 }

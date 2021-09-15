@@ -49,7 +49,6 @@ struct CallSheet: View {
     
     func makeCall() async {
         await self.callKitManager.makeCall(handle: self.destination, hasVideo: self.hasVideo)
-        await self.callKitManager.addCalls(call: FCSDKCall(handle: self.destination, isOutgoing: self.hasVideo))
         self.presentationMode.wrappedValue.dismiss()
         self.callStarted = true
         self.showFullSheet = .communincationSheet

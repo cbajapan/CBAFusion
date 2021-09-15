@@ -38,7 +38,7 @@ final class PushController: NSObject, PKPushRegistryDelegate {
             update.hasVideo = true
             update.localizedCallerName = identifier
             self.callkitController?.provider?.reportNewIncomingCall(with: uuid, update: update) { error in
-                print(error, "ERROR")
+                print(error as Any, "ERROR")
             }
             print(uuid, "PUSHY")
         }

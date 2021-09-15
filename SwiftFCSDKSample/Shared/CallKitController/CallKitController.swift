@@ -9,14 +9,9 @@ import Foundation
 import CallKit
 import UIKit
 import AVFoundation
-
-protocol CallKitProtocol: NSObject {
-    
-}
-
+import ACBClientSDK
 
 final class CallKitController: NSObject, CXProviderDelegate {
-    
     
     internal let provider: CXProvider?
     internal let callKitManager: CallKitManager
@@ -40,6 +35,21 @@ final class CallKitController: NSObject, CXProviderDelegate {
         return config
     }()
     
+    func configureAudioSession() {
+        // See https://forums.developer.apple.com/thread/64544
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(AVAudioSession.Category.playAndRecord, mode: .default)
+            try session.setActive(true)
+            try session.setMode(AVAudioSession.Mode.voiceChat)
+            try session.setPreferredSampleRate(44100.0)
+            try session.setPreferredIOBufferDuration(0.005)
+        } catch {
+            print(error)
+        }
+    }
+
+    
     
     /// We want to end any on going calls if the provider resets and remove them from the list of calls here
     func providerDidReset(_ provider: CXProvider) {
@@ -51,11 +61,27 @@ final class CallKitController: NSObject, CXProviderDelegate {
         print("answer call action")
         action.fulfill()
     }
-    
-    
+
+    var call: FCSDKCall?
     //Start Call
-    func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("start call action")
+
+        let call = FCSDKCall(uuid: action.callUUID, isOutgoing: true)
+        call.handle = action.handle.value
+        
+        configureAudioSession()
+        
+        call.hasStartedConnectingDidChange = { [weak self] in
+            self?.provider?.reportOutgoingCall(with: call.uuid, startedConnectingAt: call.connectingDate)
+        }
+        call.hasConnectedDidChange = { [weak self] in
+            self?.provider?.reportOutgoingCall(with: call.uuid, connectedAt: call.connectDate)
+        }
+        
+        
+        
+        self.outgoingCall = call
         action.fulfill()
     }
     
@@ -77,9 +103,12 @@ final class CallKitController: NSObject, CXProviderDelegate {
         action.fulfill()
     }
     
+    var outgoingCall: FCSDKCall?
     //Did Activate audio session
-    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        print("Activate")
+    @MainActor func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        print("Activate")        
+        outgoingCall?.startFCSDKCall()
+        self.callKitManager.addCalls(call: FCSDKCall(uuid: outgoingCall?.uuid ?? UUID(), isOutgoing: outgoingCall?.isOutgoing ?? true))
     }
     
     

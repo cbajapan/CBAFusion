@@ -10,15 +10,16 @@ import SwiftUI
 
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
 
-    @Binding var contact: Contact
+    @Binding var call: FCSDKCall
     @Binding var pip: Bool
     let communicationViewController: CommunicationViewController
     
 
-    init(contact: Binding<Contact>, pip: Binding<Bool>) {
-        self._contact = contact
+    init(call: Binding<FCSDKCall>, pip: Binding<Bool>) {
+        self._call = call
         self._pip = pip
         communicationViewController = CommunicationViewController()
+        print(_call, "CALL_____")
     }
     
     class Coordinator: NSObject {
@@ -43,5 +44,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
         uiViewController.showPip(show: self.pip)
+        uiViewController.videoView = call.videoView
+        uiViewController.previewView = call.previewView
     }
 }

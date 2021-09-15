@@ -7,6 +7,8 @@
 
 import Foundation
 import CallKit
+import ACBClientSDK
+import AVFAudio
 
 enum CallKitErrors: Swift.Error {
     case failedRequestTransaction(String)
@@ -16,7 +18,7 @@ enum CallKitErrors: Swift.Error {
 final class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
-    @Published private(set) var calls = [FCSDKCall]()
+    @Published var calls = [FCSDKCall]()
     
     func makeCall(handle: String, hasVideo: Bool = false) async {
         let handle = CXHandle(type: .phoneNumber, value: handle)
@@ -44,7 +46,7 @@ final class CallKitManager: NSObject, ObservableObject {
         try? await requestTransaction(transaction)
     }
     
-
+    
     
     private func requestTransaction(_ transaction: CXTransaction) async throws {
         do {
@@ -59,7 +61,7 @@ final class CallKitManager: NSObject, ObservableObject {
         return calls[index]
     }
     
-    func addCalls(call: FCSDKCall) async {
+    func addCalls(call: FCSDKCall) {
         calls.append(call)
     }
     
@@ -77,11 +79,20 @@ final class CallKitManager: NSObject, ObservableObject {
 
 
 
-final class FCSDKCall: ObservableObject {
+final class FCSDKCall: NSObject, ObservableObject, ACBClientCallDelegate, ACBClientPhoneDelegate {
     
-    @Published var uuid = UUID()
-    @Published var handle: String
+    var audioPlayer: AVAudioPlayer?
+    var lastIncomingCall: ACBClientCall?
+    var callIdentifier: UUID?
+    
+    @Published var uuid: UUID
+    @Published var handle: String?
     @Published var isOutgoing: Bool
+    @Published var previewView: ACBView?
+    @Published var videoView: ACBView?
+    
+    var acbuc: ACBUC?
+    var call: ACBClientCall?
     
     //Callbacks
     var stateDidChange: (() -> Void)?
@@ -153,24 +164,32 @@ final class FCSDKCall: ObservableObject {
         return Date().timeIntervalSince(connectDate)
     }
     
-    init(handle: String, isOutgoing: Bool = false) {
-        self.handle = handle
+    init(uuid: UUID, isOutgoing: Bool = false) {
+        self.uuid = uuid
         self.isOutgoing = isOutgoing
     }
     
-    func startFCSDKCall(completion: ((_ success: Bool) -> Void)?) {
-        completion?(true)
+    
+    func startFCSDKCall() {
+        let phone = AuthenticationService.shared.acbuc?.phone()
+        phone?.delegate = self
+        phone?.previewView = previewView
         
         
-        //This is just a simulation of connection
-        DispatchQueue.main.asyncAfter(wallDeadline: DispatchWallTime.now() + 3) {
-            self.hasStartedConnecting = true
-            
-            DispatchQueue.main.asyncAfter(wallDeadline: DispatchWallTime.now() + 1.5) {
-                self.hasConnected = true
-            }
-        }
+        self.requestMicrophoneAndCameraPermissionFromAppSettings()
+        
+        let outboundCall = AuthenticationService.shared.acbuc?.clientPhone?.createCall(
+            toAddress: self.handle,
+            withAudio: AppSettings.perferredAudioDirection(),
+            video: AppSettings.perferredVideoDirection(),
+            delegate: self
+        )
+        outboundCall?.videoView = videoView
+        
+        self.call = outboundCall
+        
     }
+
     
     func answerFCSDKCall() {
         hasConnected = true
@@ -179,5 +198,121 @@ final class FCSDKCall: ObservableObject {
     func endFCSDKCall() {
         hasEnded = true
     }
+    
+    
+    func requestMicrophoneAndCameraPermissionFromAppSettings() {
+        let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
+        let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
+        ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
+    }
+    
+}
+
+
+extension FCSDKCall {
+    
+    
+    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall?) {
+    }
+    
+    func playRingtone() {
+        let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
+        let fileURL = URL(fileURLWithPath: path!)
+        
+        self.audioPlayer = try? AVAudioPlayer(contentsOf: fileURL)
+        self.audioPlayer?.volume = 1.0
+        self.audioPlayer?.numberOfLoops = -1
+        self.audioPlayer?.prepareToPlay()
+        self.audioPlayer?.play()
+    }
+    
+    func stopRingtone() {
+        guard let player = self.audioPlayer else { return }
+        player.stop()
+    }
+    
+    func stopRingingIfNoOtherCallIsRinging(call: ACBClientCall?) {
+        if (self.lastIncomingCall != nil) && (self.lastIncomingCall != call) {
+            return
+        }
+        
+        let status = self.call?.status
+        if (status == .ringing) || (status == .alerting) {
+            return
+        }
+        
+        stopRingtone()
+    }
+    
+    func updateUIForEndedCall(call: ACBClientCall) {
+        if call == self.lastIncomingCall {
+            self.lastIncomingCall = nil
+            //Need Alert View
+            //            self.lastIncomingCallAlert
+            //Need Local Notification Maybe???
+            
+            self.stopRingingIfNoOtherCallIsRinging(call: nil)
+            self.switchToNotInCallUI()
+            
+        }
+    }
+    
+    func switchToNotInCallUI() {
+        //TODO: - Hide any UI that is needed
+    }
+    
+    func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
+        switch status {
+        case .setup:
+            self.playRingtone()
+        case .alerting:
+            break
+        case .ringing:
+            break
+        case .mediaPending:
+            break
+        case .inCall:
+            guard let c = call else { return }
+            self.stopRingingIfNoOtherCallIsRinging(call: c)
+        case .timedOut:
+            guard let c = call else { return }
+            self.updateUIForEndedCall(call: c)
+            if self.callIdentifier != nil {
+                self.call?.end()
+                self.lastIncomingCall?.end()
+            }
+            self.callIdentifier = nil
+        case .busy:
+            guard let c = call else { return }
+            self.updateUIForEndedCall(call: c)
+            if self.callIdentifier != nil {
+                self.call?.end()
+                self.lastIncomingCall?.end()
+            }
+            self.callIdentifier = nil
+        case .notFound:
+            break
+        case .error:
+            break
+        case .ended:
+            guard let c = call else { return }
+            self.updateUIForEndedCall(call: c)
+            if self.callIdentifier != nil {
+                self.call?.end()
+                self.lastIncomingCall?.end()
+            }
+            self.callIdentifier = nil
+        }
+    }
+    
+    
+    
+    //Receive calls with ACBClientSDK
+    func phone(_ phone: ACBClientPhone?, didReceive call: ACBClientCall?) {
+        
+    }
+    
+    
+    
     
 }

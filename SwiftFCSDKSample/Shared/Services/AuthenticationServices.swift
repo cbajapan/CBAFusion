@@ -28,6 +28,8 @@ class AuthenticationService: NSObject, ObservableObject {
     var subscriptions = Set<AnyCancellable>()
     var acbuc: ACBUC?
     
+    
+    @MainActor
     func loginUser(networkStatus: Bool) async {
         let loginCredentials = LoginViewModel(login:
                                                 Login(
@@ -49,28 +51,28 @@ class AuthenticationService: NSObject, ObservableObject {
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
-            let payload = await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
-            print(payload, "Payload")
-            await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-            self.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
+        let payload = await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
+        await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
         
+        self.connectedToSocket = ((AuthenticationService.shared.acbuc?.connection()) != nil)
         
-//        else {
-//            NetworkRepository.shared.login(loginReq: loginCredentials)
-//                .sink { completion in
-//                    switch completion {
-//                    case let .failure(error):
-//                        print("Couldn't Login user: \(error)")
-//                    case .finished: break
-//                    }
-//                } receiveValue: { [weak self] payload in
-//                    guard let strongSelf = self else { return }
-//                    print(payload, "Payload")
-//                    await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-//                    strongSelf.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
-//                }
-//                .store(in: &subscriptions)
-//        }
+        /// Combine Stuff if you would like 
+        //        else {
+        //            NetworkRepository.shared.login(loginReq: loginCredentials)
+        //                .sink { completion in
+        //                    switch completion {
+        //                    case let .failure(error):
+        //                        print("Couldn't Login user: \(error)")
+        //                    case .finished: break
+        //                    }
+        //                } receiveValue: { [weak self] payload in
+        //                    guard let strongSelf = self else { return }
+        //                    print(payload, "Payload")
+        //                    await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
+        //                    strongSelf.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
+        //                }
+        //                .store(in: &subscriptions)
+        //        }
     }
     
     class func createSession(sessionid: String, networkStatus: Bool) async {

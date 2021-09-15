@@ -27,7 +27,7 @@ struct Communication: View {
                 Text("Started Connecting")
             }
             else if self.callKitManager.calls.last?.hasConnected != nil {
-                CommunicationViewControllerRepresenable(contact: self.$contact, pip: self.$pip)
+                CommunicationViewControllerRepresenable(call: self.$callKitManager.calls.last!, pip: self.$pip)
                     .ignoresSafeArea(.all)
             }
             else if self.callKitManager.calls.last?.isOutgoing != nil {

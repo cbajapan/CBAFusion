@@ -74,7 +74,7 @@ struct Authentication: View {
     
     private func login() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-print(self.authenticationService.connectedToSocket, "CONNECTED?")
+
         if self.authenticationService.connectedToSocket {
             self.presentationMode.wrappedValue.dismiss()
         }

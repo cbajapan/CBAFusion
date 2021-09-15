@@ -45,6 +45,7 @@
 		09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */; };
 		09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6BA26DF88A900B34664 /* View+Extension.swift */; };
 		09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6BC26DF8D6300B34664 /* TopicCell.swift */; };
+		09F318D326F019600069ED8D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F318D226F019600069ED8D /* AppSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +109,7 @@
 		09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoResizingTextView.swift; sourceTree = "<group>"; };
 		09EDF6BA26DF88A900B34664 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		09EDF6BC26DF8D6300B34664 /* TopicCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicCell.swift; sourceTree = "<group>"; };
+		09F318D226F019600069ED8D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -307,6 +309,7 @@
 				09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */,
 				09E3CE9126DE1F4E00249DD8 /* Keychain.swift */,
 				09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */,
+				09F318D226F019600069ED8D /* AppSettings.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -556,6 +559,7 @@
 				0908679C26E7590A00A83602 /* PushController.swift in Sources */,
 				094C314026E0497F007C6A35 /* Welcome.swift in Sources */,
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
+				09F318D326F019600069ED8D /* AppSettings.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
 				09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */,
 				099F54B526E88AAB005500BF /* CallSheet.swift in Sources */,

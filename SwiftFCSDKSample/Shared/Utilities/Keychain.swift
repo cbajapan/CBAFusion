@@ -92,7 +92,7 @@ struct KeychainItem {
             newItem[kSecValueData as String] = encodedPassword as AnyObject?
             
             // Add a the new item to the keychain.
-            let status = SecItemAdd(newItem as CFDictionary, nil)
+            let _ = SecItemAdd(newItem as CFDictionary, nil)
             
             // Throw an error if an unexpected status was returned.
 //            guard status == noErr else { throw KeychainError.unhandledError }

@@ -24,6 +24,8 @@ class CommunicationViewController: UIViewController {
         return lv
     }()
     var pipController: AVPictureInPictureController!
+    var previewView: ACBView?
+    var videoView: ACBView?
     
     override func viewDidLoad() {
         super.viewDidLoad()
