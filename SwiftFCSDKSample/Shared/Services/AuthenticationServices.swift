@@ -24,11 +24,14 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
+    @Published var sessionID = ""
     @Published var connectedToSocket = false
     var subscriptions = Set<AnyCancellable>()
     var acbuc: ACBUC?
     
     
+    
+    /// Authenticate the User
     @MainActor
     func loginUser(networkStatus: Bool) async {
         let loginCredentials = LoginViewModel(login:
@@ -51,11 +54,11 @@ class AuthenticationService: NSObject, ObservableObject {
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
-        let payload = await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
-        await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-        
-        self.connectedToSocket = ((AuthenticationService.shared.acbuc?.connection()) != nil)
-        
+        let payload = try? await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
+        self.sessionID = payload?.sessionid ?? ""
+        await AuthenticationService.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
+        self.connectedToSocket = AuthenticationService.shared.acbuc?.connection != nil
+     
         /// Combine Stuff if you would like 
         //        else {
         //            NetworkRepository.shared.login(loginReq: loginCredentials)
@@ -75,6 +78,8 @@ class AuthenticationService: NSObject, ObservableObject {
         //        }
     }
     
+    
+    /// Create the Session
     class func createSession(sessionid: String, networkStatus: Bool) async {
         AuthenticationService.shared.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: AuthenticationService.shared.self)
         AuthenticationService.shared.acbuc?.setNetworkReachable(networkStatus)
@@ -83,6 +88,34 @@ class AuthenticationService: NSObject, ObservableObject {
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         AuthenticationService.shared.acbuc?.useCookies = useCookies
         AuthenticationService.shared.acbuc?.startSession()
+    }
+    
+    
+    /// Logout and stop the session
+    @MainActor
+    func logout() async {
+        print("Logging out of server: \(server) with: \(username)")
+        let loginCredentials = LoginViewModel(login:
+                                                Login(
+                                                    username: username,
+                                                    password: password,
+                                                    server: server,
+                                                    port: port,
+                                                    secureSwitch: secureSwitch,
+                                                    useCookies: useCookies,
+                                                    acceptUntrustedCertificates: acceptUntrustedCertificates
+                                                ))
+        await stopSession()
+        await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
+        
+        //for now just mark false for user experience
+//        = AuthenticationService.shared.acbuc?.connection != nil
+        self.connectedToSocket = false
+    }
+    
+    /// Stop the Session
+    func stopSession() async {
+        AuthenticationService.shared.acbuc?.stopSession()
     }
 }
 

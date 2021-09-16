@@ -98,12 +98,49 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         guard httpResponse.statusCode == 200 else {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
         }
+        
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(T.self, from: data)
         } catch {
             throw NetworkErrors.jsonConversionFailure(error.localizedDescription)
         }
+    }
+    
+    func asyncNetworkWrapper(
+        urlString: String,
+        httpMethod: String,
+        httpBody: Data? = nil,
+        headerField: String = "",
+        headerValue: String = ""
+    ) async throws {
+        
+        let url = URL(string: urlString)
+        var request = URLRequest(url: url!)
+        request.httpMethod = httpMethod
+        
+        if httpMethod == "POST" || httpMethod == "PUT" {
+            request.httpBody = httpBody
+        }
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let allCookies = HTTPCookieStorage.shared.cookies
+        for cookie in allCookies ?? [] {
+            HTTPCookieStorage.shared.deleteCookie(cookie)
+        }
+        
+        let configuration = URLSessionConfiguration.default
+        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
+        let (_, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkErrors.requestFailed("unvalid response")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
+        }
+        print("Response_______", response)
     }
     
     

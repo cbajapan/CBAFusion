@@ -54,13 +54,13 @@ struct Authentication: View {
                     }
                 }
                 Button {
-                    print("Login")
                     Task {
                         await self.login()
                     }
                 } label: {
                     Text("Login")
                 }
+                .buttonStyle(.borderless)
             }
             .navigationBarTitle("Authentication")
         }
@@ -74,7 +74,7 @@ struct Authentication: View {
     
     private func login() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-
+        
         if self.authenticationService.connectedToSocket {
             self.presentationMode.wrappedValue.dismiss()
         }

@@ -13,3 +13,8 @@ struct LoginResponse: Codable {
     var voiceUser: String
     var voiceDomain: String
 }
+
+
+struct LogoutResponse: Codable {
+    var response: String
+}

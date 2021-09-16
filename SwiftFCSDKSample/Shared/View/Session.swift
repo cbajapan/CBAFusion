@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Session: View {
     
+    @EnvironmentObject private var authenticationService: AuthenticationService
     @Environment(\.presentationMode) var presentationMode
     @Binding var currentTabIndex: Int
     @Binding var showSubscriptionsSheet: Bool
@@ -17,7 +18,9 @@ struct Session: View {
     var body: some View {
         VStack {
             Button {
-                print("Logout")
+                Task {
+                    await self.logout()
+                }
             } label: {
                 Text("Logout")
                     .font(.title2)
@@ -28,6 +31,10 @@ struct Session: View {
         .onAppear {
             self.currentTabIndex = self.parentTabIndex
         }
+    }
+    
+    func logout() async {
+        await authenticationService.logout()
     }
 }
 
