@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ACBClientSDK
+import SwiftFCSDK
 
 
 struct AppSettings {

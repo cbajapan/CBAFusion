@@ -11,7 +11,6 @@ import Combine
 class NetworkRepository: NSObject {
     
     static let shared = NetworkRepository()
-    private var authenticationService = AuthenticationService()
     
     
     func login(loginReq: LoginViewModel) -> AnyPublisher<LoginResponse, Error> {

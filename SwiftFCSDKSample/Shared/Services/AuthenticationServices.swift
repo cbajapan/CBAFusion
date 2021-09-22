@@ -7,13 +7,11 @@
 
 import Foundation
 import Combine
-import ACBClientSDK
+import SwiftFCSDK
 import SwiftUI
 
 
 class AuthenticationService: NSObject, ObservableObject {
-    
-    static let shared = AuthenticationService()
     
     override init(){}
     
@@ -27,7 +25,7 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var sessionID = ""
     @Published var connectedToSocket = false
     var subscriptions = Set<AnyCancellable>()
-    var acbuc: ACBUC?
+    @Published var acbuc: ACBUC?
     
     
     
@@ -56,8 +54,8 @@ class AuthenticationService: NSObject, ObservableObject {
         
         let payload = try? await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
         self.sessionID = payload?.sessionid ?? ""
-        await AuthenticationService.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
-        self.connectedToSocket = AuthenticationService.shared.acbuc?.connection != nil
+        await self.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
+        self.connectedToSocket = self.acbuc?.connection != nil
      
         /// Combine Stuff if you would like 
         //        else {
@@ -80,14 +78,14 @@ class AuthenticationService: NSObject, ObservableObject {
     
     
     /// Create the Session
-    class func createSession(sessionid: String, networkStatus: Bool) async {
-        AuthenticationService.shared.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: AuthenticationService.shared.self)
-        AuthenticationService.shared.acbuc?.setNetworkReachable(networkStatus)
+     func createSession(sessionid: String, networkStatus: Bool) async {
+        self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
+         self.acbuc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
-        AuthenticationService.shared.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
+         self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
-        AuthenticationService.shared.acbuc?.useCookies = useCookies
-        AuthenticationService.shared.acbuc?.startSession()
+         self.acbuc?.useCookies = useCookies
+         self.acbuc?.startSession()
     }
     
     
@@ -110,12 +108,12 @@ class AuthenticationService: NSObject, ObservableObject {
         
         //for now just mark false for user experience
 //        = AuthenticationService.shared.acbuc?.connection != nil
-        self.connectedToSocket = false
+        self.connectedToSocket = self.acbuc?.connection != nil
     }
     
     /// Stop the Session
     func stopSession() async {
-        AuthenticationService.shared.acbuc?.stopSession()
+        self.acbuc?.stopSession()
     }
 }
 

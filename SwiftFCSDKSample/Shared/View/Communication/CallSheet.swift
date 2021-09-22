@@ -48,10 +48,10 @@ struct CallSheet: View {
     }
     
     func makeCall() async {
-        await self.callKitManager.makeCall(handle: self.destination, hasVideo: self.hasVideo)
         self.presentationMode.wrappedValue.dismiss()
         self.callStarted = true
         self.showFullSheet = .communincationSheet
+        await self.callKitManager.makeCall(handle: self.destination, hasVideo: self.hasVideo)
     }
 }
 

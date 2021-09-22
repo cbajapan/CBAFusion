@@ -35,8 +35,8 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .onAppear {
-                    _ = PushController(callKitManager: callKitManager)
-                    self.callKitController = CallKitController(callKitManager: callKitManager)
+                    _ = PushController(callKitManager: callKitManager, authenticationServices: authenticationService)
+                    self.callKitController = CallKitController(callKitManager: callKitManager, authenticationServices: authenticationService)
                     AppSettings.registerDefaults()
                 }
         }

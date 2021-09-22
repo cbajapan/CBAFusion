@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-import ACBClientSDK
+import SwiftFCSDK
 import AVKit
 
 /// The Set of custom player controllers currently using or transitioning out of PiP
@@ -15,7 +15,6 @@ private var activeCustomPlayerViewControllers = Set<CommunicationViewController>
 
 class CommunicationViewController: UIViewController {
 
-    var panGesture = UIPanGestureRecognizer()
     weak var delegate: CommunicationViewControllerDelegate?
     var playerView = PlayerView()
     var localView: ACBView = {
@@ -24,19 +23,55 @@ class CommunicationViewController: UIViewController {
         return lv
     }()
     var pipController: AVPictureInPictureController!
-    var previewView: ACBView?
-    var videoView: ACBView?
+    var acbuc: ACBUC
+    var call: FCSDKCall
+    var audioAllowed: Bool = false
+    var videoAllowed: Bool = false
+    var currentCamera: AVCaptureDevice.Position!
+    
+    init(acbuc: ACBUC, call: FCSDKCall) {
+        self.acbuc = acbuc
+        self.call = call
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.addSubview(playerView)
         view.layer.addSublayer(playerView.playerLayer)
+        anchors()
+        
+        try? self.acbuc.clientPhone?.setPreviewView(self.localView)
+        self.call.requestMicrophoneAndCameraPermissionFromAppSettings()
+        self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
+        self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
+
+        try? self.configureResolutionOptions()
+        try? self.configureFramerateOptions()
+        
+//        self.playerView.isHidden = true
+//        self.localView.isHidden = true
+        
+        // For SettingsSheet
+//        self.isHeld = false;
+//        self.autoAnswerSwitch = AppSettings.shouldAutoAnswer()
+        
+        self.currentCamera = AVCaptureDevice.Position.front
+        
+        
+
         pipController = AVPictureInPictureController(playerLayer: playerView.playerLayer)
         pipController.delegate = self
         playerView.player = AVPlayer(url: URL(string: "https://cartisim.sfo2.digitaloceanspaces.com/CartisimVideos/CartisimLandingVideo.mov")!)
         
-        anchors()
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedView(_:)))
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
+        self.localView.addGestureRecognizer(tapGesture)
         self.localView.isUserInteractionEnabled = true
         self.localView.addGestureRecognizer(panGesture)
     }
@@ -52,13 +87,6 @@ class CommunicationViewController: UIViewController {
         self.localView.backgroundColor = UIColor.darkGray
     }
     
-    @objc func draggedView(_ sender:UIPanGestureRecognizer){
-        self.view.bringSubviewToFront(localView)
-        let translation = sender.translation(in: self.view)
-        localView.center = CGPoint(x: localView.center.x + translation.x, y: localView.center.y + translation.y)
-        sender.setTranslation(CGPoint.zero, in: self.view)
-    }
-    
     func showPip(show: Bool) {
         if show {
             pipController?.startPictureInPicture()
@@ -66,6 +94,69 @@ class CommunicationViewController: UIViewController {
             pipController?.stopPictureInPicture()
         }
     }
+    
+    
+    // Gestures
+    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer){
+        self.view.bringSubviewToFront(localView)
+        let translation = sender.translation(in: self.view)
+        localView.center = CGPoint(x: localView.center.x + translation.x, y: localView.center.y + translation.y)
+        sender.setTranslation(CGPoint.zero, in: self.view)
+    }
+
+    @objc func tapLocalView(_ sender: UITapGestureRecognizer) {
+        self.currentCamera = self.currentCamera == AVCaptureDevice.Position.back ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back
+        self.acbuc.clientPhone?.setCamera(self.currentCamera)
+    }
+    
+    /// Configurations for Capture
+    func configureResolutionOptions() throws {
+        var show720Res = false
+        var show480Res = false
+        guard let recCaptureSettings = self.acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
+        for captureSetting in recCaptureSettings {
+            guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
+                continue
+            }
+            if captureSetting.resolution == .resolution1280x720 {
+                show720Res = true
+                show480Res = true
+            } else if captureSetting.resolution == .resolution640x480 {
+                show480Res = true
+            }
+        }
+
+        if !show720Res {
+            // Pass value back to swiftUI Settings Sheet
+//            resolutionControl.setEnabled(false, forSegmentAt: 3)
+        }
+        if !show480Res {
+            // Pass value back to swiftUI Settings Sheet
+//            resolutionControl.setEnabled(false, forSegmentAt: 2)
+        }
+    }
+    
+    func configureFramerateOptions() throws {
+        //disable 30fps unless one of the recommended settings allows it
+        
+        // Pass value back to swiftUI Settings Sheet
+//        framerateControl.setEnabled(false, forSegmentAt: 1)
+//        framerateControl.selectedSegmentIndex = 0
+        guard let recCaptureSettings = acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilFrameRate }
+        for captureSetting in recCaptureSettings {
+            guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
+                continue
+            }
+            if captureSetting.frameRate > 20 {
+                
+                // Pass value back to swiftUI Settings Sheet
+//                framerateControl.setEnabled(true, forSegmentAt: 1)
+//                framerateControl.selectedSegmentIndex = 1
+                break
+            }
+        }
+    }
+
 }
 
 // MARK: - CommunicationViewControllerDelegate

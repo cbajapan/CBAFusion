@@ -16,9 +16,8 @@ final class PushController: NSObject, PKPushRegistryDelegate {
     var callkitController: CallKitController?
     let pushRegistry = PKPushRegistry(queue: DispatchQueue.main)
     
-    
-    init(callKitManager: CallKitManager) {
-        self.callkitController = CallKitController(callKitManager: callKitManager)
+    init(callKitManager: CallKitManager, authenticationServices: AuthenticationService) {
+        self.callkitController = CallKitController(callKitManager: callKitManager, authenticationServices: authenticationServices)
         super.init()
         self.pushRegistry.delegate = self
         self.pushRegistry.desiredPushTypes = [.voIP]

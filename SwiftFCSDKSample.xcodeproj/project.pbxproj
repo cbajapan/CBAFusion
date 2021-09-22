@@ -20,6 +20,7 @@
 		094EE30C26DCE212008C1637 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 094EE30B26DCE212008C1637 /* Preview Assets.xcassets */; };
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
+		0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987E8FE26FACE060036454C /* FCSDKCall.swift */; };
 		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
 		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
@@ -34,10 +35,10 @@
 		09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9126DE1F4E00249DD8 /* Keychain.swift */; };
 		09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */; };
 		09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9526DE1F8A00249DD8 /* Login.swift */; };
-		09E3CE9A26DE278800249DD8 /* SwiftFCSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 09E3CE9926DE278800249DD8 /* SwiftFCSDK */; };
 		09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9C26DE52AC00249DD8 /* LoginResponse.swift */; };
 		09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9E26DE52BF00249DD8 /* LoginRequest.swift */; };
 		09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */; };
+		09E7416726F97920004790A6 /* SwiftFCSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 09E7416626F97920004790A6 /* SwiftFCSDK */; };
 		09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6AE26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift */; };
 		09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */; };
 		09EDF6B426DF410400B34664 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B326DF410400B34664 /* ViewController.swift */; };
@@ -69,6 +70,8 @@
 		0908679926E70CA400A83602 /* CallKitController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitController.swift; sourceTree = "<group>"; };
 		0908679B26E7590A00A83602 /* PushController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushController.swift; sourceTree = "<group>"; };
 		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
+		0936CE7A26F972B8007F5D25 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "swift-fcsdk"; sourceTree = "<group>"; };
+		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		094C313A26E03658007C6A35 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		094C313D26E03729007C6A35 /* ContactsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsCell.swift; sourceTree = "<group>"; };
 		094C313F26E0497F007C6A35 /* Welcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
@@ -83,6 +86,7 @@
 		094EE31B26DCE212008C1637 /* SwiftFCSDKSampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftFCSDKSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
+		0987E8FE26FACE060036454C /* FCSDKCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
 		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
 		099F54B226E88239005500BF /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
@@ -98,7 +102,6 @@
 		09E3CE9126DE1F4E00249DD8 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		09E3CE9526DE1F8A00249DD8 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
-		09E3CE9726DE274E00249DD8 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "swift-fcsdk"; sourceTree = "<group>"; };
 		09E3CE9C26DE52AC00249DD8 /* LoginResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginResponse.swift; sourceTree = "<group>"; };
 		09E3CE9E26DE52BF00249DD8 /* LoginRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequest.swift; sourceTree = "<group>"; };
 		09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -117,7 +120,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09E3CE9A26DE278800249DD8 /* SwiftFCSDK in Frameworks */,
+				09E7416726F97920004790A6 /* SwiftFCSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,6 +147,7 @@
 				0908679926E70CA400A83602 /* CallKitController.swift */,
 				0908679B26E7590A00A83602 /* PushController.swift */,
 				099F54B226E88239005500BF /* CallKitManager.swift */,
+				0987E8FE26FACE060036454C /* FCSDKCall.swift */,
 			);
 			path = CallKitController;
 			sourceTree = "<group>";
@@ -172,8 +176,9 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
+				0936CE7A26F972B8007F5D25 /* swift-fcsdk */,
+				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
-				09E3CE9726DE274E00249DD8 /* swift-fcsdk */,
 				094EE33926DCE5AA008C1637 /* SwiftFCSDKSample */,
 				094EE30226DCE211008C1637 /* Products */,
 				09E3CE9826DE278800249DD8 /* Frameworks */,
@@ -413,7 +418,7 @@
 			);
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
-				09E3CE9926DE278800249DD8 /* SwiftFCSDK */,
+				09E7416626F97920004790A6 /* SwiftFCSDK */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -487,6 +492,8 @@
 				Base,
 			);
 			mainGroup = 094EE2F826DCE211008C1637;
+			packageReferences = (
+			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -549,6 +556,7 @@
 				09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */,
 				09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */,
 				09B4A0AB26DDE2FA00B73ADA /* AuthenticationServices.swift in Sources */,
+				0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */,
 				09EDF6B626DF442C00B34664 /* UIView+Extension.swift in Sources */,
 				09EDF6B426DF410400B34664 /* ViewController.swift in Sources */,
 				09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */,
@@ -932,7 +940,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		09E3CE9926DE278800249DD8 /* SwiftFCSDK */ = {
+		09E7416626F97920004790A6 /* SwiftFCSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftFCSDK;
 		};

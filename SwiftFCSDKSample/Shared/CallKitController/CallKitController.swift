@@ -9,15 +9,18 @@ import Foundation
 import CallKit
 import UIKit
 import AVFoundation
-import ACBClientSDK
+import SwiftFCSDK
 
 final class CallKitController: NSObject, CXProviderDelegate {
     
     internal let provider: CXProvider?
     internal let callKitManager: CallKitManager
+    internal let authenticationServices: AuthenticationService
     
-    init(callKitManager: CallKitManager) {
+    
+    init(callKitManager: CallKitManager, authenticationServices: AuthenticationService) {
         self.callKitManager = callKitManager
+        self.authenticationServices = authenticationServices
         self.provider = CXProvider(configuration: providerConfiguration)
         super.init()
         self.provider?.setDelegate(self, queue: nil)
@@ -65,9 +68,9 @@ final class CallKitController: NSObject, CXProviderDelegate {
     var call: FCSDKCall?
     //Start Call
      func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        print("start call action")
+         print("start call action")
 
-        let call = FCSDKCall(uuid: action.callUUID, isOutgoing: true)
+        let call = FCSDKCall(acbuc: self.authenticationServices.acbuc, uuid: action.callUUID, isOutgoing: true)
         call.handle = action.handle.value
         
         configureAudioSession()
@@ -78,9 +81,7 @@ final class CallKitController: NSObject, CXProviderDelegate {
         call.hasConnectedDidChange = { [weak self] in
             self?.provider?.reportOutgoingCall(with: call.uuid, connectedAt: call.connectDate)
         }
-        
-        
-        
+
         self.outgoingCall = call
         action.fulfill()
     }
@@ -106,9 +107,13 @@ final class CallKitController: NSObject, CXProviderDelegate {
     var outgoingCall: FCSDKCall?
     //Did Activate audio session
     @MainActor func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        print("Activate")        
-        outgoingCall?.startFCSDKCall()
-        self.callKitManager.addCalls(call: FCSDKCall(uuid: outgoingCall?.uuid ?? UUID(), isOutgoing: outgoingCall?.isOutgoing ?? true))
+        print("Activate")
+        do {
+        try outgoingCall?.startFCSDKCall()
+        } catch {
+            print("\(OurErrors.nilACBUC.rawValue)")
+        }
+        self.callKitManager.addCalls(call: FCSDKCall(acbuc: self.authenticationServices.acbuc, uuid: outgoingCall?.uuid ?? UUID(), isOutgoing: outgoingCall?.isOutgoing ?? true))
     }
     
     

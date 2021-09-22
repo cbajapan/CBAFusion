@@ -20,15 +20,15 @@ struct Communication: View {
     @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var callKitManager: CallKitManager
+    @EnvironmentObject var authenticationServices: AuthenticationService
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
             if self.callKitManager.calls.last?.hasStartedConnecting != nil {
-                Text("Started Connecting")
-            }
-            else if self.callKitManager.calls.last?.hasConnected != nil {
-                CommunicationViewControllerRepresenable(call: self.$callKitManager.calls.last!, pip: self.$pip)
+                CommunicationViewControllerRepresenable(call: self.$callKitManager.calls.last!, pip: self.$pip, acbuc: self.$authenticationServices.acbuc)
                     .ignoresSafeArea(.all)
+            } else if self.callKitManager.calls.last?.hasConnected != nil {
+                Text("Connected")
             }
             else if self.callKitManager.calls.last?.isOutgoing != nil {
                 Text("Is Outgoing")
@@ -135,7 +135,7 @@ struct Communication: View {
                             await self.endCall()
                             self.presentationMode.wrappedValue.dismiss()
                         }
-                      
+                        
                     } label: {
                         ZStack {
                             Circle()
@@ -169,7 +169,6 @@ struct Communication: View {
     }
     
     func endCall() async {
-        //TODO: We have an issue with call.uuid being different from created UUID, Why????
         guard let call = self.callKitManager.calls.last else { return }
         await self.callKitManager.finishEnd(call: call)
         await self.callKitManager.removeCall(call: call)
