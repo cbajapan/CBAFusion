@@ -114,6 +114,7 @@ class CommunicationViewController: UIViewController {
         var show720Res = false
         var show480Res = false
         guard let recCaptureSettings = self.acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
+
         for captureSetting in recCaptureSettings {
             guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
                 continue

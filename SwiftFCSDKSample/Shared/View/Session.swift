@@ -1,45 +1,37 @@
+////
+////  Session.swift
+////  SwiftFCSDKSample
+////
+////  Created by Cole M on 8/31/21.
+////
 //
-//  Session.swift
-//  SwiftFCSDKSample
+//import SwiftUI
 //
-//  Created by Cole M on 8/31/21.
+//struct Session: View {
 //
-
-import SwiftUI
-
-struct Session: View {
-    
-    @EnvironmentObject private var authenticationService: AuthenticationService
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var currentTabIndex: Int
-    @Binding var showSubscriptionsSheet: Bool
-    var parentTabIndex: Int
-    
-    var body: some View {
-        VStack {
-            Button {
-                Task {
-                    await self.logout()
-                }
-            } label: {
-                Text("Logout")
-                    .font(.title2)
-                    .bold()
-            }
-
-        }
-        .onAppear {
-            self.currentTabIndex = self.parentTabIndex
-        }
-    }
-    
-    func logout() async {
-        await authenticationService.logout()
-    }
-}
-
-struct Session_Previews: PreviewProvider {
-    static var previews: some View {
-        Session(currentTabIndex: .constant(0), showSubscriptionsSheet: .constant(false), parentTabIndex: 0)
-    }
-}
+//    
+//    var body: some View {
+//        VStack {
+//            Button {
+//                Task {
+//                    await self.logout()
+//                }
+//            } label: {
+//                Text("Logout")
+//                    .font(.title2)
+//                    .bold()
+//            }
+//
+//        }
+//    }
+//    
+//    func logout() async {
+//        await authenticationService.logout()
+//    }
+//}
+//
+//struct Session_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Session()
+//    }
+//}

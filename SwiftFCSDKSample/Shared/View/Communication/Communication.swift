@@ -21,6 +21,8 @@ struct Communication: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var authenticationServices: AuthenticationService
+    @State var currentTabIndex = 0
+    
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -60,7 +62,7 @@ struct Communication: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text(self.contact.name)
+                            Text("1002 | 1002@la-latest-qa.cbaqa.com")
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
                                 .padding()
@@ -164,7 +166,7 @@ struct Communication: View {
             })
         }
         .sheet(isPresented: self.$showSettings) {
-            SettingsSheet()
+            SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
         }
     }
     

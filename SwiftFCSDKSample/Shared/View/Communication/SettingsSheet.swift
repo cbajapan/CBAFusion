@@ -16,12 +16,17 @@ struct SettingsSheet: View {
     var audioOptions = ["Ear Piece", "Speaker Phone"]
     var resolutionOptions = ["auto", "288p", "480p", "720p"]
     var frameRateOptions = ["20fps", "30fps"]
-    
+    @EnvironmentObject private var authenticationService: AuthenticationService
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var currentTabIndex: Int
+    @Binding var showSubscriptionsSheet: Bool
+    var parentTabIndex: Int
     
     var body: some View {
         GeometryReader { geometry in
         NavigationView {
             VStack(alignment: .leading, spacing: 5) {
+                Group {
                 Text("Audio Options")
                     .fontWeight(.light)
                     .multilineTextAlignment(.leading)
@@ -59,16 +64,37 @@ struct SettingsSheet: View {
                     .padding(.top)
                 
                 Toggle("Auto-Answer", isOn: $autoAnswer)
-            }.padding()
+            }
+                Spacer()
+                Group {
+                Button {
+                    Task {
+                        await self.logout()
+                    }
+                } label: {
+                    Text("Logout")
+                        .font(.title2)
+                        .bold()
+                }
+                }
+            }
+            .padding()
                 .navigationBarTitle("Settings")
         }
         .frame(height: geometry.size.height * 0.65)
         }
+        .onAppear {
+            self.currentTabIndex = self.parentTabIndex
+        }
+
+    }
+    func logout() async {
+        await authenticationService.logout()
     }
 }
 
 struct SettingsSheet_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsSheet()
+        SettingsSheet(currentTabIndex: .constant(0), showSubscriptionsSheet: .constant(false), parentTabIndex: 0)
     }
 }
