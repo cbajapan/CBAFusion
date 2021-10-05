@@ -14,11 +14,26 @@ enum CallKitErrors: Swift.Error {
     case failedRequestTransaction(String)
 }
 
+
+
+
+
 @MainActor
 final class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
-    @Published var calls = [FCSDKCall]()
+    var calls = [FCSDKCall]()
+    
+    
+    func initializeCall(call: FCSDKCall) async {
+        await passCallToProvider(call: call)
+        await makeCall(handle: call.handle, hasVideo: call.hasVideo)
+    }
+
+    func passCallToProvider(call: FCSDKCall) async {
+        let call = ["call": call]
+        NotificationCenter.default.post(name: NSNotification.Name("call"), object: call)
+    }
     
     func makeCall(handle: String, hasVideo: Bool = false) async {
         let handle = CXHandle(type: .phoneNumber, value: handle)
@@ -26,6 +41,8 @@ final class CallKitManager: NSObject, ObservableObject {
         startCallAction.isVideo = hasVideo
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
+        
+        //Pass call object to provider
         
         try? await requestTransaction(transaction)
     }

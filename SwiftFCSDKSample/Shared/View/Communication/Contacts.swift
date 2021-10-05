@@ -13,7 +13,8 @@ struct Contacts: View {
     
     @State var showFullSheet: ActiveSheet?
     @State var callStarted: Bool = false
-    @State var contact: Contact = Contact(name: "", number: "", icon: "")
+    @State var destination: String = ""
+    @State var hasVideo: Bool = false
     
     var body: some View {
         NavigationView {
@@ -21,7 +22,6 @@ struct Contacts: View {
                 ForEach(contacts, id: \.self) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
-                            self.contact = contact
                             self.callStarted = true
                             self.showFullSheet = .communincationSheet
                         }
@@ -40,9 +40,9 @@ struct Contacts: View {
         .fullScreenCover(item: self.$showFullSheet) { sheet in
             switch sheet {
             case .callSheet:
-                CallSheet(callStarted: self.$callStarted, showFullSheet: self.$showFullSheet)
+                CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, callStarted: self.$callStarted, showFullSheet: self.$showFullSheet)
             case .communincationSheet:
-                Communication(contact: self.$contact, showFullSheet: self.$showFullSheet)
+                Communication(destination: self.$destination, hasVideo: self.$hasVideo, showFullSheet: self.$showFullSheet)
             }
         }
     }
@@ -56,9 +56,9 @@ enum ActiveSheet: Identifiable {
     }
 }
 
-
-struct Contacts_Previews: PreviewProvider {
-    static var previews: some View {
-        Contacts(contact: Contact(name: "", number: "", icon: ""))
-    }
-}
+//
+//struct Contacts_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Contacts(contact: Contact(name: "", number: "", icon: ""))
+//    }
+//}

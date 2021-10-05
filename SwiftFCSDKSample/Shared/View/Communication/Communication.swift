@@ -16,31 +16,22 @@ struct Communication: View {
     @State var muteVideo: Bool = false
     @State var hold: Bool = false
     @State var pip: Bool = false
-    @Binding var contact: Contact
+    @State var endCall: Bool = false
+    @Binding var destination: String
+    @Binding var hasVideo: Bool
+    @State var passDestination: String = ""
+    @State var passVideo: Bool = false
     @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var authenticationServices: AuthenticationService
     @State var currentTabIndex = 0
     
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            if self.callKitManager.calls.last?.hasStartedConnecting != nil {
-                CommunicationViewControllerRepresenable(call: self.$callKitManager.calls.last!, pip: self.$pip, acbuc: self.$authenticationServices.acbuc)
+            CommunicationViewControllerRepresenable(pip: self.$pip, acbuc: self.$authenticationServices.acbuc, destination: self.$passDestination, hasVideo: self.$passVideo, endCall: self.$endCall)
                     .ignoresSafeArea(.all)
-            } else if self.callKitManager.calls.last?.hasConnected != nil {
-                Text("Connected")
-            }
-            else if self.callKitManager.calls.last?.isOutgoing != nil {
-                Text("Is Outgoing")
-            }
-            else if self.callKitManager.calls.last?.isOnHold != nil {
-                Text("Is on Hold")
-            }
-            else if self.callKitManager.calls.last?.hasEnded != nil {
-                Text("Has Ended")
-            }
+
             if self.showDetails {
                 Rectangle()
                     .fill(Color.black.opacity(0.3))
@@ -134,7 +125,7 @@ struct Communication: View {
                     }
                     Button {
                         Task {
-                            await self.endCall()
+                            self.endCall = true
                             self.presentationMode.wrappedValue.dismiss()
                         }
                         
@@ -159,26 +150,19 @@ struct Communication: View {
             .navigationBarHidden(true)
             
         }
+        .onAppear {
+            self.passDestination = self.destination
+            self.passVideo = self.hasVideo
+        }
         .onTapGesture {
             self.showDetails = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: {
                 self.showDetails = false
             })
         }
+
         .sheet(isPresented: self.$showSettings) {
             SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
         }
-    }
-    
-    func endCall() async {
-        guard let call = self.callKitManager.calls.last else { return }
-        await self.callKitManager.finishEnd(call: call)
-        await self.callKitManager.removeCall(call: call)
-    }
-}
-
-struct Communication_Previews: PreviewProvider {
-    static var previews: some View {
-        Communication(contact: .constant(Contact(name: "", number: "", icon: "")), showFullSheet: .constant(.callSheet))
     }
 }

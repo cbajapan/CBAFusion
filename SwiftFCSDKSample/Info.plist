@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -14,11 +12,5 @@
 		<string>audio</string>
 		<string>voip</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>Video Confernecing</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>VoIP Calls</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.cba-japan.SwiftFCSDKSample</string>
 </dict>
 </plist>

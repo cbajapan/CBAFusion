@@ -9,12 +9,11 @@ import SwiftUI
 
 struct CallSheet: View {
     
-    @State private var destination: String = ""
-    @State private var hasVideo: Bool = false
+    @Binding var destination: String
+    @Binding var hasVideo: Bool
     @Binding var callStarted: Bool
     @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) private var presentationMode
-    @EnvironmentObject private var callKitManager: CallKitManager
 
     var body: some View {
         NavigationView {
@@ -51,15 +50,15 @@ struct CallSheet: View {
         self.presentationMode.wrappedValue.dismiss()
         self.callStarted = true
         self.showFullSheet = .communincationSheet
-        await self.callKitManager.makeCall(handle: self.destination, hasVideo: self.hasVideo)
+        print(self.hasVideo, "HAS VIDEO")
     }
 }
 
-struct CallSheet_Previews: PreviewProvider {
-    static var previews: some View {
-        CallSheet(callStarted: .constant(false), showFullSheet: .constant(.callSheet))
-    }
-}
+//struct CallSheet_Previews: PreviewProvider {
+//    static var previews: some View {
+//        CallSheet(callStarted: .constant(false), showFullSheet: .constant(.callSheet))
+//    }
+//}
 
 
 struct CallDetails {

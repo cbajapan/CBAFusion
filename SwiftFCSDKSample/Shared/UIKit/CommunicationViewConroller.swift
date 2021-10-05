@@ -11,27 +11,36 @@ import SwiftFCSDK
 import AVKit
 
 /// The Set of custom player controllers currently using or transitioning out of PiP
-private var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
+internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
 
 class CommunicationViewController: UIViewController {
-
+    
     weak var delegate: CommunicationViewControllerDelegate?
-    var playerView = PlayerView()
-    var localView: ACBView = {
+    var remoteView = SampleBufferVideoCallView()
+    var previewView: ACBView = {
         let lv = ACBView()
         lv.layer.cornerRadius = 8
         return lv
     }()
-    var pipController: AVPictureInPictureController!
+    var callKitManager: CallKitManager
     var acbuc: ACBUC
-    var call: FCSDKCall
+    var call: FCSDKCall?
     var audioAllowed: Bool = false
     var videoAllowed: Bool = false
     var currentCamera: AVCaptureDevice.Position!
+    var destination: String
+    var hasVideo: Bool
     
-    init(acbuc: ACBUC, call: FCSDKCall) {
+    
+    init(
+        callKitManager: CallKitManager,
+        destination: String,
+        hasVideo: Bool,
+        acbuc: ACBUC) {
+        self.callKitManager = callKitManager
+        self.destination = destination
+        self.hasVideo = hasVideo
         self.acbuc = acbuc
-        self.call = call
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -41,72 +50,131 @@ class CommunicationViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        view.addSubview(playerView)
-        view.layer.addSublayer(playerView.playerLayer)
-        anchors()
-        
-        try? self.acbuc.clientPhone?.setPreviewView(self.localView)
-        self.call.requestMicrophoneAndCameraPermissionFromAppSettings()
-        self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
-        self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
-
-        try? self.configureResolutionOptions()
-        try? self.configureFramerateOptions()
-        
-//        self.playerView.isHidden = true
-//        self.localView.isHidden = true
-        
-        // For SettingsSheet
-//        self.isHeld = false;
-//        self.autoAnswerSwitch = AppSettings.shouldAutoAnswer()
-        
-        self.currentCamera = AVCaptureDevice.Position.front
-        
-        
-
-        pipController = AVPictureInPictureController(playerLayer: playerView.playerLayer)
-        pipController.delegate = self
-        playerView.player = AVPlayer(url: URL(string: "https://cartisim.sfo2.digitaloceanspaces.com/CartisimVideos/CartisimLandingVideo.mov")!)
-        
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
-        self.localView.addGestureRecognizer(tapGesture)
-        self.localView.isUserInteractionEnabled = true
-        self.localView.addGestureRecognizer(panGesture)
-    }
-    override public func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        playerView.playerLayer.frame = view.bounds
-    }
-
-    func anchors() {
-        self.localView.translatesAutoresizingMaskIntoConstraints = true
-        self.view.addSubview(self.localView)
-        self.localView.greaterThanHeightAnchors(top: nil, leading: nil, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 100, paddingRight: 8, width: view.frame.width / 2, height: view.frame.height / 4)
-        self.localView.backgroundColor = UIColor.darkGray
+        Task {
+            await setupUI()
+            await anchors()
+            await configureVideo()
+            await gestures()
+            await initiateCall()
+        }
     }
     
-    func showPip(show: Bool) {
-        if show {
-            pipController?.startPictureInPicture()
-        } else {
-            pipController?.stopPictureInPicture()
-        }
+    func initiateCall() async {
+        
+        let call = FCSDKCall(
+            handle: self.destination,
+            hasVideo: self.hasVideo,
+            previewView: self.previewView,
+            remoteView: self.remoteView,
+            acbuc: self.acbuc,
+            uuid: UUID(),
+            isOutgoing: true
+        )
+        await self.callKitManager.initializeCall(call: call)
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        self.call = currentCall
+    }
+    
+    func endCall() async {
+        guard let currentCall = self.call else { return }
+        await self.callKitManager.finishEnd(call: currentCall)
+        await self.callKitManager.removeCall(call: currentCall)
+    }
+    
+    
+    func determineState() {
+        //            if self.callKitManager.calls.last?.hasStartedConnecting != nil {
+        
+        //            } else if self.callKitManager.calls.last?.hasConnected != nil {
+        //                Text("Connected")
+        //            }
+        //            else if self.callKitManager.calls.last?.isOutgoing != nil {
+        //                Text("Is Outgoing")
+        //            }
+        //            else if self.callKitManager.calls.last?.isOnHold != nil {
+        //                Text("Is on Hold")
+        //            }
+        //            else if self.callKitManager.calls.last?.hasEnded != nil {
+        //                Text("Has Ended")
+        //            }
+    }
+    
+    
+    @MainActor func setupUI() async {
+
+        //        pipController = AVPictureInPictureController(playerLayer: playerView.sampleBufferDisplayLayer)
+        //        pipController.delegate = self
+        //        let pipContentSource = AVPictureInPictureController.ContentSource(
+        //                                    activeVideoCallSourceView: playerView,
+        //                                    contentViewController: pipController)
+        
+        
+        
+        //        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
+        //        pipController.canStartPictureInPictureAutomaticallyFromInline = true
+        //        pipController.delegate = self
+        
+        
+//        previewView.layer.addSublayer(playerView.sampleBufferDisplayLayer)
+        
+        
+//        playerView.sampleBufferDisplayLayer.frame = view.bounds
+//        self.view.addSubview(self.previewView)
+//        previewView.layer.frame = self.previewView.bounds
+//        view.layer.addSublayer(previewView.layer)
+        
+       
+        view.addSubview(remoteView)
+        remoteView.addSubview(previewView)
+        remoteView.sampleBufferDisplayLayer?.frame = remoteView.bounds
+        try? self.acbuc.clientPhone?.setPreviewView(self.previewView)
+    }
+
+    
+    @MainActor func gestures() async {
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
+        self.previewView.addGestureRecognizer(tapGesture)
+        self.previewView.isUserInteractionEnabled = true
+        self.previewView.addGestureRecognizer(panGesture)
+    }
+    
+    @MainActor func anchors() async {
+        self.remoteView.anchors(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+//        self.remoteView.backgroundColor = .blue
+        self.previewView.anchors(top: nil, leading: nil, bottom: remoteView.bottomAnchor, trailing: remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: view.frame.width / 2, height: view.frame.height / 3)
+//        self.previewView.backgroundColor = .green
     }
     
     
     // Gestures
     @objc func draggedLocalView(_ sender:UIPanGestureRecognizer){
-        self.view.bringSubviewToFront(localView)
+        self.view.bringSubviewToFront(previewView)
         let translation = sender.translation(in: self.view)
-        localView.center = CGPoint(x: localView.center.x + translation.x, y: localView.center.y + translation.y)
+        previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
         sender.setTranslation(CGPoint.zero, in: self.view)
     }
-
+    
     @objc func tapLocalView(_ sender: UITapGestureRecognizer) {
         self.currentCamera = self.currentCamera == AVCaptureDevice.Position.back ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back
-        self.acbuc.clientPhone?.setCamera(self.currentCamera)
+        self.call?.acbuc?.clientPhone?.setCamera(self.currentCamera)
+    }
+    
+    func showPip(show: Bool) {
+        
+    }
+    
+    
+    @MainActor func configureVideo() async {
+        
+        self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
+        self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
+        
+        try? self.configureResolutionOptions()
+        try? self.configureFramerateOptions()
+        
+        
+        self.currentCamera = AVCaptureDevice.Position.front
     }
     
     /// Configurations for Capture
@@ -114,7 +182,7 @@ class CommunicationViewController: UIViewController {
         var show720Res = false
         var show480Res = false
         guard let recCaptureSettings = self.acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
-
+        
         for captureSetting in recCaptureSettings {
             guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
                 continue
@@ -126,23 +194,26 @@ class CommunicationViewController: UIViewController {
                 show480Res = true
             }
         }
-
+        
         if !show720Res {
             // Pass value back to swiftUI Settings Sheet
-//            resolutionControl.setEnabled(false, forSegmentAt: 3)
+            //            resolutionControl.setEnabled(false, forSegmentAt: 3)
         }
         if !show480Res {
             // Pass value back to swiftUI Settings Sheet
-//            resolutionControl.setEnabled(false, forSegmentAt: 2)
+            //            resolutionControl.setEnabled(false, forSegmentAt: 2)
         }
     }
+    
+    
+    
     
     func configureFramerateOptions() throws {
         //disable 30fps unless one of the recommended settings allows it
         
         // Pass value back to swiftUI Settings Sheet
-//        framerateControl.setEnabled(false, forSegmentAt: 1)
-//        framerateControl.selectedSegmentIndex = 0
+        //        framerateControl.setEnabled(false, forSegmentAt: 1)
+        //        framerateControl.selectedSegmentIndex = 0
         guard let recCaptureSettings = acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilFrameRate }
         for captureSetting in recCaptureSettings {
             guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
@@ -151,99 +222,11 @@ class CommunicationViewController: UIViewController {
             if captureSetting.frameRate > 20 {
                 
                 // Pass value back to swiftUI Settings Sheet
-//                framerateControl.setEnabled(true, forSegmentAt: 1)
-//                framerateControl.selectedSegmentIndex = 1
+                //                framerateControl.setEnabled(true, forSegmentAt: 1)
+                //                framerateControl.selectedSegmentIndex = 1
                 break
             }
         }
     }
-
-}
-
-// MARK: - CommunicationViewControllerDelegate
-extension CommunicationViewController: CommunicationViewControllerDelegate {
     
-    func communicationViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ communicationViewController: CommunicationViewController) -> Bool {
-        return true
-    }
-    
-    func communicationViewController(_ communicationViewController: CommunicationViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
-        restore(communicationViewController: communicationViewController, completionHandler: completionHandler)
-    }
-    
-    func restore(communicationViewController: UIViewController, completionHandler: @escaping (Bool) -> Void) {
-      if let presentedViewController = presentedViewController {
-        presentedViewController.dismiss(animated: false) { [weak self] in
-          self?.present(communicationViewController, animated: false) {
-            completionHandler(true)
-          }
-        }
-      } else {
-        present(communicationViewController, animated: false) {
-          completionHandler(true)
-        }
-      }
-    }
-    
-}
-
-// MARK: - AVPlayerViewControllerDelegate
-//extension CommunicationViewController: AVPlayerViewControllerDelegate {
-//    @objc func playerViewControllerShouldDismiss(_ playerViewController: AVPlayerViewController) -> Bool {
-//      if let presentedViewController = presentedViewController as? AVPlayerViewController,
-//        presentedViewController == playerViewController {
-//        return true
-//      }
-//      return false
-//    }
-//
-//    @objc func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool {
-//      // Dismiss the controller when PiP starts so that the user is returned to the item selection screen.
-//      return true
-//    }
-//
-//    @objc func playerViewController(
-//      _ playerViewController: AVPlayerViewController,
-//      restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
-//    ) {
-//      restore(communicationViewController: playerViewController, completionHandler: completionHandler)
-//    }
-//}
-
-
-// MARK: - AVPictureInPictureControllerDelegate
-extension CommunicationViewController: AVPictureInPictureControllerDelegate {
-    public func pictureInPictureControllerWillStartPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        activeCustomPlayerViewControllers.insert(self)
-    }
-    
-    public func pictureInPictureControllerDidStartPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    public func pictureInPictureController(
-        _ pictureInPictureController: AVPictureInPictureController,
-        failedToStartPictureInPictureWithError error: Error
-    ) {
-        activeCustomPlayerViewControllers.remove(self)
-    }
-    
-    public func pictureInPictureControllerDidStopPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        activeCustomPlayerViewControllers.remove(self)
-    }
-    
-    public func pictureInPictureController(
-        _ pictureInPictureController: AVPictureInPictureController,
-        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
-    ) {
-        delegate?.communicationViewController(
-            self,
-            restoreUserInterfaceForPictureInPictureStopWithCompletionHandler: completionHandler)
-    }
 }

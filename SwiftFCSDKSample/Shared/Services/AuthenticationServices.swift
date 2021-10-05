@@ -7,9 +7,8 @@
 
 import Foundation
 import Combine
-import SwiftFCSDK
 import SwiftUI
-
+import SwiftFCSDK
 
 class AuthenticationService: NSObject, ObservableObject {
     
@@ -56,24 +55,6 @@ class AuthenticationService: NSObject, ObservableObject {
         self.sessionID = payload?.sessionid ?? ""
         await self.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
         self.connectedToSocket = self.acbuc?.connection != nil
-     
-        /// Combine Stuff if you would like 
-        //        else {
-        //            NetworkRepository.shared.login(loginReq: loginCredentials)
-        //                .sink { completion in
-        //                    switch completion {
-        //                    case let .failure(error):
-        //                        print("Couldn't Login user: \(error)")
-        //                    case .finished: break
-        //                    }
-        //                } receiveValue: { [weak self] payload in
-        //                    guard let strongSelf = self else { return }
-        //                    print(payload, "Payload")
-        //                    await AuthenticationService.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-        //                    strongSelf.connectedToSocket = ((AuthenticationService.shared.acbuc?.isConnectedToSocket) != nil)
-        //                }
-        //                .store(in: &subscriptions)
-        //        }
     }
     
     
@@ -105,9 +86,6 @@ class AuthenticationService: NSObject, ObservableObject {
                                                 ))
         await stopSession()
         await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
-        
-        //for now just mark false for user experience
-//        = AuthenticationService.shared.acbuc?.connection != nil
         self.connectedToSocket = self.acbuc?.connection != nil
     }
     

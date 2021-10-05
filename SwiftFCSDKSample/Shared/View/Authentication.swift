@@ -71,10 +71,9 @@ struct Authentication: View {
             //            hideKeyboard()
         }
     }
-    
+
     private func login() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-        
         if self.authenticationService.connectedToSocket {
             self.presentationMode.wrappedValue.dismiss()
         }
