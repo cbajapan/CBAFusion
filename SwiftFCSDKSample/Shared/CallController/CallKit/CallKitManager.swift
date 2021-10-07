@@ -78,7 +78,7 @@ final class CallKitManager: NSObject, ObservableObject {
         return calls[index]
     }
     
-    func addCalls(call: FCSDKCall) {
+    func addCalls(call: FCSDKCall) async {
         calls.append(call)
     }
     

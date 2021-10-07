@@ -87,9 +87,10 @@ extension CallKitController {
             } catch {
                 print("\(OurErrors.nilACBUC.rawValue)")
             }
-        }
         guard let outgoing = self.outgoingCall else { return }
-        self.callKitManager.addCalls(call: outgoing)
+        await self.callKitManager.addCalls(call: outgoing)
+            NotificationCenter.default.post(name: NSNotification.Name("add"), object: nil)
+        }
     }
     
     

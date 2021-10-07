@@ -42,6 +42,7 @@ class CommunicationViewController: UIViewController {
         self.hasVideo = hasVideo
         self.acbuc = acbuc
         super.init(nibName: nil, bundle: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(setCurrentCall), name: NSNotification.Name("add"), object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -60,7 +61,6 @@ class CommunicationViewController: UIViewController {
     }
     
     func initiateCall() async {
-        
         let call = FCSDKCall(
             handle: self.destination,
             hasVideo: self.hasVideo,
@@ -71,6 +71,9 @@ class CommunicationViewController: UIViewController {
             isOutgoing: true
         )
         await self.callKitManager.initializeCall(call: call)
+    }
+    
+    @objc func setCurrentCall() {
         guard let currentCall = self.callKitManager.calls.last else { return }
         self.call = currentCall
     }
@@ -127,7 +130,6 @@ class CommunicationViewController: UIViewController {
         view.addSubview(remoteView)
         remoteView.addSubview(previewView)
         remoteView.sampleBufferDisplayLayer?.frame = remoteView.bounds
-        try? self.acbuc.clientPhone?.setPreviewView(self.previewView)
     }
 
     

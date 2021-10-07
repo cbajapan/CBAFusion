@@ -9,15 +9,16 @@ import Foundation
 import SwiftFCSDK
 import AVFoundation
 
-extension FCSDKCall {
+extension FCSDKCall: ACBClientPhoneDelegate  {
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
-        
+        call?.delegate = self
+        if AppSettings.shouldAutoAnswer() {
+            self.stopRingtone()
+            self.answerFCSDKCall()
+        }
     }
-    
 
-    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall?) {
-    }
     
     func switchToNotInCallUI() {
         //TODO: - Hide any UI that is needed

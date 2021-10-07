@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftFCSDK
 import AVKit
 
-final class FCSDKCall: NSObject, ObservableObject, ACBClientCallDelegate, ACBClientPhoneDelegate {
+final class FCSDKCall: NSObject, ObservableObject {
     
     
     var handle: String
@@ -129,6 +129,8 @@ extension FCSDKCall {
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
         let phone = uc.phone()
         try? phone?.setPreviewView(previewView)
+        phone?.preferredCaptureFrameRate = 30
+        phone?.preferredCaptureResolution = .autoResolution
         phone?.delegate = self
         self.requestMicrophoneAndCameraPermissionFromAppSettings()
     }
