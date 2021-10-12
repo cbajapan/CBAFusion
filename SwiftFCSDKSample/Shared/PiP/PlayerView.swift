@@ -19,3 +19,13 @@ class SampleBufferVideoCallView: ACBView {
          return layer as? AVSampleBufferDisplayLayer
      }
 }
+
+class SamplePreviewVideoCallView: ACBView {
+    override class var layerClass: AnyClass {
+         get { return AVCaptureVideoPreviewLayer.self }
+     }
+
+     weak var sampleBufferDisplayLayer: AVCaptureVideoPreviewLayer? {
+         return layer as? AVCaptureVideoPreviewLayer
+     }
+}

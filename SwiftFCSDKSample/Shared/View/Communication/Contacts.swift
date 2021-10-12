@@ -55,10 +55,3 @@ enum ActiveSheet: Identifiable {
         hashValue
     }
 }
-
-//
-//struct Contacts_Previews: PreviewProvider {
-//    static var previews: some View {
-//        Contacts(contact: Contact(name: "", number: "", icon: ""))
-//    }
-//}

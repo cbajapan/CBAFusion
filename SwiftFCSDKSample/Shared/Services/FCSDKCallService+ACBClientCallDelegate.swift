@@ -9,73 +9,64 @@ import Foundation
 import SwiftFCSDK
 import AVFoundation
 
-extension FCSDKCall: ACBClientCallDelegate {
-    
-    func playRingtone() {
-        let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
-        let fileURL = URL(fileURLWithPath: path!)
-        
-        self.audioPlayer = try? AVAudioPlayer(contentsOf: fileURL)
-        self.audioPlayer?.volume = 1.0
-        self.audioPlayer?.numberOfLoops = -1
-        self.audioPlayer?.prepareToPlay()
-        self.audioPlayer?.play()
-    }
-    
-    func stopRingtone() {
-        guard let player = self.audioPlayer else { return }
-        player.stop()
-    }
-    
+extension FCSDKCallService: ACBClientCallDelegate {
     
     func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
         switch status {
         case .setup:
-          break
-        case .alerting:
             break
+        case .alerting:
+            DispatchQueue.main.async { [weak self] in
+                guard let strongSelf = self else { return }
+                strongSelf.hasStartedConnecting = true
+            }
         case .ringing:
+            DispatchQueue.main.async { [weak self] in
+                guard let strongSelf = self else { return }
+                strongSelf.hasStartedConnecting = false
+                strongSelf.isRinging = true
+            }
             self.playRingtone()
         case .mediaPending:
-            break
+          break
         case .inCall:
-            stopRingtone()
-            hasConnected = true
-            _ = duration
+            self.stopRingtone()
+            DispatchQueue.main.async { [weak self] in
+                guard let strongSelf = self else { return }
+                strongSelf.isRinging = false
+                strongSelf.hasConnected = true
+            }
         case .timedOut:
-            if call == self.lastIncomingCall {
-                self.lastIncomingCall = nil
-                self.stopRingtone()
+            if call == self.call {
+                self.call = nil
             }
-            if self.callIdentifier != nil {
+            if self.call?.callId != nil {
                 self.call?.end()
-                self.lastIncomingCall?.end()
+                self.call?.end()
             }
-            self.callIdentifier = nil
+            self.call?.callId = nil
         case .busy:
-            if call == self.lastIncomingCall {
-                self.lastIncomingCall = nil
-                self.stopRingtone()
+            if call == self.call {
+                self.call = nil
             }
-            if self.callIdentifier != nil {
+            if self.call?.callId != nil {
                 self.call?.end()
-                self.lastIncomingCall?.end()
+                self.call?.end()
             }
-            self.callIdentifier = nil
+            self.call?.callId = nil
         case .notFound:
             break
         case .error:
             break
         case .ended:
-            if call == self.lastIncomingCall {
-                self.lastIncomingCall = nil
-                self.stopRingtone()
+            if call == self.call {
+                self.call = nil
             }
-            if self.callIdentifier != nil {
+            if self.call?.callId != nil {
                 self.call?.end()
-                self.lastIncomingCall?.end()
+                self.call?.end()
             }
-            self.callIdentifier = nil
+            self.call?.callId = nil
             hasEnded = true
         }
     }
@@ -87,7 +78,6 @@ extension FCSDKCall: ACBClientCallDelegate {
                     if !self.isOnHold {
                         self.call?.hold()
                         self.isOnHold = true
-                        //TODO: - Reflect in UI and perform action
                     }
                 }
             }
@@ -95,7 +85,7 @@ extension FCSDKCall: ACBClientCallDelegate {
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) {
-     //TODO: - Reflect in UI
+        //TODO: - Reflect in UI
     }
     
     func call(_ call: ACBClientCall?, didReceiveDialFailureWithError error: Error?) {
@@ -114,7 +104,7 @@ extension FCSDKCall: ACBClientCallDelegate {
     
     func call(_ call: ACBClientCall?, didReportInboundQualityChange inboundQuality: Int) {
         //TODO: - Reflect in UI
-    print("Call Quality: \(inboundQuality)")
+        print("Call Quality: \(inboundQuality)")
     }
     
     func callDidReceiveMediaChangeRequest(_ call: ACBClientCall?) {

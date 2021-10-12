@@ -18,21 +18,15 @@ enum CallKitErrors: Swift.Error {
 
 
 
-@MainActor
-final class CallKitManager: NSObject, ObservableObject {
+
+class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
     var calls = [FCSDKCall]()
     
     
-    func initializeCall(call: FCSDKCall) async {
-        await passCallToProvider(call: call)
+    func initializeCall(_ call: FCSDKCall) async {
         await makeCall(handle: call.handle, hasVideo: call.hasVideo)
-    }
-
-    func passCallToProvider(call: FCSDKCall) async {
-        let call = ["call": call]
-        NotificationCenter.default.post(name: NSNotification.Name("call"), object: call)
     }
     
     func makeCall(handle: String, hasVideo: Bool = false) async {
@@ -41,9 +35,7 @@ final class CallKitManager: NSObject, ObservableObject {
         startCallAction.isVideo = hasVideo
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
-        
-        //Pass call object to provider
-        
+
         try? await requestTransaction(transaction)
     }
     
@@ -78,7 +70,7 @@ final class CallKitManager: NSObject, ObservableObject {
         return calls[index]
     }
     
-    func addCalls(call: FCSDKCall) async {
+    func addCalls(call: FCSDKCall) {
         calls.append(call)
     }
     

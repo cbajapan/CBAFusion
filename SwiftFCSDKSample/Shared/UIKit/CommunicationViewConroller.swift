@@ -10,39 +10,55 @@ import UIKit
 import SwiftFCSDK
 import AVKit
 
-/// The Set of custom player controllers currently using or transitioning out of PiP
+enum CallState {
+    case hasStartedConnecting
+    case isRinging
+    case hasConnected
+    case isOutgoing
+    case isOnHold
+    case notOnHold
+    case hasEnded
+}
+
 internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
 
-class CommunicationViewController: UIViewController {
+class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     weak var delegate: CommunicationViewControllerDelegate?
-    var remoteView = SampleBufferVideoCallView()
-    var previewView: ACBView = {
-        let lv = ACBView()
-        lv.layer.cornerRadius = 8
-        return lv
+    weak var fcsdkCallDelegate: FCSDKCallDelegate?
+    var stackView: UIStackView = {
+       let stk = UIStackView()
+        stk.alignment = .center
+        return stk
     }()
+    let numberLabel = UILabel()
+    let nameLabel = UILabel()
+    var remoteView = SampleBufferVideoCallView()
+    var previewView = SamplePreviewVideoCallView()
     var callKitManager: CallKitManager
     var acbuc: ACBUC
-    var call: FCSDKCall?
+    var fcsdkCallViewModel: FCSDKCallViewModel?
     var audioAllowed: Bool = false
     var videoAllowed: Bool = false
     var currentCamera: AVCaptureDevice.Position!
     var destination: String
     var hasVideo: Bool
+    let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
+    var blurEffectView: UIVisualEffectView?
     
     
     init(
         callKitManager: CallKitManager,
         destination: String,
         hasVideo: Bool,
-        acbuc: ACBUC) {
+        acbuc: ACBUC
+    ) {
         self.callKitManager = callKitManager
         self.destination = destination
         self.hasVideo = hasVideo
         self.acbuc = acbuc
         super.init(nibName: nil, bundle: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(setCurrentCall), name: NSNotification.Name("add"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(setCurrentCall), name: NSNotification.Name("add"), object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -51,89 +67,109 @@ class CommunicationViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        preferredContentSize = CGSize(width: 1080, height: 1920)
         Task {
-            await setupUI()
-            await anchors()
             await configureVideo()
-            await gestures()
             await initiateCall()
         }
+        gestures()
     }
     
     func initiateCall() async {
-        let call = FCSDKCall(
-            handle: self.destination,
-            hasVideo: self.hasVideo,
-            previewView: self.previewView,
-            remoteView: self.remoteView,
-            acbuc: self.acbuc,
-            uuid: UUID(),
-            isOutgoing: true
-        )
-        await self.callKitManager.initializeCall(call: call)
+        let fcsdkCallViewModel = FCSDKCallViewModel(fcsdkCall: FCSDKCall(handle: self.destination, hasVideo: true, previewView: self.previewView, remoteView: self.remoteView, uuid: UUID(), acbuc: self.acbuc))
+        await self.fcsdkCallDelegate?.passCallToService(fcsdkCallViewModel.fcsdkCall)
+        await self.callKitManager.initializeCall(fcsdkCallViewModel.fcsdkCall)
     }
     
     @objc func setCurrentCall() {
         guard let currentCall = self.callKitManager.calls.last else { return }
-        self.call = currentCall
+        self.fcsdkCallViewModel?.fcsdkCall = currentCall
     }
     
     func endCall() async {
-        guard let currentCall = self.call else { return }
+        guard let currentCall = self.fcsdkCallViewModel?.fcsdkCall else { return }
         await self.callKitManager.finishEnd(call: currentCall)
         await self.callKitManager.removeCall(call: currentCall)
     }
     
-    
-    func determineState() {
-        //            if self.callKitManager.calls.last?.hasStartedConnecting != nil {
-        
-        //            } else if self.callKitManager.calls.last?.hasConnected != nil {
-        //                Text("Connected")
-        //            }
-        //            else if self.callKitManager.calls.last?.isOutgoing != nil {
-        //                Text("Is Outgoing")
-        //            }
-        //            else if self.callKitManager.calls.last?.isOnHold != nil {
-        //                Text("Is on Hold")
-        //            }
-        //            else if self.callKitManager.calls.last?.hasEnded != nil {
-        //                Text("Has Ended")
-        //            }
+    func currentState(state: CallState) {
+        switch state {
+        case .hasStartedConnecting:
+            Task {
+            await self.connectingUI(isRinging: false)
+            }
+        case .isRinging:
+            Task {
+            await self.connectingUI(isRinging: true)
+            }
+        case .hasConnected:
+            Task {
+            await self.removeConnectingUI()
+            await self.setupUI()
+            await self.anchors()
+            }
+        case .isOutgoing:
+            break
+        case .isOnHold:
+            self.onHoldView()
+        case .notOnHold:
+            self.removeOnHold()
+        case .hasEnded:
+            self.breakDownView()
+        }
     }
     
-    
-    @MainActor func setupUI() async {
-
-        //        pipController = AVPictureInPictureController(playerLayer: playerView.sampleBufferDisplayLayer)
-        //        pipController.delegate = self
-        //        let pipContentSource = AVPictureInPictureController.ContentSource(
-        //                                    activeVideoCallSourceView: playerView,
-        //                                    contentViewController: pipController)
-        
-        
-        
-        //        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-        //        pipController.canStartPictureInPictureAutomaticallyFromInline = true
-        //        pipController.delegate = self
-        
-        
-//        previewView.layer.addSublayer(playerView.sampleBufferDisplayLayer)
-        
-        
-//        playerView.sampleBufferDisplayLayer.frame = view.bounds
-//        self.view.addSubview(self.previewView)
-//        previewView.layer.frame = self.previewView.bounds
-//        view.layer.addSublayer(previewView.layer)
-        
-       
-        view.addSubview(remoteView)
-        remoteView.addSubview(previewView)
-        remoteView.sampleBufferDisplayLayer?.frame = remoteView.bounds
+    func connectingUI(isRinging: Bool) async {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.numberLabel.text = strongSelf.fcsdkCallViewModel?.call?.remoteAddress
+            strongSelf.numberLabel.font = .boldSystemFont(ofSize: 18)
+            if isRinging {
+            strongSelf.nameLabel.text = "Ringing..."
+            } else {
+            strongSelf.nameLabel.text = "FCSDK iOS Connecting..."
+            }
+            strongSelf.nameLabel.font = .systemFont(ofSize: 16)
+            strongSelf.view.addSubview(strongSelf.stackView)
+            strongSelf.stackView.addArrangedSubview(strongSelf.numberLabel)
+            strongSelf.stackView.addArrangedSubview(strongSelf.nameLabel)
+            strongSelf.stackView.axis = .vertical
+            strongSelf.stackView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: nil, trailing: strongSelf.view.trailingAnchor, paddingTop: 50, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+        }
     }
-
     
-    @MainActor func gestures() async {
+    func removeConnectingUI() async {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.stackView.removeFromSuperview()
+        }
+    }
+    
+    func setupUI() async {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.view.addSubview(strongSelf.remoteView)
+            strongSelf.remoteView.addSubview(strongSelf.previewView)
+        }
+    }
+    
+    func setupPiP() {
+        
+        AVPictureInPictureController.isPictureInPictureSupported()
+        
+        let pipContentSource = AVPictureInPictureController.ContentSource(
+            activeVideoCallSourceView: self.remoteView,
+            contentViewController: self)
+        
+        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
+        pipController.canStartPictureInPictureAutomaticallyFromInline = true
+        pipController.delegate = self
+        pipController.startPictureInPicture()
+        
+    }
+    //    2021-10-11 09:14:19.418617+0800 SwiftFCSDKSample[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
+    
+    func gestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
         self.previewView.addGestureRecognizer(tapGesture)
@@ -141,13 +177,45 @@ class CommunicationViewController: UIViewController {
         self.previewView.addGestureRecognizer(panGesture)
     }
     
-    @MainActor func anchors() async {
-        self.remoteView.anchors(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
-//        self.remoteView.backgroundColor = .blue
-        self.previewView.anchors(top: nil, leading: nil, bottom: remoteView.bottomAnchor, trailing: remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: view.frame.width / 2, height: view.frame.height / 3)
-//        self.previewView.backgroundColor = .green
+    func anchors() async {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.remoteView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: strongSelf.view.bottomAnchor, trailing: strongSelf.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+            strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: strongSelf.view.frame.width / 2, height: strongSelf.view.frame.height / 3)
+            strongSelf.previewView.sampleBufferDisplayLayer?.videoGravity = .resizeAspectFill
+            strongSelf.previewView.sampleBufferDisplayLayer?.frame = strongSelf.previewView.bounds
+            strongSelf.previewView.sampleBufferDisplayLayer?.masksToBounds = true
+            strongSelf.previewView.sampleBufferDisplayLayer?.cornerRadius = 8
+        }
+    }
+        
+    
+    func breakDownView() {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.remoteView.removeFromSuperview()
+            strongSelf.previewView.removeFromSuperview()
+        }
     }
     
+    func onHoldView() {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.blurEffectView = UIVisualEffectView(effect: strongSelf.blurEffect)
+            strongSelf.blurEffectView?.frame = strongSelf.view.bounds
+            strongSelf.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            strongSelf.view.addSubview(strongSelf.blurEffectView!)
+            strongSelf.fcsdkCallViewModel?.call?.hold()
+        }
+    }
+    
+    func removeOnHold() {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.blurEffectView?.removeFromSuperview()
+            strongSelf.fcsdkCallViewModel?.call?.resume()
+        }
+    }
     
     // Gestures
     @objc func draggedLocalView(_ sender:UIPanGestureRecognizer){
@@ -158,12 +226,12 @@ class CommunicationViewController: UIViewController {
     }
     
     @objc func tapLocalView(_ sender: UITapGestureRecognizer) {
-        self.currentCamera = self.currentCamera == AVCaptureDevice.Position.back ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back
-        self.call?.acbuc?.clientPhone?.setCamera(self.currentCamera)
+        self.currentCamera = self.currentCamera == .back ?.front : .back
+        self.fcsdkCallViewModel?.acbuc.clientPhone?.setCamera(self.currentCamera)
     }
     
     func showPip(show: Bool) {
-        
+        setupPiP()
     }
     
     
@@ -175,8 +243,7 @@ class CommunicationViewController: UIViewController {
         try? self.configureResolutionOptions()
         try? self.configureFramerateOptions()
         
-        
-        self.currentCamera = AVCaptureDevice.Position.front
+        self.currentCamera = .front
     }
     
     /// Configurations for Capture

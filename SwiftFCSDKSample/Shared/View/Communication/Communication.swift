@@ -21,15 +21,27 @@ struct Communication: View {
     @Binding var hasVideo: Bool
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
+    
     @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var authenticationServices: AuthenticationService
+    @EnvironmentObject var callKitManager: CallKitManager
+    @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @State var currentTabIndex = 0
     
     
     var body: some View {
+        GeometryReader { geometry in
         ZStack(alignment: .topTrailing) {
-            CommunicationViewControllerRepresenable(pip: self.$pip, acbuc: self.$authenticationServices.acbuc, destination: self.$passDestination, hasVideo: self.$passVideo, endCall: self.$endCall)
+            CommunicationViewControllerRepresenable(
+                pip: self.$pip,
+                destination: self.$passDestination,
+                hasVideo: self.$passVideo,
+                endCall: self.$endCall,
+                isOnHold: self.$hold,
+                acbuc: self.$authenticationServices.acbuc,
+                fcsdkCall: self.$fcsdkCallService.fcsdkCall
+            )
                     .ignoresSafeArea(.all)
 
             if self.showDetails {
@@ -145,6 +157,13 @@ struct Communication: View {
                     Spacer()
                 }
             }
+        }
+        .onTapGesture {
+            self.showDetails = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: {
+                self.showDetails = false
+            })
+        }
             .animation(.easeInOut(duration: 1), value: 1)
             .frame(alignment: .trailing)
             .navigationBarHidden(true)
@@ -153,12 +172,6 @@ struct Communication: View {
         .onAppear {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
-        }
-        .onTapGesture {
-            self.showDetails = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: {
-                self.showDetails = false
-            })
         }
 
         .sheet(isPresented: self.$showSettings) {

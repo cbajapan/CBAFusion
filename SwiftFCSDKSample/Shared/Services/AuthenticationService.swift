@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import SwiftUI
 import SwiftFCSDK
 
@@ -23,7 +22,6 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
     @Published var sessionID = ""
     @Published var connectedToSocket = false
-    var subscriptions = Set<AnyCancellable>()
     @Published var acbuc: ACBUC?
     
     
@@ -60,7 +58,9 @@ class AuthenticationService: NSObject, ObservableObject {
     
     /// Create the Session
      func createSession(sessionid: String, networkStatus: Bool) async {
-        self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
+         self.acbuc = ACBUC(configuration: sessionid, stunServers: [], delegate: self, options: ACBUCOptions.acbucOptionNone())
+
+//         uc(withConfiguration: sessionid, delegate: self)
          self.acbuc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
          self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
@@ -69,7 +69,7 @@ class AuthenticationService: NSObject, ObservableObject {
          self.acbuc?.startSession()
     }
     
-    
+
     /// Logout and stop the session
     @MainActor
     func logout() async {
@@ -100,6 +100,7 @@ extension AuthenticationService: ACBUCDelegate {
     
     func ucDidStartSession(_ uc: ACBUC?) {
         print("Started Session \(String(describing: uc))")
+//        uc?.phone()
     }
     
     func ucDidFail(toStartSession uc: ACBUC?) {

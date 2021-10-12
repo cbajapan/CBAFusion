@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0908679A26E70CA400A83602 /* CallKitController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679926E70CA400A83602 /* CallKitController.swift */; };
-		0908679C26E7590A00A83602 /* PushController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679B26E7590A00A83602 /* PushController.swift */; };
+		0908679A26E70CA400A83602 /* ProviderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679926E70CA400A83602 /* ProviderDelegate.swift */; };
+		0908679C26E7590A00A83602 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0908679B26E7590A00A83602 /* AppDelegate.swift */; };
 		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
+		090F31652710577B00F1D247 /* NSUserActivity+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */; };
+		090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31662710579500F1D247 /* StartCallConvertible.swift */; };
+		090F3169271057B700F1D247 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F3168271057B700F1D247 /* URL+Extension.swift */; };
 		094C313B26E03658007C6A35 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313A26E03658007C6A35 /* Contacts.swift */; };
 		094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313D26E03729007C6A35 /* ContactsCell.swift */; };
 		094C314026E0497F007C6A35 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313F26E0497F007C6A35 /* Welcome.swift */; };
@@ -30,11 +33,12 @@
 		09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A426DDAD1E00B73ADA /* Session.swift */; };
 		09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A626DDAD3400B73ADA /* Authentication.swift */; };
 		09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */; };
-		09B4A0AB26DDE2FA00B73ADA /* AuthenticationServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0AA26DDE2FA00B73ADA /* AuthenticationServices.swift */; };
+		09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */; };
+		09CFF9742714EEA700052188 /* FCSDKCallService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CFF9732714EEA700052188 /* FCSDKCallService.swift */; };
 		09D86CF3270AA49A00C62FA0 /* SwiftFCSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 09D86CF2270AA49A00C62FA0 /* SwiftFCSDK */; };
-		09D86CF5270B06C000C62FA0 /* CallKitController+Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF4270B06C000C62FA0 /* CallKitController+Provider.swift */; };
-		09D86CF7270B076800C62FA0 /* FCSDKCall+ACBClientCallDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF6270B076800C62FA0 /* FCSDKCall+ACBClientCallDelegate.swift */; };
-		09D86CF9270B07D900C62FA0 /* FCSDKCall+ACBClientPhoneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF8270B07D900C62FA0 /* FCSDKCall+ACBClientPhoneDelegate.swift */; };
+		09D86CF5270B06C000C62FA0 /* ProviderDelegate+Calls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */; };
+		09D86CF7270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */; };
+		09D86CF9270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */; };
 		09D86CFD270B089200C62FA0 /* CommunicationViewController+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CFC270B089200C62FA0 /* CommunicationViewController+Delegate.swift */; };
 		09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */; };
 		09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */; };
@@ -71,9 +75,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0908679926E70CA400A83602 /* CallKitController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitController.swift; sourceTree = "<group>"; };
-		0908679B26E7590A00A83602 /* PushController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushController.swift; sourceTree = "<group>"; };
+		0908679926E70CA400A83602 /* ProviderDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDelegate.swift; sourceTree = "<group>"; };
+		0908679B26E7590A00A83602 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
+		090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSUserActivity+Extension.swift"; sourceTree = "<group>"; };
+		090F31662710579500F1D247 /* StartCallConvertible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartCallConvertible.swift; sourceTree = "<group>"; };
+		090F3168271057B700F1D247 /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
 		0929F496270A8C9E00CB9CEC /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../FCSDK Swift Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		094C313A26E03658007C6A35 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
@@ -100,10 +107,11 @@
 		09B4A0A426DDAD1E00B73ADA /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
 		09B4A0A626DDAD3400B73ADA /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
-		09B4A0AA26DDE2FA00B73ADA /* AuthenticationServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationServices.swift; sourceTree = "<group>"; };
-		09D86CF4270B06C000C62FA0 /* CallKitController+Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CallKitController+Provider.swift"; sourceTree = "<group>"; };
-		09D86CF6270B076800C62FA0 /* FCSDKCall+ACBClientCallDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCall+ACBClientCallDelegate.swift"; sourceTree = "<group>"; };
-		09D86CF8270B07D900C62FA0 /* FCSDKCall+ACBClientPhoneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCall+ACBClientPhoneDelegate.swift"; sourceTree = "<group>"; };
+		09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
+		09CFF9732714EEA700052188 /* FCSDKCallService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCallService.swift; sourceTree = "<group>"; };
+		09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProviderDelegate+Calls.swift"; sourceTree = "<group>"; };
+		09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCallService+ACBClientCallDelegate.swift"; sourceTree = "<group>"; };
+		09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCallService+ACBClientPhoneDelegate.swift"; sourceTree = "<group>"; };
 		09D86CFC270B089200C62FA0 /* CommunicationViewController+Delegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+Delegate.swift"; sourceTree = "<group>"; };
 		09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+PiPDelegate.swift"; sourceTree = "<group>"; };
 		09E3CE8E26DE1D4500249DD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -152,6 +160,7 @@
 		0908679826E70C8300A83602 /* CallController */ = {
 			isa = PBXGroup;
 			children = (
+				090F31632710575900F1D247 /* StartCallHandling */,
 				09D86CFB270B081300C62FA0 /* FCSDKCall */,
 				09D86CFA270B080600C62FA0 /* CallKit */,
 			);
@@ -165,6 +174,16 @@
 				099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */,
 			);
 			path = PiP;
+			sourceTree = "<group>";
+		};
+		090F31632710575900F1D247 /* StartCallHandling */ = {
+			isa = PBXGroup;
+			children = (
+				090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */,
+				090F31662710579500F1D247 /* StartCallConvertible.swift */,
+				090F3168271057B700F1D247 /* URL+Extension.swift */,
+			);
+			path = StartCallHandling;
 			sourceTree = "<group>";
 		};
 		094C313C26E0370C007C6A35 /* Communication */ = {
@@ -276,7 +295,10 @@
 		094EE33026DCE39D008C1637 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				09B4A0AA26DDE2FA00B73ADA /* AuthenticationServices.swift */,
+				09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */,
+				09CFF9732714EEA700052188 /* FCSDKCallService.swift */,
+				09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */,
+				09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -355,6 +377,7 @@
 				09E3CE8E26DE1D4500249DD8 /* Info.plist */,
 				094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */,
 				094EE30426DCE211008C1637 /* SwiftFCSDKSampleApp.swift */,
+				0908679B26E7590A00A83602 /* AppDelegate.swift */,
 				094EE30826DCE212008C1637 /* Assets.xcassets */,
 				094EE30A26DCE212008C1637 /* Preview Content */,
 				094EE30326DCE211008C1637 /* Shared */,
@@ -369,9 +392,8 @@
 		09D86CFA270B080600C62FA0 /* CallKit */ = {
 			isa = PBXGroup;
 			children = (
-				0908679926E70CA400A83602 /* CallKitController.swift */,
-				09D86CF4270B06C000C62FA0 /* CallKitController+Provider.swift */,
-				0908679B26E7590A00A83602 /* PushController.swift */,
+				0908679926E70CA400A83602 /* ProviderDelegate.swift */,
+				09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */,
 				099F54B226E88239005500BF /* CallKitManager.swift */,
 			);
 			path = CallKit;
@@ -381,8 +403,6 @@
 			isa = PBXGroup;
 			children = (
 				0987E8FE26FACE060036454C /* FCSDKCall.swift */,
-				09D86CF6270B076800C62FA0 /* FCSDKCall+ACBClientCallDelegate.swift */,
-				09D86CF8270B07D900C62FA0 /* FCSDKCall+ACBClientPhoneDelegate.swift */,
 			);
 			path = FCSDKCall;
 			sourceTree = "<group>";
@@ -577,31 +597,35 @@
 				094EE30726DCE211008C1637 /* ContentView.swift in Sources */,
 				09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				099F54AF26E87873005500BF /* PlayerView.swift in Sources */,
+				090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */,
 				099F54B326E88239005500BF /* CallKitManager.swift in Sources */,
 				09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */,
-				09D86CF7270B076800C62FA0 /* FCSDKCall+ACBClientCallDelegate.swift in Sources */,
+				09CFF9742714EEA700052188 /* FCSDKCallService.swift in Sources */,
+				09D86CF7270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift in Sources */,
+				090F31652710577B00F1D247 /* NSUserActivity+Extension.swift in Sources */,
 				094EE30526DCE211008C1637 /* SwiftFCSDKSampleApp.swift in Sources */,
 				09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */,
 				09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */,
 				09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */,
 				09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */,
-				09B4A0AB26DDE2FA00B73ADA /* AuthenticationServices.swift in Sources */,
+				09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */,
 				0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */,
 				09EDF6B626DF442C00B34664 /* UIView+Extension.swift in Sources */,
-				09D86CF5270B06C000C62FA0 /* CallKitController+Provider.swift in Sources */,
+				090F3169271057B700F1D247 /* URL+Extension.swift in Sources */,
+				09D86CF5270B06C000C62FA0 /* ProviderDelegate+Calls.swift in Sources */,
 				09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */,
-				0908679A26E70CA400A83602 /* CallKitController.swift in Sources */,
+				0908679A26E70CA400A83602 /* ProviderDelegate.swift in Sources */,
 				09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */,
 				09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */,
 				09D86CFD270B089200C62FA0 /* CommunicationViewController+Delegate.swift in Sources */,
 				094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */,
-				0908679C26E7590A00A83602 /* PushController.swift in Sources */,
+				0908679C26E7590A00A83602 /* AppDelegate.swift in Sources */,
 				094C314026E0497F007C6A35 /* Welcome.swift in Sources */,
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
 				09F318D326F019600069ED8D /* AppSettings.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
 				09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */,
-				09D86CF9270B07D900C62FA0 /* FCSDKCall+ACBClientPhoneDelegate.swift in Sources */,
+				09D86CF9270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */,
 				099F54B526E88AAB005500BF /* CallSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -765,7 +789,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -785,6 +809,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -806,7 +831,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -826,6 +851,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
