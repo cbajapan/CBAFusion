@@ -13,18 +13,32 @@ import SwiftUI
 extension FCSDKCallService: ACBClientPhoneDelegate  {
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
-        let backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
-        guard let uc = fcsdkCall?.acbuc else { return }
-        let receivedCall = FCSDKCall(
-            handle: call?.remoteAddress ?? "",
-            hasVideo: fcsdkCall?.hasVideo ?? false,
-            previewView: fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
-            remoteView: fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
-            uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(), acbuc: uc,
-            call: call!
-        )
-        AppDelegate.shared.displayIncomingCall(uuid: receivedCall.uuid, handle: receivedCall.handle, hasVideo: receivedCall.hasVideo) { error in
-            UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+        guard let uc = acbuc else { return }
+        
+        self.acbCall = call;
+        self.playRingtone()
+        
+        // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
+        call?.delegate = self
+        // we need to pass this to the call manager
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            let backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
+            let receivedCall = FCSDKCall(
+                handle: call?.remoteAddress ?? "",
+                hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
+                previewView: strongSelf.fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
+                remoteView: strongSelf.fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
+                uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(), acbuc: uc,
+                call: call!
+            )
+            
+            
+            
+            Task {
+                await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+            }
         }
     }
     

@@ -11,10 +11,13 @@ struct Contacts: View {
     
     var contacts = [Contact(name: "FCSDK", number: "1002", icon: "sdk"), Contact(name: "FCSDK-SIP", number: "sip:4005@192.168.99.103", icon: "sip")]
     
+    @Binding var presentCommunication: ActiveSheet?
     @State var showFullSheet: ActiveSheet?
     @State var callStarted: Bool = false
     @State var destination: String = ""
     @State var hasVideo: Bool = false
+    @EnvironmentObject var authenticationService: AuthenticationService
+    @EnvironmentObject var fcsdkCallService: FCSDKCallService
     
     var body: some View {
         NavigationView {
@@ -34,7 +37,7 @@ struct Contacts: View {
             }, label: {
                 Image(systemName: "plus")
                     .foregroundColor(Color.blue)
-            })                
+            })
             )
         }
         .fullScreenCover(item: self.$showFullSheet) { sheet in
@@ -45,12 +48,19 @@ struct Contacts: View {
                 Communication(destination: self.$destination, hasVideo: self.$hasVideo, showFullSheet: self.$showFullSheet)
             }
         }
+        .onAppear {
+            self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+            self.fcsdkCallService.setPhoneDelegate()
+        }
+        .onChange(of: self.presentCommunication) { newValue in
+            self.showFullSheet = .communincationSheet
+        }
     }
 }
 
 enum ActiveSheet: Identifiable {
     case callSheet, communincationSheet
-
+    
     var id: Int {
         hashValue
     }

@@ -40,8 +40,10 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
                 .onAppear {
+                    fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
+                    
                 }
         }
         .onChange(of: scenePhase) { (phase) in

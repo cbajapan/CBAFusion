@@ -227,7 +227,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     @objc func tapLocalView(_ sender: UITapGestureRecognizer) {
         self.currentCamera = self.currentCamera == .back ?.front : .back
-        self.fcsdkCallViewModel?.acbuc.clientPhone?.setCamera(self.currentCamera)
+        self.fcsdkCallViewModel?.acbuc.clientPhone.setCamera(self.currentCamera)
     }
     
     func showPip(show: Bool) {
@@ -250,7 +250,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     func configureResolutionOptions() throws {
         var show720Res = false
         var show480Res = false
-        guard let recCaptureSettings = self.acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
+        guard let recCaptureSettings = self.acbuc.clientPhone.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
         
         for captureSetting in recCaptureSettings {
             guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
@@ -283,7 +283,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         // Pass value back to swiftUI Settings Sheet
         //        framerateControl.setEnabled(false, forSegmentAt: 1)
         //        framerateControl.selectedSegmentIndex = 0
-        guard let recCaptureSettings = acbuc.clientPhone?.recommendedCaptureSettings() else { throw OurErrors.nilFrameRate }
+        guard let recCaptureSettings = acbuc.clientPhone.recommendedCaptureSettings() else { throw OurErrors.nilFrameRate }
         for captureSetting in recCaptureSettings {
             guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
                 continue

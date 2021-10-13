@@ -10,12 +10,7 @@ import PushKit
 import CallKit
 import UIKit
 
-class AppDelegate: NSObject, UIApplicationDelegate {
-
-    class var shared: AppDelegate! {
-        return UIApplication.shared.delegate as? AppDelegate
-    }
-
+class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     let pushRegistry = PKPushRegistry(queue: .main)
     let callKitManager = CallKitManager()
     var providerDelegate: ProviderDelegate?
@@ -96,15 +91,23 @@ extension AppDelegate: PKPushRegistryDelegate {
             else {
                 return
         }
-
-        displayIncomingCall(uuid: uuid, handle: handle, hasVideo: hasVideo)
+//        let receivedCall = FCSDKCall(
+//            handle: handle,
+//            hasVideo: hasVideo,
+//            previewView: fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
+//            remoteView: fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
+//            uuid: UUID(uuidString: uuidString) ?? UUID(),
+//            acbuc: uc,
+//            call: call!
+//        )
+//        displayIncomingCall(fcsdkCall: receivedCall)
     }
 
     // MARK: - PKPushRegistryDelegate Helper
 
     /// Display the incoming call to the user.
-    func displayIncomingCall(uuid: UUID, handle: String, hasVideo: Bool = false, completion: ((Error?) -> Void)? = nil) {
-        providerDelegate?.reportIncomingCall(uuid: uuid, handle: handle, hasVideo: hasVideo, completion: completion)
+    func displayIncomingCall(fcsdkCall: FCSDKCall) async {
+        await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
     }
 
 }

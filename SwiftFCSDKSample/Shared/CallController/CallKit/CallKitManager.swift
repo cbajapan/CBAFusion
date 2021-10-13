@@ -65,7 +65,7 @@ class CallKitManager: NSObject, ObservableObject {
         }
     }
     
-    func callWithUUID(uuid: UUID) -> FCSDKCall? {
+    func callWithUUID(uuid: UUID) async -> FCSDKCall? {
         guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
         return calls[index]
     }

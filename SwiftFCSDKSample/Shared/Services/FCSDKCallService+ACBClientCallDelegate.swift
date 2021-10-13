@@ -37,46 +37,46 @@ extension FCSDKCallService: ACBClientCallDelegate {
                 strongSelf.hasConnected = true
             }
         case .timedOut:
-            if call == self.call {
-                self.call = nil
+            if call == self.acbCall {
+                self.acbCall = nil
             }
-            if self.call?.callId != nil {
-                self.call?.end()
-                self.call?.end()
+            if self.acbCall?.callId != nil {
+                self.acbCall?.end()
+                self.acbCall?.end()
             }
-            self.call?.callId = nil
+            self.acbCall?.callId = nil
         case .busy:
-            if call == self.call {
-                self.call = nil
+            if call == self.acbCall {
+                self.acbCall = nil
             }
-            if self.call?.callId != nil {
-                self.call?.end()
-                self.call?.end()
+            if self.acbCall?.callId != nil {
+                self.acbCall?.end()
+                self.acbCall?.end()
             }
-            self.call?.callId = nil
+            self.acbCall?.callId = nil
         case .notFound:
             break
         case .error:
             break
         case .ended:
-            if call == self.call {
-                self.call = nil
+            if call == self.acbCall {
+                self.acbCall = nil
             }
-            if self.call?.callId != nil {
-                self.call?.end()
-                self.call?.end()
+            if self.acbCall?.callId != nil {
+                self.acbCall?.end()
+                self.acbCall?.end()
             }
-            self.call?.callId = nil
+            self.acbCall?.callId = nil
             hasEnded = true
         }
     }
     
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
         if message == "Session interrupted" {
-            if self.call != nil {
-                if self.call?.callStatusMachine?.state == .inCall {
+            if self.acbCall != nil {
+                if self.acbCall?.callStatusMachine?.state == .inCall {
                     if !self.isOnHold {
-                        self.call?.hold()
+                        self.acbCall?.hold()
                         self.isOnHold = true
                     }
                 }

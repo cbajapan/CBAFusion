@@ -11,24 +11,19 @@ import AVFoundation
 import SwiftFCSDK
 
 extension ProviderDelegate {
+    
 
-    func reportIncomingCall(uuid: UUID, handle: String, hasVideo: Bool = false, completion: ((NSError?) -> Void)? = nil) {
+    func reportIncomingCall(fcsdkCall: FCSDKCall) async {
         
         let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type: .phoneNumber, value: handle)
-        update.hasVideo = hasVideo
+        update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
+        update.hasVideo = fcsdkCall.hasVideo
         
-        provider?.reportNewIncomingCall(with: uuid, update: update) { error in
-            
-            
-            if error == nil {
-//                let call =  FCSDKCall(uuid: uuid)
-//                call.handle = handle
-                
-//                self.callKitManager.addCalls(call: call)
-            }
-            
-            completion?(error as NSError?)
+        do {
+        try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
+            self.callKitManager.addCalls(call: fcsdkCall)
+        } catch {
+            print("There was an error in \(#function) - Error: \(error)")
         }
     }
     
@@ -38,20 +33,25 @@ extension ProviderDelegate {
     }
     
     //Answer Call after we get notified that we have an incoming call in the push controller
-    @MainActor func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) async  {
+    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("answer call action")
         
-        guard let call = callKitManager.callWithUUID(uuid: action.callUUID) else {
+        configureAudioSession()
+        Task {
+        
+        await self.fcsdkCallService.presentCommunicationSheet()
+        
+        
+         guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
             action.fail()
             return
         }
         
-        configureAudioSession()
-        
-        self.fcsdkCallService.answerFCSDKCall()
-        
+        await self.fcsdkCallService.answerFCSDKCall(fcsdkCall: call)
         action.fulfill()
+        }
     }
+    
     
     
     //Start Call
@@ -86,7 +86,7 @@ extension ProviderDelegate {
     //End Call
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) async {
         // Retrieve the SpeakerboxCall instance corresponding to the action's call UUID
-        guard let call = callKitManager.callWithUUID(uuid: action.callUUID) else {
+        guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
             action.fail()
             return
         }
