@@ -13,7 +13,7 @@ struct Contacts: View {
     
     @Binding var presentCommunication: ActiveSheet?
     @State var showFullSheet: ActiveSheet?
-    @State var callStarted: Bool = false
+    @State var callSheet: Bool = false
     @State var destination: String = ""
     @State var hasVideo: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
@@ -25,15 +25,18 @@ struct Contacts: View {
                 ForEach(contacts, id: \.self) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
-                            self.callStarted = true
                             self.showFullSheet = .communincationSheet
                         }
                 }
+                NavigationLink(
+                            destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo),
+                            isActive: $callSheet
+                ) {}.ignoresSafeArea()
             }
             .navigationBarTitle("Recent Calls")
             .navigationBarItems(trailing:
                                     Button(action: {
-                self.showFullSheet = .callSheet
+                self.callSheet = true
             }, label: {
                 Image(systemName: "plus")
                     .foregroundColor(Color.blue)
@@ -42,24 +45,22 @@ struct Contacts: View {
         }
         .fullScreenCover(item: self.$showFullSheet) { sheet in
             switch sheet {
-            case .callSheet:
-                CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, callStarted: self.$callStarted, showFullSheet: self.$showFullSheet)
             case .communincationSheet:
-                Communication(destination: self.$destination, hasVideo: self.$hasVideo, showFullSheet: self.$showFullSheet)
+                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: .constant(false))
             }
         }
         .onAppear {
             self.fcsdkCallService.acbuc = self.authenticationService.acbuc
             self.fcsdkCallService.setPhoneDelegate()
         }
-        .onChange(of: self.presentCommunication) { newValue in
-            self.showFullSheet = .communincationSheet
+        .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
+            self.showFullSheet = newValue
         }
     }
 }
 
 enum ActiveSheet: Identifiable {
-    case callSheet, communincationSheet
+    case communincationSheet
     
     var id: Int {
         hashValue

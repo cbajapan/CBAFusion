@@ -16,7 +16,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @Binding var endCall: Bool
     @Binding var isOnHold: Bool
     @Binding var acbuc: ACBUC?
-    
+    @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
     
     @EnvironmentObject var callKitManager: CallKitManager
@@ -29,7 +29,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         endCall: Binding<Bool>,
         isOnHold: Binding<Bool>,
         acbuc: Binding<ACBUC?>,
-        fcsdkCall: Binding<FCSDKCall?>
+        fcsdkCall: Binding<FCSDKCall?>,
+        isOutgoing: Binding<Bool>
     ) {
         self._pip = pip
         self._acbuc = acbuc
@@ -38,6 +39,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         self._endCall = endCall
         self._isOnHold = isOnHold
         self._fcsdkCall = fcsdkCall
+        self._isOutgoing = isOutgoing
     }
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) -> CommunicationViewController {
@@ -45,22 +47,22 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             callKitManager: self.callKitManager,
             destination: self.destination,
             hasVideo: self.hasVideo,
-            acbuc: self.acbuc!
+            acbuc: self.acbuc!,
+            isOutgoing: self.isOutgoing
         )
         communicationViewController.fcsdkCallDelegate = context.coordinator
         return communicationViewController
     }
     
     func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
-        uiViewController.showPip(show: self.pip)
+        //        uiViewController.showPip(show: self.pip)
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
         uiViewController.acbuc = self.acbuc!
-        
         let call = self.fcsdkCallService
         if call.hasStartedConnecting {
-             uiViewController.currentState(state: .hasStartedConnecting)
+            uiViewController.currentState(state: .hasStartedConnecting)
         } else if call.isRinging {
             uiViewController.currentState(state: .isRinging)
         } else if call.hasConnected {
@@ -69,13 +71,14 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             uiViewController.currentState(state: .isOnHold)
         } else if !self.isOnHold {
             uiViewController.currentState(state: .notOnHold)
-        } else if self.endCall {
+        }
+        if self.endCall {
             Task {
                 await uiViewController.endCall()
             }
         }
     }
-
+    
     class Coordinator: NSObject, FCSDKCallDelegate {
         
         var parent: CommunicationViewControllerRepresenable
@@ -94,13 +97,15 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     }
 }
 
+
+protocol FCSDKCallDelegate: AnyObject {
+    func passCallToService(_ call: FCSDKCall) async
+}
+
 enum OurErrors: String, Swift.Error {
     case nilACBUC = "Cannot initialize because ACBUC is nil"
     case nilFCSDKCall = "Cannot initialize because FCSDKCall is nil"
     case nilPreviewView = "Cannot set previewView because it is nil"
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
-}
-protocol FCSDKCallDelegate: AnyObject {
-    func passCallToService(_ call: FCSDKCall) async
 }

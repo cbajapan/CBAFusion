@@ -59,6 +59,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .error:
             break
         case .ended:
+            self.stopRingtone()
             if call == self.acbCall {
                 self.acbCall = nil
             }

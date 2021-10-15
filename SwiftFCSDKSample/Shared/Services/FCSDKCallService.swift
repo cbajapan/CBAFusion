@@ -28,7 +28,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var hasEnded: Bool = false
     @Published var presentCommunication: ActiveSheet?
     
-    
     override init(){}
     
     func setPhoneDelegate() {
@@ -59,6 +58,8 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         uc.clientPhone.delegate = self
         try? uc.clientPhone.setPreviewView(previewView)
+        uc.clientPhone.preferredCaptureResolution = .autoResolution
+        uc.clientPhone.preferredCaptureFrameRate = 30
         self.requestMicrophoneAndCameraPermissionFromAppSettings()
     }
     
@@ -70,6 +71,7 @@ class FCSDKCallService: NSObject, ObservableObject {
             video: AppSettings.perferredVideoDirection(),
             delegate: self
         )
+        
         self.acbCall = outboundCall
         self.acbCall?.videoView = self.fcsdkCall?.remoteView
         self.acbCall?.enableLocalAudio(true)
@@ -80,17 +82,22 @@ class FCSDKCallService: NSObject, ObservableObject {
     func presentCommunicationSheet() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-//            if strongSelf.showFullSheet != .communincationSheet {
+            if strongSelf.presentCommunication != .communincationSheet {
                 strongSelf.presentCommunication = .communincationSheet
-//            }
+            }
         }
     }
     
     func answerFCSDKCall(fcsdkCall: FCSDKCall) async {
         self.acbCall = fcsdkCall.call
+        guard let previewView = self.fcsdkCall?.previewView else { return }
+        try? self.acbuc?.clientPhone.setPreviewView(previewView)
         self.acbCall?.videoView = self.fcsdkCall?.remoteView
         self.requestMicrophoneAndCameraPermissionFromAppSettings()
         try? self.acbCall?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+    }
+
+    func setAnwerCallState() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasConnected = true
@@ -98,7 +105,8 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func endFCSDKCall() {
-        hasEnded = true
+        self.hasEnded = true
+        self.acbCall?.end()
     }
     
     func requestMicrophoneAndCameraPermissionFromAppSettings() {

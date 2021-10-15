@@ -28,13 +28,10 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 handle: call?.remoteAddress ?? "",
                 hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
                 previewView: strongSelf.fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
-                remoteView: strongSelf.fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
+                remoteView: strongSelf.fcsdkCall?.remoteView ?? SamplePreviewVideoCallView(),
                 uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(), acbuc: uc,
                 call: call!
             )
-            
-            
-            
             Task {
                 await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
                     UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)

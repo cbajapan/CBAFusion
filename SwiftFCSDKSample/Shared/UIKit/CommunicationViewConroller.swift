@@ -20,9 +20,11 @@ enum CallState {
     case hasEnded
 }
 
-internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
+//internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
 
-class CommunicationViewController: AVPictureInPictureVideoCallViewController {
+class CommunicationViewController:  UIViewController {
+    //Only needed for PiP
+//    AVPictureInPictureVideoCallViewController
     
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
@@ -33,8 +35,10 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }()
     let numberLabel = UILabel()
     let nameLabel = UILabel()
+
     var remoteView = SampleBufferVideoCallView()
     var previewView = SamplePreviewVideoCallView()
+    
     var callKitManager: CallKitManager
     var acbuc: ACBUC
     var fcsdkCallViewModel: FCSDKCallViewModel?
@@ -43,6 +47,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     var currentCamera: AVCaptureDevice.Position!
     var destination: String
     var hasVideo: Bool
+    var isOutgoing: Bool
     let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
     var blurEffectView: UIVisualEffectView?
     
@@ -51,12 +56,14 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         callKitManager: CallKitManager,
         destination: String,
         hasVideo: Bool,
-        acbuc: ACBUC
+        acbuc: ACBUC,
+        isOutgoing: Bool
     ) {
         self.callKitManager = callKitManager
         self.destination = destination
         self.hasVideo = hasVideo
         self.acbuc = acbuc
+        self.isOutgoing = isOutgoing
         super.init(nibName: nil, bundle: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(setCurrentCall), name: NSNotification.Name("add"), object: nil)
     }
@@ -69,10 +76,12 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         super.viewDidLoad()
         preferredContentSize = CGSize(width: 1080, height: 1920)
         Task {
-            await configureVideo()
-            await initiateCall()
+            await self.configureVideo()
+            if self.isOutgoing {
+            await self.initiateCall()
+            }
+            self.gestures()
         }
-        gestures()
     }
     
     func initiateCall() async {
@@ -87,7 +96,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }
     
     func endCall() async {
-        guard let currentCall = self.fcsdkCallViewModel?.fcsdkCall else { return }
+        guard let currentCall = self.callKitManager.calls.last else { return }
         await self.callKitManager.finishEnd(call: currentCall)
         await self.callKitManager.removeCall(call: currentCall)
     }
@@ -153,20 +162,20 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         }
     }
     
-    func setupPiP() {
-        
-        AVPictureInPictureController.isPictureInPictureSupported()
-        
-        let pipContentSource = AVPictureInPictureController.ContentSource(
-            activeVideoCallSourceView: self.remoteView,
-            contentViewController: self)
-        
-        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-        pipController.canStartPictureInPictureAutomaticallyFromInline = true
-        pipController.delegate = self
-        pipController.startPictureInPicture()
-        
-    }
+//    func setupPiP() {
+//        
+//        AVPictureInPictureController.isPictureInPictureSupported()
+//        
+//        let pipContentSource = AVPictureInPictureController.ContentSource(
+//            activeVideoCallSourceView: self.remoteView,
+//            contentViewController: self)
+//        
+//        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
+//        pipController.canStartPictureInPictureAutomaticallyFromInline = true
+//        pipController.delegate = self
+//        pipController.startPictureInPicture()
+//        
+//    }
     //    2021-10-11 09:14:19.418617+0800 SwiftFCSDKSample[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
     
     func gestures() {
@@ -176,16 +185,25 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.previewView.isUserInteractionEnabled = true
         self.previewView.addGestureRecognizer(panGesture)
     }
-    
+
+    //PiP Anchors with custom UI Stuff
     func anchors() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.remoteView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: strongSelf.view.bottomAnchor, trailing: strongSelf.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
             strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: strongSelf.view.frame.width / 2, height: strongSelf.view.frame.height / 3)
-            strongSelf.previewView.sampleBufferDisplayLayer?.videoGravity = .resizeAspectFill
-            strongSelf.previewView.sampleBufferDisplayLayer?.frame = strongSelf.previewView.bounds
-            strongSelf.previewView.sampleBufferDisplayLayer?.masksToBounds = true
-            strongSelf.previewView.sampleBufferDisplayLayer?.cornerRadius = 8
+            
+            
+            //Not needed for video display just some custom UI Stuff
+            strongSelf.remoteView.sampleBufferDisplayLayer?.videoGravity = .resizeAspectFill
+            strongSelf.remoteView.sampleBufferDisplayLayer?.frame = strongSelf.remoteView.bounds
+            strongSelf.remoteView.sampleBufferDisplayLayer?.masksToBounds = true
+            
+            
+            strongSelf.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
+            strongSelf.previewView.samplePreviewDisplayLayer?.frame = strongSelf.previewView.bounds
+            strongSelf.previewView.samplePreviewDisplayLayer?.masksToBounds = true
+            strongSelf.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
         }
     }
         
@@ -230,9 +248,9 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.fcsdkCallViewModel?.acbuc.clientPhone.setCamera(self.currentCamera)
     }
     
-    func showPip(show: Bool) {
-        setupPiP()
-    }
+//    func showPip(show: Bool) {
+//        setupPiP()
+//    }
     
     
     @MainActor func configureVideo() async {

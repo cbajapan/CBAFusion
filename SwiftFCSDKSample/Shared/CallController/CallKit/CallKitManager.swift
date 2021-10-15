@@ -16,9 +16,6 @@ enum CallKitErrors: Swift.Error {
 
 
 
-
-
-
 class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
@@ -65,7 +62,7 @@ class CallKitManager: NSObject, ObservableObject {
         }
     }
     
-    func callWithUUID(uuid: UUID) async -> FCSDKCall? {
+    func callWithUUID(uuid: UUID) -> FCSDKCall? {
         guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
         return calls[index]
     }
@@ -74,12 +71,12 @@ class CallKitManager: NSObject, ObservableObject {
         calls.append(call)
     }
     
-    func removeCall(call: FCSDKCall) async {
+    func removeCall(call: FCSDKCall) {
         guard let index = calls.firstIndex(where: { $0 === call }) else { return }
         calls.remove(at: index)
     }
     
-    func removeAllCalls() {
+    func removeAllCalls() async {
         calls.removeAll()
     }
 }

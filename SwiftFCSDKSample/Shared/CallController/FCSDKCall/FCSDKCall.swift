@@ -12,8 +12,10 @@ final class FCSDKCall: NSObject {
 
     var handle: String
     var hasVideo: Bool
-    var previewView: SamplePreviewVideoCallView
-    var remoteView: SampleBufferVideoCallView
+//    var previewView: SamplePreviewVideoCallView
+    var previewView: ACBView
+    var remoteView: ACBView
+//    var remoteView: SampleBufferVideoCallView
     var uuid: UUID
     var acbuc: ACBUC
     var call: ACBClientCall? = nil
@@ -22,8 +24,10 @@ final class FCSDKCall: NSObject {
     init(
         handle: String,
         hasVideo: Bool,
-        previewView: SamplePreviewVideoCallView,
-        remoteView: SampleBufferVideoCallView,
+//        previewView: SamplePreviewVideoCallView,
+        previewView: ACBView,
+        remoteView: ACBView,
+//        remoteView: SampleBufferVideoCallView,
         uuid: UUID,
         acbuc: ACBUC,
         call: ACBClientCall? = nil
@@ -52,10 +56,16 @@ class FCSDKCallViewModel {
     var hasVideo: Bool {
         return fcsdkCall.hasVideo
     }
-    var previewView: SamplePreviewVideoCallView {
+//    var previewView: SamplePreviewVideoCallView {
+//        return fcsdkCall.previewView
+//    }
+//    var remoteView: SampleBufferVideoCallView {
+//        return fcsdkCall.remoteView
+//    }
+    var previewView: ACBView {
         return fcsdkCall.previewView
     }
-    var remoteView: SampleBufferVideoCallView {
+    var remoteView: ACBView {
         return fcsdkCall.remoteView
     }
     var uuid: UUID {

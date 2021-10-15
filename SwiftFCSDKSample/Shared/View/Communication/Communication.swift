@@ -21,8 +21,8 @@ struct Communication: View {
     @Binding var hasVideo: Bool
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
+    @Binding var isOutgoing: Bool
     
-    @Binding var showFullSheet: ActiveSheet?
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var authenticationServices: AuthenticationService
     @EnvironmentObject var callKitManager: CallKitManager
@@ -40,7 +40,8 @@ struct Communication: View {
                 endCall: self.$endCall,
                 isOnHold: self.$hold,
                 acbuc: self.$authenticationServices.acbuc,
-                fcsdkCall: self.$fcsdkCallService.fcsdkCall
+                fcsdkCall: self.$fcsdkCallService.fcsdkCall,
+                isOutgoing: self.$isOutgoing
             )
                     .ignoresSafeArea(.all)
 
@@ -138,7 +139,7 @@ struct Communication: View {
                     Button {
                         Task {
                             self.endCall = true
-                            self.presentationMode.wrappedValue.dismiss()
+//                            self.presentationMode.wrappedValue.dismiss()
                         }
                         
                     } label: {
@@ -173,7 +174,6 @@ struct Communication: View {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
         }
-
         .sheet(isPresented: self.$showSettings) {
             SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
         }

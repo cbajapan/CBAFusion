@@ -12,7 +12,7 @@ import SwiftFCSDK
 
 extension ProviderDelegate {
     
-
+    
     func reportIncomingCall(fcsdkCall: FCSDKCall) async {
         
         let update = CXCallUpdate()
@@ -20,7 +20,7 @@ extension ProviderDelegate {
         update.hasVideo = fcsdkCall.hasVideo
         
         do {
-        try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
+            try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
             self.callKitManager.addCalls(call: fcsdkCall)
         } catch {
             print("There was an error in \(#function) - Error: \(error)")
@@ -37,18 +37,17 @@ extension ProviderDelegate {
         print("answer call action")
         
         configureAudioSession()
+        
         Task {
-        
-        await self.fcsdkCallService.presentCommunicationSheet()
-        
-        
-         guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
-            action.fail()
-            return
-        }
-        
-        await self.fcsdkCallService.answerFCSDKCall(fcsdkCall: call)
-        action.fulfill()
+            await self.fcsdkCallService.presentCommunicationSheet()
+            guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
+                action.fail()
+                return
+            }
+            
+            await self.fcsdkCallService.answerFCSDKCall(fcsdkCall: call)
+            await self.fcsdkCallService.setAnwerCallState()
+            action.fulfill()
         }
     }
     
@@ -57,10 +56,9 @@ extension ProviderDelegate {
     //Start Call
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("start call action")
-
         configureAudioSession()
-
         Task {
+            await self.fcsdkCallService.presentCommunicationSheet()
             var acbCall: ACBClientCall?
             do {
                 self.outgoingFCSDKCall = try await self.fcsdkCallService.setFCSDKCall()
@@ -81,12 +79,13 @@ extension ProviderDelegate {
             action.fulfill()
         }
     }
-
+    
     
     //End Call
-    func provider(_ provider: CXProvider, perform action: CXEndCallAction) async {
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         // Retrieve the SpeakerboxCall instance corresponding to the action's call UUID
-        guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
+        print(action.callUUID, "UUID____")
+        guard let call = self.callKitManager.callWithUUID(uuid: action.callUUID) else {
             action.fail()
             return
         }
@@ -99,11 +98,12 @@ extension ProviderDelegate {
         // Signal to the system that the action was successfully performed.
         action.fulfill()
         
-        Task {
+ 
             // Remove the ended call from the app's list of calls.
-            await callKitManager.removeCall(call: call)
-        }
+            callKitManager.removeCall(call: call)
+        
     }
+    
     
     //Mute Call
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
@@ -130,12 +130,25 @@ extension ProviderDelegate {
     
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        print("DTMF")
-        action.fulfill()
+        print("Provider - CXPlayDTMFCallAction")
+        configureAudioSession()
+
+            let dtmfDigts:String = action.digits
+        
+        for (index, _) in dtmfDigts.enumerated() {
+            let dtmfDigit = dtmfDigts.utf8CString[index]
+            print(dtmfDigts, "DIGITS_______")
+            //dtmf on
+        }
+        
+        //dtmf off
+
+            // Signal to the system that the action has been successfully performed.
+            action.fulfill()
     }
     
     //Provider Began
-    func providerDidBegin(_ provider: CXProvider) {
+    func providerDidBegin(_ provider: CXProvider) async {
         print("Provider began")
     }
     
