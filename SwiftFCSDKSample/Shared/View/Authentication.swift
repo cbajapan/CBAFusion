@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftFCSDK
+import FCSDKiOS
 
 struct Authentication: View {
     

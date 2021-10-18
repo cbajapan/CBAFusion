@@ -8,7 +8,7 @@
 import Foundation
 import CallKit
 import AVFoundation
-import SwiftFCSDK
+import FCSDKiOS
 
 extension ProviderDelegate {
     
@@ -21,7 +21,8 @@ extension ProviderDelegate {
         
         do {
             try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
-            self.callKitManager.addCalls(call: fcsdkCall)
+            await self.fcsdkCallService.presentCommunicationSheet()
+            await self.callKitManager.addCall(call: fcsdkCall)
         } catch {
             print("There was an error in \(#function) - Error: \(error)")
         }
@@ -35,18 +36,13 @@ extension ProviderDelegate {
     //Answer Call after we get notified that we have an incoming call in the push controller
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("answer call action")
-        
         configureAudioSession()
-        
         Task {
-            await self.fcsdkCallService.presentCommunicationSheet()
-            guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
-                action.fail()
-                return
+            do {
+            try await self.fcsdkCallService.answerFCSDKCall()
+            } catch {
+                print("\(OurErrors.nilACBUC.rawValue)")
             }
-            
-            await self.fcsdkCallService.answerFCSDKCall(fcsdkCall: call)
-            await self.fcsdkCallService.setAnwerCallState()
             action.fulfill()
         }
     }
@@ -74,7 +70,7 @@ extension ProviderDelegate {
             await self.fcsdkCallService.hasConnectedDidChange(provider: provider, id: outgoingFCSDKCall?.uuid ?? UUID(), date: Date())
             
             guard let oc = outgoingFCSDKCall else { return }
-            self.callKitManager.addCalls(call: oc)
+            await self.callKitManager.addCall(call: oc)
             NotificationCenter.default.post(name: NSNotification.Name("add"), object: nil)
             action.fulfill()
         }
@@ -82,25 +78,26 @@ extension ProviderDelegate {
     
     
     //End Call
-    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        // Retrieve the SpeakerboxCall instance corresponding to the action's call UUID
-        print(action.callUUID, "UUID____")
-        guard let call = self.callKitManager.callWithUUID(uuid: action.callUUID) else {
-            action.fail()
-            return
-        }
-        
-        // Stop call audio when ending a call.
-        
-        // Trigger the call to be ended via the underlying network service.
-        self.fcsdkCallService.endFCSDKCall()
-        
-        // Signal to the system that the action was successfully performed.
-        action.fulfill()
-        
- 
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction){
+        // Retrieve the FCSDKCall instance corresponding to the action's call UUID
+        Task {
+            print(action.callUUID, "UUID___0")
+            guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
+                action.fail()
+                return
+            }
+            
+            // Stop call audio when ending a call.
+            
+            // Trigger the call to be ended via the underlying network service.
+            self.fcsdkCallService.endFCSDKCall()
+            
+            // Signal to the system that the action was successfully performed.
+            action.fulfill()
+
             // Remove the ended call from the app's list of calls.
-            callKitManager.removeCall(call: call)
+            await callKitManager.removeCall(call: call)
+        }
         
     }
     
@@ -132,19 +129,19 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
         print("Provider - CXPlayDTMFCallAction")
         configureAudioSession()
-
-            let dtmfDigts:String = action.digits
+        
+        let dtmfDigts:String = action.digits
         
         for (index, _) in dtmfDigts.enumerated() {
             let dtmfDigit = dtmfDigts.utf8CString[index]
-            print(dtmfDigts, "DIGITS_______")
+            print(dtmfDigit, "DIGITS_______")
             //dtmf on
         }
         
         //dtmf off
-
-            // Signal to the system that the action has been successfully performed.
-            action.fulfill()
+        
+        // Signal to the system that the action has been successfully performed.
+        action.fulfill()
     }
     
     //Provider Began

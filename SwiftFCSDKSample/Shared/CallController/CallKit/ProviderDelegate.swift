@@ -9,14 +9,14 @@ import Foundation
 import CallKit
 import UIKit
 import AVFoundation
-import SwiftFCSDK
+import FCSDKiOS
 
 final class ProviderDelegate: NSObject, CXProviderDelegate {
     
     internal let provider: CXProvider?
     internal let callKitManager: CallKitManager
     internal let fcsdkCallService: FCSDKCallService
-    internal var call: FCSDKCall?
+    internal var incomingCall: FCSDKCall?
     internal var outgoingFCSDKCall: FCSDKCall?
     
     init(

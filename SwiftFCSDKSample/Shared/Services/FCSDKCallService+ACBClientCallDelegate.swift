@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftFCSDK
+import FCSDKiOS
 import AVFoundation
 
 extension FCSDKCallService: ACBClientCallDelegate {
@@ -42,7 +42,6 @@ extension FCSDKCallService: ACBClientCallDelegate {
             }
             if self.acbCall?.callId != nil {
                 self.acbCall?.end()
-                self.acbCall?.end()
             }
             self.acbCall?.callId = nil
         case .busy:
@@ -51,7 +50,6 @@ extension FCSDKCallService: ACBClientCallDelegate {
             }
             if self.acbCall?.callId != nil {
                 self.acbCall?.end()
-                self.acbCall?.end()
             }
             self.acbCall?.callId = nil
         case .notFound:
@@ -59,23 +57,18 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .error:
             break
         case .ended:
-            self.stopRingtone()
-            if call == self.acbCall {
-                self.acbCall = nil
-            }
-            if self.acbCall?.callId != nil {
-                self.acbCall?.end()
-                self.acbCall?.end()
-            }
-            self.acbCall?.callId = nil
-            hasEnded = true
+            break
+//            DispatchQueue.main.async { [weak self] in
+//                guard let strongSelf = self else { return }
+//                strongSelf.receivedEnd = true
+//            }
         }
     }
     
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
         if message == "Session interrupted" {
             if self.acbCall != nil {
-                if self.acbCall?.callStatusMachine?.state == .inCall {
+                if self.acbCall?.callStatusMachine?.state.rawValue == ACBClientCallStatus.inCall.rawValue {
                     if !self.isOnHold {
                         self.acbCall?.hold()
                         self.isOnHold = true

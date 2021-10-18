@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftUI
-import SwiftFCSDK
+import FCSDKiOS
 
 class AuthenticationService: NSObject, ObservableObject {
     

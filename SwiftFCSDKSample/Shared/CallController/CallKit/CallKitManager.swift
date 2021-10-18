@@ -7,7 +7,7 @@
 
 import Foundation
 import CallKit
-import SwiftFCSDK
+import FCSDKiOS
 import AVFAudio
 
 enum CallKitErrors: Swift.Error {
@@ -22,6 +22,11 @@ class CallKitManager: NSObject, ObservableObject {
     var calls = [FCSDKCall]()
     
     
+    override init() {
+        super.init()
+    }
+
+    
     func initializeCall(_ call: FCSDKCall) async {
         await makeCall(handle: call.handle, hasVideo: call.hasVideo)
     }
@@ -35,8 +40,8 @@ class CallKitManager: NSObject, ObservableObject {
 
         try? await requestTransaction(transaction)
     }
-    
-    func finishEnd(call: FCSDKCall) async {
+
+    @objc func finishEnd(call: FCSDKCall) async {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let transaction = CXTransaction()
         transaction.addAction(endCallAction)
@@ -62,16 +67,17 @@ class CallKitManager: NSObject, ObservableObject {
         }
     }
     
-    func callWithUUID(uuid: UUID) -> FCSDKCall? {
+    func callWithUUID(uuid: UUID) async -> FCSDKCall? {
         guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
         return calls[index]
     }
     
-    func addCalls(call: FCSDKCall) {
+    func addCall(call: FCSDKCall) async {
         calls.append(call)
     }
     
-    func removeCall(call: FCSDKCall) {
+    func removeCall(call: FCSDKCall) async {
+        print(call.uuid, "UUID___1")
         guard let index = calls.firstIndex(where: { $0 === call }) else { return }
         calls.remove(at: index)
     }

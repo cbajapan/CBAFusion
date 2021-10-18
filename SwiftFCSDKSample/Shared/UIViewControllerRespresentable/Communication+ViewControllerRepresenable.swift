@@ -7,7 +7,7 @@
 
 import UIKit
 import SwiftUI
-import SwiftFCSDK
+import FCSDKiOS
 
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @Binding var pip: Bool
@@ -56,6 +56,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
         //        uiViewController.showPip(show: self.pip)
+        
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
@@ -63,20 +64,34 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         let call = self.fcsdkCallService
         if call.hasStartedConnecting {
             uiViewController.currentState(state: .hasStartedConnecting)
-        } else if call.isRinging {
+        }
+        else if call.isRinging {
             uiViewController.currentState(state: .isRinging)
-        } else if call.hasConnected {
+        }
+        else if call.hasConnected {
             uiViewController.currentState(state: .hasConnected)
-        } else if self.isOnHold {
+        }
+        else if self.isOnHold {
             uiViewController.currentState(state: .isOnHold)
-        } else if !self.isOnHold {
+        }
+        else if !self.isOnHold {
             uiViewController.currentState(state: .notOnHold)
         }
+        if call.hasEnded {
+            uiViewController.currentState(state: .hasEnded)
+        }
+
         if self.endCall {
             Task {
                 await uiViewController.endCall()
             }
         }
+        
+//        if call.receivedEnd {
+//            Task {
+//                await uiViewController.endCall()
+//            }
+//        }
     }
     
     class Coordinator: NSObject, FCSDKCallDelegate {
@@ -90,6 +105,11 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         @MainActor func passCallToService(_ call: FCSDKCall) async {
             self.parent.fcsdkCall = call
         }
+        
+        @MainActor func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
+            self.parent.fcsdkCall?.previewView = preview
+            self.parent.fcsdkCall?.remoteView = remoteView
+        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -100,6 +120,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
 
 protocol FCSDKCallDelegate: AnyObject {
     func passCallToService(_ call: FCSDKCall) async
+    func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async
 }
 
 enum OurErrors: String, Swift.Error {

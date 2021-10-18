@@ -22,12 +22,12 @@ struct Contacts: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(contacts, id: \.self) { contact in
-                    ContactsCell(contact: contact)
-                        .onTapGesture {
-                            self.showFullSheet = .communincationSheet
-                        }
-                }
+//                ForEach(contacts, id: \.self) { contact in
+//                    ContactsCell(contact: contact)
+//                        .onTapGesture {
+//                            self.showFullSheet = .communincationSheet
+//                        }
+//                }
                 NavigationLink(
                             destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo),
                             isActive: $callSheet

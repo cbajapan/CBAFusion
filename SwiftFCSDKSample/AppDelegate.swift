@@ -24,32 +24,32 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         return true
     }
 
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        guard let handle = url.startCallHandle else {
-            print("Could not determine start call handle from URL: \(url)")
-            return false
-        }
-
+//    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+//        guard let handle = url.startCallHandle else {
+//            print("Could not determine start call handle from URL: \(url)")
+//            return false
+//        }
+//
 //        callManager.startCall(handle: handle)
-        return true
-    }
+//        return true
+//    }
 
-    private func application(_ application: UIApplication,
-                             continue userActivity: NSUserActivity,
-                             restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
-        guard let handle = userActivity.startCallHandle else {
-            print("Could not determine start call handle from user activity: \(userActivity)")
-            return false
-        }
-
-        guard let video = userActivity.video else {
-            print("Could not determine video from user activity: \(userActivity)")
-            return false
-        }
-
+//    private func application(_ application: UIApplication,
+//                             continue userActivity: NSUserActivity,
+//                             restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
+//        guard let handle = userActivity.startCallHandle else {
+//            print("Could not determine start call handle from user activity: \(userActivity)")
+//            return false
+//        }
+//
+//        guard let video = userActivity.video else {
+//            print("Could not determine video from user activity: \(userActivity)")
+//            return false
+//        }
+//
 //        callManager.startCall(handle: handle, video: video)
-        return true
-    }
+//        return true
+//    }
 
     // MARK: - UISceneSession Lifecycle
 
@@ -76,32 +76,32 @@ extension AppDelegate: PKPushRegistryDelegate {
         print("Type: \(type.rawValue)")
     }
 
-    func pushRegistry(_ registry: PKPushRegistry,
-                      didReceiveIncomingPushWith payload: PKPushPayload,
-                      for type: PKPushType, completion: @escaping () -> Void) {
-        defer {
-            completion()
-        }
-
-        guard type == .voIP,
-            let uuidString = payload.dictionaryPayload["UUID"] as? String,
-            let handle = payload.dictionaryPayload["handle"] as? String,
-            let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
-            let uuid = UUID(uuidString: uuidString)
-            else {
-                return
-        }
-//        let receivedCall = FCSDKCall(
-//            handle: handle,
-//            hasVideo: hasVideo,
-//            previewView: fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
-//            remoteView: fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
-//            uuid: UUID(uuidString: uuidString) ?? UUID(),
-//            acbuc: uc,
-//            call: call!
-//        )
-//        displayIncomingCall(fcsdkCall: receivedCall)
-    }
+//    func pushRegistry(_ registry: PKPushRegistry,
+//                      didReceiveIncomingPushWith payload: PKPushPayload,
+//                      for type: PKPushType, completion: @escaping () -> Void) {
+//        defer {
+//            completion()
+//        }
+//
+//        guard type == .voIP,
+//            let uuidString = payload.dictionaryPayload["UUID"] as? String,
+//            let handle = payload.dictionaryPayload["handle"] as? String,
+//            let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
+//            let uuid = UUID(uuidString: uuidString)
+//            else {
+//                return
+//        }
+////        let receivedCall = FCSDKCall(
+////            handle: handle,
+////            hasVideo: hasVideo,
+////            previewView: fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
+////            remoteView: fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
+////            uuid: UUID(uuidString: uuidString) ?? UUID(),
+////            acbuc: uc,
+////            call: call!
+////        )
+////        displayIncomingCall(fcsdkCall: receivedCall)
+//    }
 
     // MARK: - PKPushRegistryDelegate Helper
 

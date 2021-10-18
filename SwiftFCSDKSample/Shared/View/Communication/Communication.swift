@@ -76,70 +76,69 @@ struct Communication: View {
                 Spacer()
                 HStack(alignment: .center) {
                     Spacer()
-                    Button {
-                        self.pip.toggle()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(self.pip ? Color.white : Color.gray)
-                                .frame(width: 50, height: 50)
-                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                                .resizable()
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.black)
-                                .frame(width: 25, height: 25)
-                                .padding()
-                        }
-                    }
-                    Button {
-                        self.hold.toggle()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(self.hold ? Color.white : Color.gray)
-                                .frame(width: 50, height: 50)
-                            Image(systemName: "nosign")
-                                .resizable()
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.hold ? Color.gray : Color.white)
-                                .frame(width: 25, height: 25)
-                                .padding()
-                        }
-                    }
-                    Button {
-                        self.muteAudio.toggle()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(self.muteAudio ? Color.white : Color.gray)
-                                .frame(width: 50, height: 50)
-                            Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.fill")
-                                .resizable()
-                                .frame(width: 25, height: 13)
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
-                                .padding()
-                        }
-                    }
-                    Button {
-                        self.muteVideo.toggle()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(self.muteVideo ? Color.white : Color.gray)
-                                .frame(width: 50, height: 50)
-                            Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
-                                .resizable()
-                                .frame(width: 25, height: 13)
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
-                                .padding()
-                        }
-                    }
+//                    Button {
+//                        self.pip.toggle()
+//                    } label: {
+//                        ZStack {
+//                            Circle()
+//                                .fill(self.pip ? Color.white : Color.gray)
+//                                .frame(width: 50, height: 50)
+//                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+//                                .resizable()
+//                                .multilineTextAlignment(.trailing)
+//                                .foregroundColor(Color.black)
+//                                .frame(width: 25, height: 25)
+//                                .padding()
+//                        }
+//                    }
+//                    Button {
+//                        self.hold.toggle()
+//                    } label: {
+//                        ZStack {
+//                            Circle()
+//                                .fill(self.hold ? Color.white : Color.gray)
+//                                .frame(width: 50, height: 50)
+//                            Image(systemName: "nosign")
+//                                .resizable()
+//                                .multilineTextAlignment(.trailing)
+//                                .foregroundColor(self.hold ? Color.gray : Color.white)
+//                                .frame(width: 25, height: 25)
+//                                .padding()
+//                        }
+//                    }
+//                    Button {
+//                        self.muteAudio.toggle()
+//                    } label: {
+//                        ZStack {
+//                            Circle()
+//                                .fill(self.muteAudio ? Color.white : Color.gray)
+//                                .frame(width: 50, height: 50)
+//                            Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.fill")
+//                                .resizable()
+//                                .frame(width: 25, height: 13)
+//                                .multilineTextAlignment(.trailing)
+//                                .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
+//                                .padding()
+//                        }
+//                    }
+//                    Button {
+//                        self.muteVideo.toggle()
+//                    } label: {
+//                        ZStack {
+//                            Circle()
+//                                .fill(self.muteVideo ? Color.white : Color.gray)
+//                                .frame(width: 50, height: 50)
+//                            Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
+//                                .resizable()
+//                                .frame(width: 25, height: 13)
+//                                .multilineTextAlignment(.trailing)
+//                                .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
+//                                .padding()
+//                        }
+//                    }
                     Button {
                         Task {
-                            self.endCall = true
-//                            self.presentationMode.wrappedValue.dismiss()
+                        self.endCall.toggle()
                         }
                         
                     } label: {
@@ -174,6 +173,11 @@ struct Communication: View {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
         }
+        .onChange(of: self.fcsdkCallService.hasEnded, perform: { newValue in
+            if self.fcsdkCallService.hasEnded {
+            self.presentationMode.wrappedValue.dismiss()
+            }
+        })
         .sheet(isPresented: self.$showSettings) {
             SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
         }

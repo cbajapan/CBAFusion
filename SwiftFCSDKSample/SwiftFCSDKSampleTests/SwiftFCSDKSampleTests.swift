@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import SwiftFCSDKSample
+@testable import FCSDKiOSSample
 
 class SwiftFCSDKSampleTests: XCTestCase {
 

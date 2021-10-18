@@ -7,19 +7,21 @@
 
 import Foundation
 import AVFoundation
-import SwiftFCSDK
+import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
-        guard let uc = acbuc else { return }
+        guard let uc = self.acbuc else { return }
         
         self.acbCall = call;
         self.playRingtone()
         
         // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
         call?.delegate = self
+        
+        
         // we need to pass this to the call manager
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
@@ -27,11 +29,13 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             let receivedCall = FCSDKCall(
                 handle: call?.remoteAddress ?? "",
                 hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
-                previewView: strongSelf.fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
-                remoteView: strongSelf.fcsdkCall?.remoteView ?? SamplePreviewVideoCallView(),
-                uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(), acbuc: uc,
+                previewView: nil,
+                remoteView: nil,
+                uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(),
+                acbuc: uc,
                 call: call!
             )
+            strongSelf.fcsdkCall = receivedCall
             Task {
                 await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
                     UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
