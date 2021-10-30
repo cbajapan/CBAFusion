@@ -65,8 +65,11 @@ struct AED: View {
                 }.background(Color.black)
                     .listRowBackground(Color.black)
             }
-            .navigationBarTitle("Application Event Distribution", displayMode: .inline)
-        }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(content: {
+                 ToolbarItem(placement: .principal, content: {
+                 Text("Application Event Distribution")
+              })})        }
         .onTapGesture {
 //            hideKeyboard()
         }

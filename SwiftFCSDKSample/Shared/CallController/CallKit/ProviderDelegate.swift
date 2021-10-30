@@ -35,7 +35,7 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
         config.supportsVideo = true
         config.maximumCallsPerCallGroup = 1
         config.supportedHandleTypes = [.phoneNumber, .emailAddress, .generic]
-        config.iconTemplateImageData = UIImage(systemName: "person.fill")?.pngData()
+//        config.iconTemplateImageData = UIImage(systemName: "person.fill")?.pngData()
         config.ringtoneSound = "ringring.wav"
         return config
     }()

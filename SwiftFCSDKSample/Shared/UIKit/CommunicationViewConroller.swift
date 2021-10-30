@@ -10,6 +10,7 @@ import UIKit
 import FCSDKiOS
 import AVKit
 
+
 enum CallState {
     case hasStartedConnecting
     case isRinging
@@ -25,7 +26,6 @@ enum CallState {
 class CommunicationViewController:  UIViewController {
     //Only needed for PiP
     //    AVPictureInPictureVideoCallViewController
-    
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var stackView: UIStackView = {
@@ -49,8 +49,6 @@ class CommunicationViewController:  UIViewController {
     var destination: String
     var hasVideo: Bool
     var isOutgoing: Bool
-    let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
-    var blurEffectView: UIVisualEffectView?
     
     
     init(
@@ -66,7 +64,6 @@ class CommunicationViewController:  UIViewController {
         self.acbuc = acbuc
         self.isOutgoing = isOutgoing
         super.init(nibName: nil, bundle: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(setCurrentCall), name: NSNotification.Name("add"), object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -85,23 +82,6 @@ class CommunicationViewController:  UIViewController {
             }
             self.gestures()
         }
-    }
-
-    
-    func initiateCall() async {
-        let fcsdkCallViewModel = FCSDKCallViewModel(fcsdkCall: FCSDKCall(handle: self.destination, hasVideo: true, previewView: self.previewView, remoteView: self.remoteView, uuid: UUID(), acbuc: self.acbuc))
-        await self.fcsdkCallDelegate?.passCallToService(fcsdkCallViewModel.fcsdkCall)
-        await self.callKitManager.initializeCall(fcsdkCallViewModel.fcsdkCall)
-    }
-    
-    @objc func setCurrentCall() {
-        guard let currentCall = self.callKitManager.calls.last else { return }
-        self.fcsdkCallViewModel?.fcsdkCall = currentCall
-    }
-    
-    func endCall() async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
-        await self.callKitManager.finishEnd(call: currentCall)
     }
     
     func currentState(state: CallState) {
@@ -128,9 +108,47 @@ class CommunicationViewController:  UIViewController {
         case .notOnHold:
             self.removeOnHold()
         case .hasEnded:
-            self.breakDownView()
+            Task {
+            await self.breakDownView()
+            }
         }
     }
+    
+    
+    func initiateCall() async {
+        let fcsdkCallViewModel = FCSDKCallViewModel(fcsdkCall: FCSDKCall(handle: self.destination, hasVideo: true, previewView: self.previewView, remoteView: self.remoteView, uuid: UUID(), acbuc: self.acbuc))
+        await self.fcsdkCallDelegate?.passCallToService(fcsdkCallViewModel.fcsdkCall)
+        await self.callKitManager.initializeCall(fcsdkCallViewModel.fcsdkCall)
+    }
+    
+    @objc func setCurrentCall() {
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        self.fcsdkCallViewModel?.fcsdkCall = currentCall
+    }
+    
+    func endCall() {
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        self.callKitManager.finishEnd(call: currentCall)
+    }
+    
+    func muteVideo(isMute: Bool) {
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        if isMute {
+            currentCall.call?.enableLocalVideo(false)
+        } else {
+            currentCall.call?.enableLocalVideo(true)
+        }
+    }
+    
+    func muteAudio(isMute: Bool) {
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        if isMute {
+            currentCall.call?.enableLocalAudio(false)
+        } else {
+            currentCall.call?.enableLocalAudio(true)
+        }
+    }
+    
     
     func connectingUI(isRinging: Bool) async {
         DispatchQueue.main.async { [weak self] in
@@ -194,11 +212,11 @@ class CommunicationViewController:  UIViewController {
     func anchors() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-
+            
             strongSelf.remoteView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: strongSelf.view.bottomAnchor, trailing: strongSelf.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
             
             if UIDevice.current.userInterfaceIdiom == .phone {
-
+                
                 let viewHeight = strongSelf.view.frame.height
                 let viewWidth = strongSelf.view.frame.width
                 var height: CGFloat = 0.0
@@ -218,7 +236,7 @@ class CommunicationViewController:  UIViewController {
                     break
                 }
                 strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: width, height: height)
-
+                
             } else {
                 
                 let viewHeight = strongSelf.view.frame.height
@@ -258,34 +276,32 @@ class CommunicationViewController:  UIViewController {
             await anchors()
         }
     }
-
-    func breakDownView() {
+    
+    func breakDownView() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-            strongSelf.remoteView.removeFromSuperview()
             strongSelf.previewView.removeFromSuperview()
-            strongSelf.remoteView.layoutIfNeeded()
             strongSelf.previewView.layoutIfNeeded()
+            strongSelf.remoteView.removeFromSuperview()
+            strongSelf.remoteView.layoutIfNeeded()
         }
     }
     
+    //TODO: - Fix the hold and unhold button logic, it fires bothe because we can be both false and true
     func onHoldView() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.blurEffectView = UIVisualEffectView(effect: strongSelf.blurEffect)
-            strongSelf.blurEffectView?.frame = strongSelf.view.bounds
-            strongSelf.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            strongSelf.view.addSubview(strongSelf.blurEffectView!)
-            strongSelf.fcsdkCallViewModel?.call?.hold()
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        currentCall.call?.hold()
+        Task {
+            await breakDownView()
         }
     }
     
     func removeOnHold() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.blurEffectView?.removeFromSuperview()
-            strongSelf.fcsdkCallViewModel?.call?.resume()
-        }
+//        guard let currentCall = self.callKitManager.calls.last else { return }
+//        currentCall.call?.resume()
+//        Task {
+//            await setupUI()
+//        }
     }
     
     // Gestures

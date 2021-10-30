@@ -11,6 +11,13 @@ import AVFoundation
 
 extension FCSDKCallService: ACBClientCallDelegate {
     
+    private func endCall() {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.hasEnded = true
+        }
+    }
+    
     func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
         switch status {
         case .setup:
@@ -37,40 +44,24 @@ extension FCSDKCallService: ACBClientCallDelegate {
                 strongSelf.hasConnected = true
             }
         case .timedOut:
-            if call == self.acbCall {
-                self.acbCall = nil
-            }
-            if self.acbCall?.callId != nil {
-                self.acbCall?.end()
-            }
-            self.acbCall?.callId = nil
+            self.endCall()
         case .busy:
-            if call == self.acbCall {
-                self.acbCall = nil
-            }
-            if self.acbCall?.callId != nil {
-                self.acbCall?.end()
-            }
-            self.acbCall?.callId = nil
+            self.endCall()
         case .notFound:
-            break
+            self.endCall()
         case .error:
-            break
+            self.endCall()
         case .ended:
-            break
-//            DispatchQueue.main.async { [weak self] in
-//                guard let strongSelf = self else { return }
-//                strongSelf.receivedEnd = true
-//            }
+            self.endCall()
         }
     }
     
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
         if message == "Session interrupted" {
             if self.acbCall != nil {
-                if self.acbCall?.callStatusMachine?.state.rawValue == ACBClientCallStatus.inCall.rawValue {
+                if self.acbCall?.currentState == ACBClientCallStatus.inCall.rawValue {
                     if !self.isOnHold {
-                        self.acbCall?.hold()
+                        call?.hold()
                         self.isOnHold = true
                     }
                 }

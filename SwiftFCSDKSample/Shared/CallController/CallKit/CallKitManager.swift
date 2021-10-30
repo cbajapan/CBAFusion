@@ -28,25 +28,25 @@ class CallKitManager: NSObject, ObservableObject {
 
     
     func initializeCall(_ call: FCSDKCall) async {
-        await makeCall(handle: call.handle, hasVideo: call.hasVideo)
+        self.makeCall(uuid: call.uuid, handle: call.handle, hasVideo: call.hasVideo)
     }
     
-    func makeCall(handle: String, hasVideo: Bool = false) async {
+    func makeCall(uuid: UUID, handle: String, hasVideo: Bool = false) {
         let handle = CXHandle(type: .phoneNumber, value: handle)
-        let startCallAction = CXStartCallAction(call: UUID(), handle: handle)
+        let startCallAction = CXStartCallAction(call: uuid, handle: handle)
         startCallAction.isVideo = hasVideo
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
 
-        try? await requestTransaction(transaction)
+        requestTransaction(transaction)
     }
 
-    @objc func finishEnd(call: FCSDKCall) async {
+
+    func finishEnd(call: FCSDKCall) {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let transaction = CXTransaction()
         transaction.addAction(endCallAction)
-        
-        try? await requestTransaction(transaction)
+        requestTransaction(transaction)
     }
     
     func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
@@ -54,16 +54,18 @@ class CallKitManager: NSObject, ObservableObject {
         let transaction = CXTransaction()
         transaction.addAction(hold)
         
-        try? await requestTransaction(transaction)
+         requestTransaction(transaction)
     }
     
     
     
-    private func requestTransaction(_ transaction: CXTransaction) async throws {
-        do {
-            try await callController.request(transaction)
-        } catch {
-            throw CallKitErrors.failedRequestTransaction("There was an error in \(#function) Error: \(error)")
+    private func requestTransaction(_ transaction: CXTransaction) {
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Error requesting transaction:", error)
+            } else {
+                print("Requested transaction successfully")
+            }
         }
     }
     
@@ -77,7 +79,6 @@ class CallKitManager: NSObject, ObservableObject {
     }
     
     func removeCall(call: FCSDKCall) async {
-        print(call.uuid, "UUID___1")
         guard let index = calls.firstIndex(where: { $0 === call }) else { return }
         calls.remove(at: index)
     }

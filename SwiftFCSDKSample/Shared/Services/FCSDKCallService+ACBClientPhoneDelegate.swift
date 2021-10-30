@@ -11,6 +11,8 @@ import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
+    
+    
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
         guard let uc = self.acbuc else { return }
@@ -31,25 +33,18 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
                 previewView: nil,
                 remoteView: nil,
-                uuid: UUID(uuidString: call?.callId ?? "") ?? UUID(),
+                uuid: UUID(),
                 acbuc: uc,
                 call: call!
             )
+            print(receivedCall.uuid, "RECEIVED UUID")
             strongSelf.fcsdkCall = receivedCall
+            
             Task {
                 await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
-                    UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+                UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
             }
         }
-    }
-    
-    //TODO: - Write Some code
-    func presentAnswerCallUI() {
-        
-    }
-    
-    func switchToNotInCallUI() {
-        //TODO: - Hide any UI that is needed
     }
     
     func phone(_ phone: ACBClientPhone?, didChange settings: ACBVideoCaptureSetting?, forCamera camera: AVCaptureDevice.Position) {

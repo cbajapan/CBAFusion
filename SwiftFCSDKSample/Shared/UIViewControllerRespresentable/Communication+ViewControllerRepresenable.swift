@@ -14,6 +14,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var endCall: Bool
+    @Binding var muteVideo: Bool
+    @Binding var muteAudio: Bool
     @Binding var isOnHold: Bool
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
@@ -27,6 +29,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         destination: Binding<String>,
         hasVideo: Binding<Bool>,
         endCall: Binding<Bool>,
+        muteVideo: Binding<Bool>,
+        muteAudio: Binding<Bool>,
         isOnHold: Binding<Bool>,
         acbuc: Binding<ACBUC?>,
         fcsdkCall: Binding<FCSDKCall?>,
@@ -37,6 +41,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         self._destination = destination
         self._hasVideo = hasVideo
         self._endCall = endCall
+        self._muteVideo = muteVideo
+        self._muteAudio = muteAudio
         self._isOnHold = isOnHold
         self._fcsdkCall = fcsdkCall
         self._isOutgoing = isOutgoing
@@ -71,27 +77,39 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         else if call.hasConnected {
             uiViewController.currentState(state: .hasConnected)
         }
-        else if self.isOnHold {
+        
+        if self.isOnHold {
             uiViewController.currentState(state: .isOnHold)
         }
-        else if !self.isOnHold {
+        
+        if !self.isOnHold {
             uiViewController.currentState(state: .notOnHold)
         }
+        
         if call.hasEnded {
             uiViewController.currentState(state: .hasEnded)
         }
 
         if self.endCall {
-            Task {
-                await uiViewController.endCall()
+            if !call.hasEnded {
+            uiViewController.endCall()
+            } else {
+                //dismiss view
+                uiViewController.currentState(state: .hasEnded)
             }
         }
-        
-//        if call.receivedEnd {
-//            Task {
-//                await uiViewController.endCall()
-//            }
-//        }
+        if self.muteVideo {
+            uiViewController.muteVideo(isMute: true)
+        }
+        if !self.muteVideo {
+            uiViewController.muteVideo(isMute: false)
+        }
+        if self.muteAudio {
+            uiViewController.muteAudio(isMute: true)
+        }
+        if !self.muteAudio {
+            uiViewController.muteAudio(isMute: false)
+        }
     }
     
     class Coordinator: NSObject, FCSDKCallDelegate {

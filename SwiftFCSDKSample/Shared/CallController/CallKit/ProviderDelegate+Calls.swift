@@ -57,7 +57,7 @@ extension ProviderDelegate {
             await self.fcsdkCallService.presentCommunicationSheet()
             var acbCall: ACBClientCall?
             do {
-                self.outgoingFCSDKCall = try await self.fcsdkCallService.setFCSDKCall()
+                self.outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall
                 guard let preView = outgoingFCSDKCall?.previewView else { return }
                 try await self.fcsdkCallService.initializeCall(previewView: preView)
                 acbCall = try await self.fcsdkCallService.startFCSDKCall()
@@ -71,17 +71,16 @@ extension ProviderDelegate {
             
             guard let oc = outgoingFCSDKCall else { return }
             await self.callKitManager.addCall(call: oc)
-            NotificationCenter.default.post(name: NSNotification.Name("add"), object: nil)
+//            NotificationCenter.default.post(name: NSNotification.Name("add"), object: nil)
             action.fulfill()
         }
     }
     
     
     //End Call
-    func provider(_ provider: CXProvider, perform action: CXEndCallAction){
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         // Retrieve the FCSDKCall instance corresponding to the action's call UUID
         Task {
-            print(action.callUUID, "UUID___0")
             guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
                 action.fail()
                 return

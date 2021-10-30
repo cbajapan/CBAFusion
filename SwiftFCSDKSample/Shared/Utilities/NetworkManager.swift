@@ -19,6 +19,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     
     
     static let shared = NetworkManager()
+    let configuration = URLSessionConfiguration.default
     
     func combineCodableNetworkWrapper<T: Codable>(
         urlString: String,
@@ -43,7 +44,6 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
         
-        let configuration = URLSessionConfiguration.default
         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
         return session.dataTaskPublisher(for: request)
             .tryMap { data, response -> Data in
@@ -88,8 +88,8 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
         
-        let configuration = URLSessionConfiguration.default
-        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
+        
+        let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -129,9 +129,8 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         for cookie in allCookies ?? [] {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
-        
-        let configuration = URLSessionConfiguration.default
-        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
+    
+        let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (_, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {

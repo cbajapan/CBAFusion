@@ -26,36 +26,19 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var hasConnected: Bool = false
     @Published var isOnHold: Bool = false
     @Published var hasEnded: Bool = false
-//    @Published var receivedEnd: Bool = false
     @Published var presentCommunication: ActiveSheet?
     
     override init(){
         super.init()
-        self.requestMicrophoneAndCameraPermissionFromAppSettings()
     }
 
-    
+
     func setPhoneDelegate() {
         self.acbuc?.clientPhone.delegate = self
     }
-    
-    func setFCSDKCall() async throws -> FCSDKCall {
-        guard let call = fcsdkCall else { throw OurErrors.nilFCSDKCall }
-        let vm = FCSDKCallViewModel(fcsdkCall: FCSDKCall(
-            handle: call.handle,
-            hasVideo: call.hasVideo,
-            previewView: call.previewView,
-            remoteView: call.remoteView,
-            uuid: call.uuid,
-            acbuc: call.acbuc,
-            call: nil
-        ))
-        self.fcsdkCallViewModel?.append(vm)
-        return vm.fcsdkCall
-    }
-    
-    
+
     func initializeCall(previewView: ACBView) async throws {
+        await self.requestMicrophoneAndCameraPermissionFromAppSettings()
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasStartedConnecting = true
@@ -93,6 +76,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func answerFCSDKCall() async throws {
+        await self.requestMicrophoneAndCameraPermissionFromAppSettings()
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasConnected = true
@@ -101,7 +85,8 @@ class FCSDKCallService: NSObject, ObservableObject {
         
         //We pass our view Controllers view to the preview here
         self.acbCall?.remoteView = self.fcsdkCall?.remoteView
-        try? uc.clientPhone.setPreviewView((self.fcsdkCall?.previewView)!)
+        guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
+        try? uc.clientPhone.setPreviewView(view)
         uc.clientPhone.preferredCaptureResolution = .autoResolution
         uc.clientPhone.preferredCaptureFrameRate = 30
         do {
@@ -119,7 +104,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         }
     }
     
-    func requestMicrophoneAndCameraPermissionFromAppSettings() {
+    func requestMicrophoneAndCameraPermissionFromAppSettings() async {
         let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
         ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
@@ -128,7 +113,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     func playRingtone() {
         let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
         let fileURL = URL(fileURLWithPath: path!)
-        
         self.audioPlayer = try? AVAudioPlayer(contentsOf: fileURL)
         self.audioPlayer?.volume = 1.0
         self.audioPlayer?.numberOfLoops = -1
