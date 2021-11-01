@@ -31,12 +31,16 @@ class FCSDKCallService: NSObject, ObservableObject {
     override init(){
         super.init()
     }
-
-
+    
+    func setCallDelegate() {
+        self.fcsdkCall?.call?.delegate = self
+    }
+    
+    
     func setPhoneDelegate() {
         self.acbuc?.clientPhone.delegate = self
     }
-
+    
     func initializeCall(previewView: ACBView) async throws {
         await self.requestMicrophoneAndCameraPermissionFromAppSettings()
         DispatchQueue.main.async { [weak self] in

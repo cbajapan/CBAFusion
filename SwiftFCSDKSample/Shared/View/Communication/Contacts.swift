@@ -18,6 +18,7 @@ struct Contacts: View {
     @State var hasVideo: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
+    @EnvironmentObject var monitor: NetworkMonitor
     
     var body: some View {
         NavigationView {
@@ -36,7 +37,7 @@ struct Contacts: View {
             }
             .navigationBarTitleDisplayMode(.large)
             .toolbar(content: {
-
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         self.callSheet = true
@@ -54,8 +55,23 @@ struct Contacts: View {
             }
         }
         .onAppear {
-            self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-            self.fcsdkCallService.setPhoneDelegate()
+            
+            
+            if !self.authenticationService.connectedToSocket {
+                Task {
+#if !DEBUG
+                    await self.authenticationService.createSession(sessionid: KeychainItem.getSessionID, networkStatus: monitor.networkStatus())
+#else
+                    await self.authenticationService.createSession(sessionid: UserDefaults.standard.string(forKey: "SessionID") ?? "", networkStatus: monitor.networkStatus())
+#endif
+                }
+                //                 self.fcsdkCallService.connectedToSocket = self.fcsdkCallService.acbuc?.connection != nil
+                self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+                self.fcsdkCallService.setPhoneDelegate()
+            } else {
+                self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+                self.fcsdkCallService.setPhoneDelegate()
+            }
         }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
             self.showFullSheet = newValue

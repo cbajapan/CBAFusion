@@ -71,7 +71,6 @@ extension ProviderDelegate {
             
             guard let oc = outgoingFCSDKCall else { return }
             await self.callKitManager.addCall(call: oc)
-//            NotificationCenter.default.post(name: NSNotification.Name("add"), object: nil)
             action.fulfill()
         }
     }

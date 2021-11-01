@@ -16,7 +16,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @Binding var endCall: Bool
     @Binding var muteVideo: Bool
     @Binding var muteAudio: Bool
-    @Binding var isOnHold: Bool
+    @Binding var hold: Bool
+    @Binding var resume: Bool
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
@@ -31,7 +32,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         endCall: Binding<Bool>,
         muteVideo: Binding<Bool>,
         muteAudio: Binding<Bool>,
-        isOnHold: Binding<Bool>,
+        hold: Binding<Bool>,
+        resume: Binding<Bool>,
         acbuc: Binding<ACBUC?>,
         fcsdkCall: Binding<FCSDKCall?>,
         isOutgoing: Binding<Bool>
@@ -43,7 +45,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         self._endCall = endCall
         self._muteVideo = muteVideo
         self._muteAudio = muteAudio
-        self._isOnHold = isOnHold
+        self._hold = hold
+        self._resume = resume
         self._fcsdkCall = fcsdkCall
         self._isOutgoing = isOutgoing
     }
@@ -78,21 +81,22 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             uiViewController.currentState(state: .hasConnected)
         }
         
-        if self.isOnHold {
-            uiViewController.currentState(state: .isOnHold)
+        if self.hold {
+            uiViewController.currentState(state: .hold)
         }
         
-        if !self.isOnHold {
-            uiViewController.currentState(state: .notOnHold)
+        if self.resume {
+            uiViewController.currentState(state: .resume)
         }
         
         if call.hasEnded {
+            uiViewController.endCall()
             uiViewController.currentState(state: .hasEnded)
         }
-
         if self.endCall {
             if !call.hasEnded {
             uiViewController.endCall()
+            uiViewController.currentState(state: .hasEnded)
             } else {
                 //dismiss view
                 uiViewController.currentState(state: .hasEnded)

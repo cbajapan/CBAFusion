@@ -137,8 +137,8 @@ struct KeychainItem {
     
     static var getPassword: String {
         do {
-            let user = try KeychainItem(service: "com.cba-japan.swiftFCSDKSample", account: "cba-japan").readItem()
-            return user
+            let password = try KeychainItem(service: "com.cba-japan.swiftFCSDKSample", account: "cba-japan").readItem()
+            return password
         } catch {
             return ""
         }
@@ -147,6 +147,31 @@ struct KeychainItem {
     static func deletePassword() {
         do {
             try KeychainItem(service:  "com.cba-japan.swiftFCSDKSample", account: "cba-japan").deleteItem()
+        } catch {
+            debugPrint("Unable to delete password from keychain")
+        }
+    }
+    
+    static func saveSessionID(sessionid: String) {
+        do {
+            try KeychainItem(service: "com.cba-japan.swiftFCSDKSample", account: "cba-japan-session").saveItem(sessionid)
+        } catch {
+            debugPrint("Unable to save data to keychain. \(error)")
+        }
+    }
+    
+    static var getSessionID: String {
+        do {
+            let session = try KeychainItem(service: "com.cba-japan.swiftFCSDKSample", account: "cba-japan-session").readItem()
+            return session
+        } catch {
+            return ""
+        }
+    }
+    
+    static func deleteSessionID() {
+        do {
+            try KeychainItem(service:  "com.cba-japan.swiftFCSDKSample", account: "cba-japan-session").deleteItem()
         } catch {
             debugPrint("Unable to delete password from keychain")
         }

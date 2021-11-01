@@ -15,6 +15,7 @@ struct Communication: View {
     @State var muteAudio: Bool = false
     @State var muteVideo: Bool = false
     @State var hold: Bool = false
+    @State var resume: Bool = false
     @State var pip: Bool = false
     @State var endCall: Bool = false
     @Binding var destination: String
@@ -40,7 +41,8 @@ struct Communication: View {
                     endCall: self.$endCall,
                     muteVideo: self.$muteVideo,
                     muteAudio: self.$muteAudio,
-                    isOnHold: self.$hold,
+                    hold: self.$hold,
+                    resume: self.$resume,
                     acbuc: self.$authenticationServices.acbuc,
                     fcsdkCall: self.$fcsdkCallService.fcsdkCall,
                     isOutgoing: self.$isOutgoing
@@ -95,6 +97,11 @@ struct Communication: View {
                         }
                         Button {
                             self.hold.toggle()
+                            if !self.hold {
+                                self.resume = true
+                            } else if self.hold {
+                                self.resume = false
+                            }
                         } label: {
                             ZStack {
                                 Circle()

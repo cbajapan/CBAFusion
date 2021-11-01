@@ -16,8 +16,8 @@ enum CallState {
     case isRinging
     case hasConnected
     case isOutgoing
-    case isOnHold
-    case notOnHold
+    case hold
+    case resume
     case hasEnded
 }
 
@@ -103,13 +103,13 @@ class CommunicationViewController:  UIViewController {
             }
         case .isOutgoing:
             break
-        case .isOnHold:
+        case .hold:
             self.onHoldView()
-        case .notOnHold:
+        case .resume:
             self.removeOnHold()
         case .hasEnded:
             Task {
-            await self.breakDownView()
+                await self.breakDownView()
             }
         }
     }
@@ -119,11 +119,6 @@ class CommunicationViewController:  UIViewController {
         let fcsdkCallViewModel = FCSDKCallViewModel(fcsdkCall: FCSDKCall(handle: self.destination, hasVideo: true, previewView: self.previewView, remoteView: self.remoteView, uuid: UUID(), acbuc: self.acbuc))
         await self.fcsdkCallDelegate?.passCallToService(fcsdkCallViewModel.fcsdkCall)
         await self.callKitManager.initializeCall(fcsdkCallViewModel.fcsdkCall)
-    }
-    
-    @objc func setCurrentCall() {
-        guard let currentCall = self.callKitManager.calls.last else { return }
-        self.fcsdkCallViewModel?.fcsdkCall = currentCall
     }
     
     func endCall() {
@@ -280,14 +275,13 @@ class CommunicationViewController:  UIViewController {
     func breakDownView() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-            strongSelf.previewView.removeFromSuperview()
-            strongSelf.previewView.layoutIfNeeded()
             strongSelf.remoteView.removeFromSuperview()
             strongSelf.remoteView.layoutIfNeeded()
+            strongSelf.previewView.removeFromSuperview()
+            strongSelf.previewView.layoutIfNeeded()
         }
     }
     
-    //TODO: - Fix the hold and unhold button logic, it fires bothe because we can be both false and true
     func onHoldView() {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.hold()
@@ -297,11 +291,11 @@ class CommunicationViewController:  UIViewController {
     }
     
     func removeOnHold() {
-//        guard let currentCall = self.callKitManager.calls.last else { return }
-//        currentCall.call?.resume()
-//        Task {
-//            await setupUI()
-//        }
+        guard let currentCall = self.callKitManager.calls.last else { return }
+        currentCall.call?.resume()
+        Task {
+            await setupUI()
+        }
     }
     
     // Gestures
@@ -335,54 +329,17 @@ class CommunicationViewController:  UIViewController {
     
     /// Configurations for Capture
     func configureResolutionOptions() throws {
-        var show720Res = false
-        var show480Res = false
-        guard let recCaptureSettings = self.acbuc.clientPhone.recommendedCaptureSettings() else { throw OurErrors.nilResolution }
-        
-        for captureSetting in recCaptureSettings {
-            guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
-                continue
-            }
-            if captureSetting.resolution == .resolution1280x720 {
-                show720Res = true
-                show480Res = true
-            } else if captureSetting.resolution == .resolution640x480 {
-                show480Res = true
-            }
-        }
-        
-        if !show720Res {
-            // Pass value back to swiftUI Settings Sheet
-            //            resolutionControl.setEnabled(false, forSegmentAt: 3)
-        }
-        if !show480Res {
-            // Pass value back to swiftUI Settings Sheet
-            //            resolutionControl.setEnabled(false, forSegmentAt: 2)
-        }
+        let res = self.acbuc.clientPhone.recommendedCaptureSettings()
+        res?.forEach({ r in
+            print("Resolution: \(String(describing: r.description))")
+        })
     }
     
     
     
     
     func configureFramerateOptions() throws {
-        //disable 30fps unless one of the recommended settings allows it
-        
-        // Pass value back to swiftUI Settings Sheet
-        //        framerateControl.setEnabled(false, forSegmentAt: 1)
-        //        framerateControl.selectedSegmentIndex = 0
-        guard let recCaptureSettings = acbuc.clientPhone.recommendedCaptureSettings() else { throw OurErrors.nilFrameRate }
-        for captureSetting in recCaptureSettings {
-            guard let captureSetting = captureSetting as? ACBVideoCaptureSetting else {
-                continue
-            }
-            if captureSetting.frameRate > 20 {
-                
-                // Pass value back to swiftUI Settings Sheet
-                //                framerateControl.setEnabled(true, forSegmentAt: 1)
-                //                framerateControl.selectedSegmentIndex = 1
-                break
-            }
-        }
+        let frameRate = acbuc.clientPhone.recommendedCaptureSettings()
+        print("FrameRate: \(String(describing: frameRate))")
     }
-    
 }

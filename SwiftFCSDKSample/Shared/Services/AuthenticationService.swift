@@ -20,10 +20,13 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
-    @Published var sessionID = ""
+#if !DEBUG
+    @Published var sessionID = KeychainItem.getSessionID
+#else
+    @Published var sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
+#endif
     @Published var connectedToSocket = false
     @Published var acbuc: ACBUC?
-    
     
     
     /// Authenticate the User
@@ -53,21 +56,31 @@ class AuthenticationService: NSObject, ObservableObject {
         self.sessionID = payload?.sessionid ?? ""
         await self.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
         self.connectedToSocket = self.acbuc?.connection != nil
+        
+#if !DEBUG
+        if KeychainItem.getSessionID == "" {
+            KeychainItem.saveSessionID(sessionid: sessionID)
+        }
+#else
+        if UserDefaults.standard.string(forKey: "SessionID") != "" {
+            UserDefaults.standard.set(sessionID, forKey: "SessionID")
+        }
+#endif
     }
     
     
     /// Create the Session
-     func createSession(sessionid: String, networkStatus: Bool) async {
-         self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
-         self.acbuc?.setNetworkReachable(networkStatus)
+    func createSession(sessionid: String, networkStatus: Bool) async {
+        self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
+        self.acbuc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
-         self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
+        self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
-         self.acbuc?.useCookies = useCookies
-         self.acbuc?.startSession()
+        self.acbuc?.useCookies = useCookies
+        self.acbuc?.startSession()
     }
     
-
+    
     /// Logout and stop the session
     @MainActor
     func logout() async {
@@ -85,6 +98,12 @@ class AuthenticationService: NSObject, ObservableObject {
         await stopSession()
         await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
         self.connectedToSocket = self.acbuc?.connection != nil
+#if !DEBUG
+        KeychainItem.deleteSessionID()
+#else
+        UserDefaults.standard.removeObject(forKey: "SessionID")
+        sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
+#endif
     }
     
     /// Stop the Session

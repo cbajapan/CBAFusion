@@ -29,7 +29,7 @@ struct ContentView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
-                        if self.authenticationService.connectedToSocket {
+                        if self.authenticationService.sessionID != "" {
                             Contacts(presentCommunication: .constant(Optional.none))
                         } else {
                             if self.animateCommunication {
@@ -39,7 +39,7 @@ struct ContentView: View {
                             }
                         }
                     } else if currentTabIndex == 1 {
-                        if self.authenticationService.connectedToSocket {
+                        if self.authenticationService.sessionID != "" {
                             AED()
                         } else {
                             if self.animateAED {
@@ -102,7 +102,7 @@ struct ContentView: View {
                                                     .foregroundColor(currentTabIndex == num ? .blue : .white)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                                                Text(self.self.authenticationService.connectedToSocket ? "Session" : "Authenticate")
+                                                Text(self.authenticationService.sessionID != "" ? "Session" : "Authenticate")
                                                     .font(.system(size: 12))
                                                     .foregroundColor(currentTabIndex == num ? .blue : .white)
                                             }
@@ -119,14 +119,19 @@ struct ContentView: View {
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {
-                        if self.self.authenticationService.connectedToSocket {
+                        if self.authenticationService.sessionID != "" {
                             SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         } else {
                             Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         }
                     }
                     .onAppear {
-                        if !self.authenticationService.connectedToSocket {
+
+                        print(self.authenticationService.sessionID, "SESSIONID")
+                        
+                        if self.authenticationService.sessionID != "" {
+                            
+                        } else {
                             self.currentTabIndex = 0
                             self.animateCommunication = true
                             self.animateAED = false
