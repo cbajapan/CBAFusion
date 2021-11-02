@@ -58,8 +58,8 @@ extension FCSDKCallService: ACBClientCallDelegate {
     
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
         if message == "Session interrupted" {
-            if self.acbCall != nil {
-                if self.acbCall?.currentState == ACBClientCallStatus.inCall.rawValue {
+            if  self.fcsdkCall?.call != nil {
+                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
                     if !self.isOnHold {
                         call?.hold()
                         self.isOnHold = true

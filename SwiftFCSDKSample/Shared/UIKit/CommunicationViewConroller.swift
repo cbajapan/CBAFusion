@@ -21,11 +21,9 @@ enum CallState {
     case hasEnded
 }
 
-//internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
 
 class CommunicationViewController:  UIViewController {
-    //Only needed for PiP
-    //    AVPictureInPictureVideoCallViewController
+ 
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var stackView: UIStackView = {
@@ -35,10 +33,8 @@ class CommunicationViewController:  UIViewController {
     }()
     let numberLabel = UILabel()
     let nameLabel = UILabel()
-    
     var remoteView = SampleBufferVideoCallView()
     var previewView = SamplePreviewVideoCallView()
-    
     var callKitManager: CallKitManager
     var acbuc: ACBUC
     var fcsdkCallViewModel: FCSDKCallViewModel?
@@ -49,6 +45,7 @@ class CommunicationViewController:  UIViewController {
     var destination: String
     var hasVideo: Bool
     var isOutgoing: Bool
+    var authenticationService: AuthenticationService?
     
     
     init(
@@ -80,9 +77,18 @@ class CommunicationViewController:  UIViewController {
             } else {
                 await self.fcsdkCallDelegate?.passViewsToService(preview: self.previewView, remoteView: self.remoteView)
             }
+            
+            guard let rate = FrameRateOptions(rawValue: UserDefaults.standard.string(forKey: "RateOption") ?? "") else { return }
+            guard let res = ResolutionOptions(rawValue: UserDefaults.standard.string(forKey: "ResolutionOption") ?? "") else { return }
+            guard let audio = AudioOptions(rawValue: UserDefaults.standard.string(forKey: "AudioOption") ?? "") else { return }
+            
+            self.authenticationService?.selectFramerate(rate: rate)
+            self.authenticationService?.selectResolution(res: res)
+            self.authenticationService?.selectAudio(audio: audio)
             self.gestures()
         }
     }
+    
     
     func currentState(state: CallState) {
         switch state {
@@ -179,22 +185,6 @@ class CommunicationViewController:  UIViewController {
         }
     }
     
-    //    func setupPiP() {
-    //
-    //        AVPictureInPictureController.isPictureInPictureSupported()
-    //
-    //        let pipContentSource = AVPictureInPictureController.ContentSource(
-    //            activeVideoCallSourceView: self.remoteView,
-    //            contentViewController: self)
-    //
-    //        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-    //        pipController.canStartPictureInPictureAutomaticallyFromInline = true
-    //        pipController.delegate = self
-    //        pipController.startPictureInPicture()
-    //
-    //    }
-    //    2021-10-11 09:14:19.418617+0800 SwiftFCSDKSample[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
-    
     func gestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
@@ -211,52 +201,15 @@ class CommunicationViewController:  UIViewController {
             strongSelf.remoteView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: strongSelf.view.bottomAnchor, trailing: strongSelf.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
             
             if UIDevice.current.userInterfaceIdiom == .phone {
-                
-                let viewHeight = strongSelf.view.frame.height
-                let viewWidth = strongSelf.view.frame.width
-                var height: CGFloat = 0.0
-                var width: CGFloat = 0.0
-                
-                switch UIDevice.current.orientation{
-                case .landscapeLeft:
-                    width = viewWidth / 2
-                    height = viewHeight / 3
-                case .portrait:
-                    width = viewWidth / 2
-                    height = viewHeight / 3
-                case .landscapeRight:
-                    width = viewWidth / 2
-                    height = viewHeight / 3
-                default:
-                    break
-                }
-                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: width, height: height)
+                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 150, height: 200)
                 
             } else {
-                
-                let viewHeight = strongSelf.view.frame.height
-                let viewWidth = strongSelf.view.frame.width
-                var height: CGFloat = 0.0
-                var width: CGFloat = 0.0
-                
-                switch UIDevice.current.orientation{
-                case .landscapeLeft:
-                    width = viewWidth / 4
-                    height = viewHeight / 2
-                case .portrait:
-                    width = viewWidth / 4
-                    height = viewHeight / 2
-                case .landscapeRight:
-                    width = viewWidth / 4
-                    height = viewHeight / 2
-                default:
-                    break
-                }
-                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: width, height: height)
+                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 250, height: 200)
             }
             
             //Not needed for video display just some custom UI Stuff
             strongSelf.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
+            // This will fill the frame, which could distort the video
             strongSelf.previewView.samplePreviewDisplayLayer?.frame = strongSelf.previewView.bounds
             strongSelf.previewView.samplePreviewDisplayLayer?.masksToBounds = true
             strongSelf.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
@@ -311,11 +264,6 @@ class CommunicationViewController:  UIViewController {
         self.fcsdkCallViewModel?.acbuc.clientPhone.setCamera(self.currentCamera)
     }
     
-    //    func showPip(show: Bool) {
-    //        setupPiP()
-    //    }
-    
-    
     @MainActor func configureVideo() async {
         
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
@@ -329,17 +277,42 @@ class CommunicationViewController:  UIViewController {
     
     /// Configurations for Capture
     func configureResolutionOptions() throws {
-        let res = self.acbuc.clientPhone.recommendedCaptureSettings()
-        res?.forEach({ r in
-            print("Resolution: \(String(describing: r.description))")
-        })
+        _ = self.acbuc.clientPhone.recommendedCaptureSettings()
     }
     
     
     
     
     func configureFramerateOptions() throws {
-        let frameRate = acbuc.clientPhone.recommendedCaptureSettings()
-        print("FrameRate: \(String(describing: frameRate))")
+        _ = acbuc.clientPhone.recommendedCaptureSettings()
     }
+    
+
+    
+}
+
+//internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
+extension CommunicationViewController {
+//    :AVPictureInPictureVideoCallViewController
+    
+    //    func setupPiP() {
+    //
+    //        AVPictureInPictureController.isPictureInPictureSupported()
+    //
+    //        let pipContentSource = AVPictureInPictureController.ContentSource(
+    //            activeVideoCallSourceView: self.remoteView,
+    //            contentViewController: self)
+    //
+    //        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
+    //        pipController.canStartPictureInPictureAutomaticallyFromInline = true
+    //        pipController.delegate = self
+    //        pipController.startPictureInPicture()
+    //
+    //    }
+    //    2021-10-11 09:14:19.418617+0800 SwiftFCSDKSample[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
+    
+    
+    //    func showPip(show: Bool) {
+    //        setupPiP()
+    //    }
 }

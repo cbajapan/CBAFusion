@@ -10,6 +10,7 @@ import SwiftUI
 import FCSDKiOS
 
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
+    
     @Binding var pip: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -24,6 +25,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
+    @EnvironmentObject var authenticationService: AuthenticationService
     
     init(
         pip: Binding<Bool>,
@@ -66,6 +68,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
         //        uiViewController.showPip(show: self.pip)
         
+        uiViewController.authenticationService = self.authenticationService
+        
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
@@ -74,10 +78,12 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         if call.hasStartedConnecting {
             uiViewController.currentState(state: .hasStartedConnecting)
         }
-        else if call.isRinging {
+        
+        if call.isRinging {
             uiViewController.currentState(state: .isRinging)
         }
-        else if call.hasConnected {
+        
+        if call.hasConnected {
             uiViewController.currentState(state: .hasConnected)
         }
         
@@ -96,7 +102,6 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         if self.endCall {
             if !call.hasEnded {
             uiViewController.endCall()
-            uiViewController.currentState(state: .hasEnded)
             } else {
                 //dismiss view
                 uiViewController.currentState(state: .hasEnded)

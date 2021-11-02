@@ -13,7 +13,6 @@ import CallKit
 
 class FCSDKCallService: NSObject, ObservableObject {
     
-    var acbCall: ACBClientCall?
     var audioPlayer: AVAudioPlayer?
     var fcsdkCallViewModel: [ FCSDKCallViewModel ]?
     var appDelegate: AppDelegate?
@@ -31,11 +30,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     override init(){
         super.init()
     }
-    
-    func setCallDelegate() {
-        self.fcsdkCall?.call?.delegate = self
-    }
-    
+
     
     func setPhoneDelegate() {
         self.acbuc?.clientPhone.delegate = self
@@ -50,8 +45,6 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         uc.clientPhone.delegate = self
         try? uc.clientPhone.setPreviewView(previewView)
-        uc.clientPhone.preferredCaptureResolution = .autoResolution
-        uc.clientPhone.preferredCaptureFrameRate = 30
     }
     
     func startFCSDKCall() async throws -> ACBClientCall? {
@@ -63,11 +56,11 @@ class FCSDKCallService: NSObject, ObservableObject {
             delegate: self
         )
         
-        self.acbCall = outboundCall
-        self.acbCall?.remoteView = self.fcsdkCall?.remoteView
-        self.acbCall?.enableLocalAudio(true)
-        self.acbCall?.enableLocalVideo(true)
-        return self.acbCall
+        self.fcsdkCall?.call = outboundCall
+        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+        self.fcsdkCall?.call?.enableLocalAudio(true)
+        self.fcsdkCall?.call?.enableLocalVideo(true)
+        return self.fcsdkCall?.call
     }
     
     func presentCommunicationSheet() async {
@@ -88,20 +81,18 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
         
         //We pass our view Controllers view to the preview here
-        self.acbCall?.remoteView = self.fcsdkCall?.remoteView
+        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
         guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
         try? uc.clientPhone.setPreviewView(view)
-        uc.clientPhone.preferredCaptureResolution = .autoResolution
-        uc.clientPhone.preferredCaptureFrameRate = 30
         do {
-            try self.acbCall?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+            try  self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
         } catch {
             print(error)
         }
     }
     
     func endFCSDKCall() {
-        self.acbCall?.end()
+        self.fcsdkCall?.call?.end()
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasEnded = true

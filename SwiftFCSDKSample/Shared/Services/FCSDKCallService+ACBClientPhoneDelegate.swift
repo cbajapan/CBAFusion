@@ -16,8 +16,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
         guard let uc = self.acbuc else { return }
-        
-        self.acbCall = call;
         self.playRingtone()
         
         // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
@@ -43,7 +41,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 )
                 
                 strongSelf.fcsdkCall = receivedCall
-                
+                strongSelf.fcsdkCall?.call?.delegate = call?.delegate
                 Task {
                     await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
                     UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)

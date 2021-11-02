@@ -110,6 +110,40 @@ class AuthenticationService: NSObject, ObservableObject {
     func stopSession() async {
         self.acbuc?.stopSession()
     }
+    
+    func selectAudio(audio: AudioOptions) {
+        switch audio {
+        case .ear:
+            let ear = self.acbuc?.clientPhone.audioDeviceManager?.setAudioDevice(device: .earpiece)
+            print("Is Ear", ear ?? false)
+        case .speaker:
+            let speaker = self.acbuc?.clientPhone.audioDeviceManager?.setAudioDevice(device: .speakerphone)
+            print("Is Speaker:", speaker ?? false)
+        }
+    }
+    
+    func selectResolution(res: ResolutionOptions) {
+        switch res {
+        case .auto:
+            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.autoResolution;
+        case .res288p:
+            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
+        case .res480p:
+            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution640x480;
+        case .res720p:
+            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720;
+        }
+    }
+    
+    func selectFramerate(rate: FrameRateOptions) {
+        switch rate {
+        case .fro20:
+            self.acbuc?.clientPhone.preferredCaptureFrameRate = 20
+        case .fro30:
+            self.acbuc?.clientPhone.preferredCaptureFrameRate = 30
+        }
+    }
+
 }
 
 

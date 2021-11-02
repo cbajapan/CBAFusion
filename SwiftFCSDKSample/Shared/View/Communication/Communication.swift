@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FCSDKiOS
 
 struct Communication: View {
     
