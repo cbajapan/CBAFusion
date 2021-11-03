@@ -15,17 +15,17 @@ final class FCSDKCall: NSObject {
     var previewView: SamplePreviewVideoCallView? = nil
     var remoteView: SampleBufferVideoCallView? = nil
     var uuid: UUID
-    var acbuc: ACBUC
+    var acbuc: ACBUC? = nil
     var call: ACBClientCall? = nil
     
     
     init(
         handle: String,
         hasVideo: Bool,
-        previewView: SamplePreviewVideoCallView?,
-        remoteView: SampleBufferVideoCallView?,
+        previewView: SamplePreviewVideoCallView? = nil,
+        remoteView: SampleBufferVideoCallView? = nil,
         uuid: UUID,
-        acbuc: ACBUC,
+        acbuc: ACBUC? = nil,
         call: ACBClientCall? = nil
     ) {
         self.handle = handle

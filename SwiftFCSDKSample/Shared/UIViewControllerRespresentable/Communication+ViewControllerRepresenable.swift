@@ -12,6 +12,7 @@ import FCSDKiOS
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     @Binding var pip: Bool
+    @Binding var flipCamera: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var endCall: Bool
@@ -29,6 +30,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     init(
         pip: Binding<Bool>,
+        flipCamera: Binding<Bool>,
         destination: Binding<String>,
         hasVideo: Binding<Bool>,
         endCall: Binding<Bool>,
@@ -41,6 +43,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         isOutgoing: Binding<Bool>
     ) {
         self._pip = pip
+        self._flipCamera = flipCamera
         self._acbuc = acbuc
         self._destination = destination
         self._hasVideo = hasVideo
@@ -96,16 +99,25 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         }
         
         if call.hasEnded {
-            uiViewController.endCall()
+            if !self.endCall {
+                Task {
+                await uiViewController.endCall()
+                }
+            }
             uiViewController.currentState(state: .hasEnded)
         }
+        
         if self.endCall {
             if !call.hasEnded {
-            uiViewController.endCall()
+                Task {
+                    await uiViewController.endCall()
+                }
+                    uiViewController.currentState(state: .hasEnded)
             } else {
                 //dismiss view
                 uiViewController.currentState(state: .hasEnded)
             }
+            dismissView()
         }
         if self.muteVideo {
             uiViewController.muteVideo(isMute: true)
@@ -119,6 +131,9 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         if !self.muteAudio {
             uiViewController.muteAudio(isMute: false)
         }
+        
+        uiViewController.tapLocalView(show: self.flipCamera)
+        
     }
     
     class Coordinator: NSObject, FCSDKCallDelegate {
@@ -136,6 +151,12 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         @MainActor func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
             self.parent.fcsdkCall?.previewView = preview
             self.parent.fcsdkCall?.remoteView = remoteView
+        }
+    }
+    
+    func dismissView() {
+        if !self.fcsdkCallService.hasEnded {
+            self.fcsdkCallService.hasEnded = true
         }
     }
     

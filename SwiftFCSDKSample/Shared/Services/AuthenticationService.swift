@@ -112,13 +112,20 @@ class AuthenticationService: NSObject, ObservableObject {
     }
     
     func selectAudio(audio: AudioOptions) {
+        
+      
+        
+//        let session = self.acbuc?.clientPhone.audioDeviceManager.audioSession
         switch audio {
         case .ear:
-            let ear = self.acbuc?.clientPhone.audioDeviceManager?.setAudioDevice(device: .earpiece)
-            print("Is Ear", ear ?? false)
+            _ = self.acbuc?.clientPhone.audioDeviceManager.setAudioDevice(device: .earpiece)
+//            print("Is Ear", ear ?? false)
+           
+//            try? session?.overrideOutputAudioPort(.none)
         case .speaker:
-            let speaker = self.acbuc?.clientPhone.audioDeviceManager?.setAudioDevice(device: .speakerphone)
-            print("Is Speaker:", speaker ?? false)
+//            try? session?.overrideOutputAudioPort(.speaker)
+          _ = self.acbuc?.clientPhone.audioDeviceManager.setAudioDevice(device: .speakerphone)
+//            print("Is Speaker:", speaker ?? false)
         }
     }
     

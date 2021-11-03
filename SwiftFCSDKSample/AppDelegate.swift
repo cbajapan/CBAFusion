@@ -9,6 +9,7 @@ import Foundation
 import PushKit
 import CallKit
 import UIKit
+import FCSDKiOS
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     let pushRegistry = PKPushRegistry(queue: .main)
@@ -24,43 +25,31 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         return true
     }
 
-//    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-//        guard let handle = url.startCallHandle else {
-//            print("Could not determine start call handle from URL: \(url)")
-//            return false
-//        }
-//
-//        callManager.startCall(handle: handle)
-//        return true
-//    }
-
-//    private func application(_ application: UIApplication,
-//                             continue userActivity: NSUserActivity,
-//                             restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
-//        guard let handle = userActivity.startCallHandle else {
-//            print("Could not determine start call handle from user activity: \(userActivity)")
-//            return false
-//        }
-//
-//        guard let video = userActivity.video else {
-//            print("Could not determine video from user activity: \(userActivity)")
-//            return false
-//        }
-//
-//        callManager.startCall(handle: handle, video: video)
-//        return true
-//    }
-
-    // MARK: - UISceneSession Lifecycle
-
-    func application(_ application: UIApplication,
-                     configurationForConnecting connectingSceneSession: UISceneSession,
-                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        guard let handle = url.startCallHandle else {
+            print("Could not determine start call handle from URL: \(url)")
+            return false
+        }
+        callKitManager.makeCall(uuid: UUID(), handle: handle)
+        return true
     }
 
+    private func application(_ application: UIApplication,
+                             continue userActivity: NSUserActivity,
+                             restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
+        guard let handle = userActivity.startCallHandle else {
+            print("Could not determine start call handle from user activity: \(userActivity)")
+            return false
+        }
+
+        guard let video = userActivity.video else {
+            print("Could not determine video from user activity: \(userActivity)")
+            return false
+        }
+
+        callKitManager.makeCall(uuid: UUID(), handle: handle, hasVideo: video)
+        return true
+    }
 }
 
 // MARK: - PKPushRegistryDelegate
@@ -76,32 +65,34 @@ extension AppDelegate: PKPushRegistryDelegate {
         print("Type: \(type.rawValue)")
     }
 
-//    func pushRegistry(_ registry: PKPushRegistry,
-//                      didReceiveIncomingPushWith payload: PKPushPayload,
-//                      for type: PKPushType, completion: @escaping () -> Void) {
-//        defer {
-//            completion()
-//        }
-//
-//        guard type == .voIP,
-//            let uuidString = payload.dictionaryPayload["UUID"] as? String,
-//            let handle = payload.dictionaryPayload["handle"] as? String,
-//            let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
-//            let uuid = UUID(uuidString: uuidString)
-//            else {
-//                return
-//        }
-////        let receivedCall = FCSDKCall(
-////            handle: handle,
-////            hasVideo: hasVideo,
-////            previewView: fcsdkCall?.previewView ?? SamplePreviewVideoCallView(),
-////            remoteView: fcsdkCall?.remoteView ?? SampleBufferVideoCallView(),
-////            uuid: UUID(uuidString: uuidString) ?? UUID(),
-////            acbuc: uc,
-////            call: call!
-////        )
-////        displayIncomingCall(fcsdkCall: receivedCall)
-//    }
+    func pushRegistry(_ registry: PKPushRegistry,
+                      didReceiveIncomingPushWith payload: PKPushPayload,
+                      for type: PKPushType, completion: @escaping () -> Void) {
+        defer {
+            completion()
+        }
+
+        guard type == .voIP,
+            let uuidString = payload.dictionaryPayload["UUID"] as? String,
+            let handle = payload.dictionaryPayload["handle"] as? String,
+            let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
+            let uuid = UUID(uuidString: uuidString)
+            else {
+                return
+        }
+        let receivedCall = FCSDKCall(
+            handle: handle,
+            hasVideo: hasVideo,
+            previewView: nil,
+            remoteView: nil,
+            uuid: UUID(uuidString: uuidString) ?? UUID(),
+            acbuc: nil,
+            call: nil
+        )
+        Task {
+        await displayIncomingCall(fcsdkCall: receivedCall)
+        }
+    }
 
     // MARK: - PKPushRegistryDelegate Helper
 

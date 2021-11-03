@@ -31,6 +31,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
                 strongSelf.hasStartedConnecting = false
+                strongSelf.connectingDate = Date()
                 strongSelf.isRinging = true
             }
             self.playRingtone()
@@ -42,6 +43,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
                 guard let strongSelf = self else { return }
                 strongSelf.isRinging = false
                 strongSelf.hasConnected = true
+                strongSelf.connectDate = Date()
             }
         case .timedOut:
             self.endCall()

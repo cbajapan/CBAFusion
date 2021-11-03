@@ -12,6 +12,7 @@ import AVKit
 
 
 enum CallState {
+    case setup
     case hasStartedConnecting
     case isRinging
     case hasConnected
@@ -81,7 +82,6 @@ class CommunicationViewController:  UIViewController {
             guard let rate = FrameRateOptions(rawValue: UserDefaults.standard.string(forKey: "RateOption") ?? "") else { return }
             guard let res = ResolutionOptions(rawValue: UserDefaults.standard.string(forKey: "ResolutionOption") ?? "") else { return }
             guard let audio = AudioOptions(rawValue: UserDefaults.standard.string(forKey: "AudioOption") ?? "") else { return }
-            
             self.authenticationService?.selectFramerate(rate: rate)
             self.authenticationService?.selectResolution(res: res)
             self.authenticationService?.selectAudio(audio: audio)
@@ -92,21 +92,16 @@ class CommunicationViewController:  UIViewController {
     
     func currentState(state: CallState) {
         switch state {
+        case .setup:
+            break
         case .hasStartedConnecting:
-            Task {
-                await self.connectingUI(isRinging: false)
-            }
+            self.connectingUI(isRinging: false)
         case .isRinging:
-            Task {
-                await self.connectingUI(isRinging: true)
-            }
+            self.connectingUI(isRinging: true)
         case .hasConnected:
-            Task {
-                await self.removeConnectingUI()
-                await self.setupUI()
-                await self.anchors()
-                self.view.layoutIfNeeded()
-            }
+                self.removeConnectingUI()
+                self.setupUI()
+                self.anchors()
         case .isOutgoing:
             break
         case .hold:
@@ -114,9 +109,9 @@ class CommunicationViewController:  UIViewController {
         case .resume:
             self.removeOnHold()
         case .hasEnded:
-            Task {
-                await self.breakDownView()
-            }
+            self.breakDownView()
+            self.removeConnectingUI()
+            self.currentState(state: .setup)
         }
     }
     
@@ -127,7 +122,7 @@ class CommunicationViewController:  UIViewController {
         await self.callKitManager.initializeCall(fcsdkCallViewModel.fcsdkCall)
     }
     
-    func endCall() {
+    func endCall() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         self.callKitManager.finishEnd(call: currentCall)
     }
@@ -151,7 +146,7 @@ class CommunicationViewController:  UIViewController {
     }
     
     
-    func connectingUI(isRinging: Bool) async {
+    func connectingUI(isRinging: Bool) {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.numberLabel.text = strongSelf.fcsdkCallViewModel?.call?.remoteAddress
@@ -170,14 +165,14 @@ class CommunicationViewController:  UIViewController {
         }
     }
     
-    func removeConnectingUI() async {
+    func removeConnectingUI() {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.stackView.removeFromSuperview()
         }
     }
     
-    func setupUI() async {
+    func setupUI() {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.view.addSubview(strongSelf.remoteView)
@@ -187,14 +182,12 @@ class CommunicationViewController:  UIViewController {
     
     func gestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView(_:)))
-        self.previewView.addGestureRecognizer(tapGesture)
         self.previewView.isUserInteractionEnabled = true
         self.previewView.addGestureRecognizer(panGesture)
     }
     
     //PiP Anchors with custom UI Stuff
-    func anchors() async {
+    func anchors() {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             
@@ -213,42 +206,33 @@ class CommunicationViewController:  UIViewController {
             strongSelf.previewView.samplePreviewDisplayLayer?.frame = strongSelf.previewView.bounds
             strongSelf.previewView.samplePreviewDisplayLayer?.masksToBounds = true
             strongSelf.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
-            strongSelf.view.layoutIfNeeded()
         }
     }
     
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        Task {
-            await anchors()
-        }
+        anchors()
     }
     
-    func breakDownView() async {
+    func breakDownView() {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.remoteView.removeFromSuperview()
-            strongSelf.remoteView.layoutIfNeeded()
             strongSelf.previewView.removeFromSuperview()
-            strongSelf.previewView.layoutIfNeeded()
         }
     }
     
     func onHoldView() {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.hold()
-        Task {
-            await breakDownView()
-        }
+        breakDownView()
     }
     
     func removeOnHold() {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.resume()
-        Task {
-            await setupUI()
-        }
+        setupUI()
     }
     
     // Gestures
@@ -259,11 +243,17 @@ class CommunicationViewController:  UIViewController {
         sender.setTranslation(CGPoint.zero, in: self.view)
     }
     
-    @objc func tapLocalView(_ sender: UITapGestureRecognizer) {
-        self.currentCamera = self.currentCamera == .back ?.front : .back
-        self.fcsdkCallViewModel?.acbuc.clientPhone.setCamera(self.currentCamera)
-    }
     
+    func tapLocalView(show: Bool) {
+        if show {
+//        self.currentCamera = self.currentCamera == .back ?.front : .back
+            self.currentCamera = .front
+        } else {
+            self.currentCamera = .back
+        }
+        self.acbuc.clientPhone.setCamera(self.currentCamera)
+    }
+
     @MainActor func configureVideo() async {
         
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive

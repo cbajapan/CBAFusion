@@ -13,6 +13,7 @@ struct Communication: View {
     @State var inCall: Bool = true
     @State var showDetails: Bool = false
     @State var showSettings: Bool = false
+    @State var flipCamera: Bool = false
     @State var muteAudio: Bool = false
     @State var muteVideo: Bool = false
     @State var hold: Bool = false
@@ -24,6 +25,18 @@ struct Communication: View {
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
     @Binding var isOutgoing: Bool
+    
+    static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
+    static let callDurationFormatter: DateComponentsFormatter = {
+        let dateFormatter: DateComponentsFormatter
+        dateFormatter = DateComponentsFormatter()
+        dateFormatter.unitsStyle = .positional
+        dateFormatter.allowedUnits = [.minute, .second]
+        dateFormatter.zeroFormattingBehavior = .pad
+
+        return dateFormatter
+    }()
+    @State private var formattedCallDuration: Text?
     
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var authenticationServices: AuthenticationService
@@ -37,6 +50,7 @@ struct Communication: View {
             ZStack(alignment: .topTrailing) {
                 CommunicationViewControllerRepresenable(
                     pip: self.$pip,
+                    flipCamera: self.$flipCamera,
                     destination: self.$passDestination,
                     hasVideo: self.$passVideo,
                     endCall: self.$endCall,
@@ -49,15 +63,8 @@ struct Communication: View {
                     isOutgoing: self.$isOutgoing
                 )
                     .ignoresSafeArea(.all)
-                
-                if self.showDetails {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.3))
-                        .animation(.easeInOut(duration: 1), value: 1)
-                        .edgesIgnoringSafeArea(.all)
-                }
+    
                 VStack(alignment: .trailing) {
-                    if self.showDetails {
                         HStack(alignment: .top) {
                             Button {
                                 self.showSettings = true
@@ -70,32 +77,39 @@ struct Communication: View {
                                     .padding()
                             }
                             Spacer()
+                            self.formattedCallDuration
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(Color.white)
+                                .padding()
+                                .onReceive(Communication.timer) { _ in
+                                    self.updateFormattedCallDuration()
+                                }
+                            Spacer()
                             VStack(alignment: .trailing) {
-                                Text("1002 | 1002@la-latest-qa.cbaqa.com")
+                                Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(Color.white)
                                     .padding()
                             }
                         }
-                    }
                     Spacer()
                     HStack(alignment: .center) {
                         Spacer()
-                        Button {
-                            self.pip.toggle()
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(self.pip ? Color.white : Color.gray)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(Color.black)
-                                    .frame(width: 25, height: 25)
-                                    .padding()
-                            }
-                        }
+//                        Button {
+//                            self.pip.toggle()
+//                        } label: {
+//                            ZStack {
+//                                Circle()
+//                                    .fill(self.pip ? Color.white : Color.gray)
+//                                    .frame(width: 50, height: 50)
+//                                Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+//                                    .resizable()
+//                                    .multilineTextAlignment(.trailing)
+//                                    .foregroundColor(Color.black)
+//                                    .frame(width: 25, height: 25)
+//                                    .padding()
+//                            }
+//                        }
                         Button {
                             self.hold.toggle()
                             if !self.hold {
@@ -147,6 +161,21 @@ struct Communication: View {
                             }
                         }
                         Button {
+                            self.flipCamera.toggle()
+                        } label: {
+                            ZStack {
+                            Circle()
+                                .fill(self.hold ? Color.white : Color.gray)
+                                .frame(width: 50, height: 50)
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                .resizable()
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(self.flipCamera ? Color.white : Color.blue)
+                                .frame(width: 35, height: 25)
+                                .padding()
+                            }
+                        }
+                        Button {
                             self.endCall.toggle()
                         } label: {
                             ZStack {
@@ -165,17 +194,10 @@ struct Communication: View {
                     }
                 }
             }
-            .onTapGesture {
-                self.showDetails = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: {
-                    self.showDetails = false
-                })
-            }
-            .animation(.easeInOut(duration: 1), value: 1)
-            .frame(alignment: .trailing)
-            .navigationBarHidden(true)
-            
         }
+        .animation(.easeInOut(duration: 1), value: 1)
+        .frame(alignment: .trailing)
+        .navigationBarHidden(true)
         .onAppear {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
@@ -187,6 +209,15 @@ struct Communication: View {
         })
         .sheet(isPresented: self.$showSettings) {
             SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
+        }
+    }
+    
+    /// Updates the the formatted call duration Text view for an active call's current duration, otherwise sets it to `nil`.
+    func updateFormattedCallDuration() {
+        if self.fcsdkCallService.hasConnected, let formattedString = Communication.callDurationFormatter.string(from: self.fcsdkCallService.duration) {
+            formattedCallDuration = Text(formattedString)
+        } else {
+            formattedCallDuration = nil
         }
     }
 }

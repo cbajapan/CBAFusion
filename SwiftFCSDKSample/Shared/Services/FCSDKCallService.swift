@@ -26,6 +26,8 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var isOnHold: Bool = false
     @Published var hasEnded: Bool = false
     @Published var presentCommunication: ActiveSheet?
+    @Published var connectDate: Date?
+    @Published var connectingDate: Date?
     
     override init(){
         super.init()
@@ -41,6 +43,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasStartedConnecting = true
+            strongSelf.connectingDate = Date()
         }
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         uc.clientPhone.delegate = self
@@ -77,6 +80,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasConnected = true
+            strongSelf.connectDate = Date()
         }
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
         
@@ -126,5 +130,13 @@ class FCSDKCallService: NSObject, ObservableObject {
     
     func hasConnectedDidChange(provider: CXProvider, id: UUID, date: Date) async {
         provider.reportOutgoingCall(with: id, connectedAt: date)
+    }
+    
+    var duration: TimeInterval {
+        guard let connectDate = connectDate else {
+            return 0
+        }
+
+        return Date().timeIntervalSince(connectDate)
     }
 }

@@ -30,7 +30,7 @@ class FCSDKCallViewModel {
     var uuid: UUID {
         return fcsdkCall.uuid
     }
-    var acbuc: ACBUC {
+    var acbuc: ACBUC? {
         return fcsdkCall.acbuc
     }
     
