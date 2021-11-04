@@ -36,9 +36,9 @@ struct SettingsSheet: View {
     
     
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var fcsdkCallService: FCSDKCallService
     @Environment(\.presentationMode) var presentationMode
     @Binding var currentTabIndex: Int
-    @Binding var showSubscriptionsSheet: Bool
     var parentTabIndex: Int
     
     var body: some View {
@@ -101,12 +101,20 @@ struct SettingsSheet: View {
                             .padding(.top)
                         
                         Toggle("Auto-Answer", isOn: $autoAnswer)
-                            .onAppear {
-                                
-                            }
                             .onChange(of: self.autoAnswer) { _ in
                                 self.autoAnswerLogic()
                             }
+                    }
+                    Divider()
+                    Button {
+                        if self.fcsdkCallService.hasConnected {
+                        self.fcsdkCallService.showDTMFSheet = true
+                        self.presentationMode.wrappedValue.dismiss()
+                        }
+                    } label: {
+                        self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
+                            .font(.title2)
+                            .bold()
                     }
                     Spacer()
                     HStack {
@@ -154,6 +162,6 @@ struct SettingsSheet: View {
 
 struct SettingsSheet_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsSheet(currentTabIndex: .constant(0), showSubscriptionsSheet: .constant(false), parentTabIndex: 0)
+        SettingsSheet(currentTabIndex: .constant(0), parentTabIndex: 0)
     }
 }

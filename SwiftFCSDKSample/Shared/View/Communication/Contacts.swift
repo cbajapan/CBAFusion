@@ -7,9 +7,16 @@
 
 import SwiftUI
 
+struct AddButton<Destination : View>: View {
+
+    var destination:  Destination
+
+    var body: some View {
+        NavigationLink(destination: self.destination) { Image(systemName: "plus") }
+    }
+}
+
 struct Contacts: View {
-    
-    var contacts = [Contact(name: "FCSDK", number: "1002", icon: "sdk"), Contact(name: "FCSDK-SIP", number: "sip:4005@192.168.99.103", icon: "sip")]
     
     @Binding var presentCommunication: ActiveSheet?
     @State var showFullSheet: ActiveSheet?
@@ -20,43 +27,44 @@ struct Contacts: View {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
     
+    let contacts = [
+        Contact(id: UUID(), name: "User1", number: "1001", icon: ""),
+        Contact(id: UUID(), name: "User2", number: "1002", icon: ""),
+        Contact(id: UUID(), name: "User3", number: "1003", icon: ""),
+        Contact(id: UUID(), name: "User4", number: "1004", icon: ""),
+        Contact(id: UUID(), name: "User5", number: "1005", icon: ""),
+        Contact(id: UUID(), name: "User6", number: "1006", icon: "")
+    ]
+    
+    
     var body: some View {
         NavigationView {
             List {
-                //                ForEach(contacts, id: \.self) { contact in
-                //                    ContactsCell(contact: contact)
-                //                        .onTapGesture {
-                //                            self.showFullSheet = .communincationSheet
-                //                        }
-                //                }
-                NavigationLink(
-                    destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo),
-                    isActive: $callSheet
-                ) {}.ignoresSafeArea()
-                    .navigationTitle("Recent Calls")
+                ForEach(self.contacts, id: \.self) { contact in
+                    ContactsCell(contact: contact)
+                        .onTapGesture {
+                            self.showFullSheet = .communincationSheet
+                            self.destination = contact.number
+                            self.hasVideo = true
+                        }
+                }
+
+                    .navigationTitle("Contacts")
             }
             .navigationBarTitleDisplayMode(.large)
             .toolbar(content: {
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        self.callSheet = true
-                    }, label: {
-                        Image(systemName: "plus")
-                            .foregroundColor(Color.blue)
-                    })
+                    HStack { AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo)) }
                 }
             })
         }
         .fullScreenCover(item: self.$showFullSheet) { sheet in
             switch sheet {
             case .communincationSheet:
-                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: .constant(false))
+                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: .constant(true))
             }
         }
         .onAppear {
-            
-            
             if !self.authenticationService.connectedToSocket {
                 Task {
 #if !DEBUG
@@ -65,7 +73,7 @@ struct Contacts: View {
                     await self.authenticationService.createSession(sessionid: UserDefaults.standard.string(forKey: "SessionID") ?? "", networkStatus: monitor.networkStatus())
 #endif
                 }
-                //                 self.fcsdkCallService.connectedToSocket = self.fcsdkCallService.acbuc?.connection != nil
+                //                                 self.fcsdkCallService.connectedToSocket = self.fcsdkCallService.acbuc?.connection != nil
                 self.fcsdkCallService.acbuc = self.authenticationService.acbuc
                 self.fcsdkCallService.setPhoneDelegate()
             } else {

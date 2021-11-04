@@ -113,7 +113,7 @@ extension ProviderDelegate {
     }
     
     //Did Activate audio session
-    @MainActor func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("Activate")
     }
     
@@ -128,15 +128,19 @@ extension ProviderDelegate {
         print("Provider - CXPlayDTMFCallAction")
         configureAudioSession()
         
-        let dtmfDigts:String = action.digits
-        
-        for (index, _) in dtmfDigts.enumerated() {
-            let dtmfDigit = dtmfDigts.utf8CString[index]
-            print(dtmfDigit, "DIGITS_______")
-            //dtmf on
-        }
-        
-        //dtmf off
+        let dtmfDigits:String = action.digits
+        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits)
+
+//        print(dtmfDigits, "DIGITS_______1")
+//        for (index, _) in dtmfDigits.enumerated() {
+//            let dtmfDigit = dtmfDigits.utf8CString[index]
+//            print(dtmfDigit, "DIGITS_______")
+//
+//            //dtmf on
+//
+//        }
+//
+//        //dtmf off
         
         // Signal to the system that the action has been successfully performed.
         action.fulfill()

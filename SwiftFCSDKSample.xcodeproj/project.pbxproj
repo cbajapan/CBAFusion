@@ -42,6 +42,8 @@
 		09D86CF9270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */; };
 		09D86CFD270B089200C62FA0 /* CommunicationViewController+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CFC270B089200C62FA0 /* CommunicationViewController+Delegate.swift */; };
 		09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */; };
+		09E0DF4727335F8500377C75 /* DialPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4627335F8500377C75 /* DialPad.swift */; };
+		09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4827337A5500377C75 /* DTMFSheet.swift */; };
 		09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */; };
 		09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9126DE1F4E00249DD8 /* Keychain.swift */; };
 		09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */; };
@@ -128,6 +130,8 @@
 		09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCallService+ACBClientPhoneDelegate.swift"; sourceTree = "<group>"; };
 		09D86CFC270B089200C62FA0 /* CommunicationViewController+Delegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+Delegate.swift"; sourceTree = "<group>"; };
 		09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+PiPDelegate.swift"; sourceTree = "<group>"; };
+		09E0DF4627335F8500377C75 /* DialPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DialPad.swift; sourceTree = "<group>"; };
+		09E0DF4827337A5500377C75 /* DTMFSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFSheet.swift; sourceTree = "<group>"; };
 		09E3CE8E26DE1D4500249DD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRepository.swift; sourceTree = "<group>"; };
 		09E3CE9126DE1F4E00249DD8 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -206,6 +210,8 @@
 				094C313D26E03729007C6A35 /* ContactsCell.swift */,
 				094C314126E078A8007C6A35 /* SettingsSheet.swift */,
 				099F54B426E88AAB005500BF /* CallSheet.swift */,
+				09E0DF4627335F8500377C75 /* DialPad.swift */,
+				09E0DF4827337A5500377C75 /* DTMFSheet.swift */,
 			);
 			path = Communication;
 			sourceTree = "<group>";
@@ -597,6 +603,7 @@
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
 				099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */,
 				094C313B26E03658007C6A35 /* Contacts.swift in Sources */,
+				09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */,
 				09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */,
 				09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */,
 				09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */,
@@ -628,6 +635,7 @@
 				09091597271D36AE00A2563A /* FCSDKCallViewModel.swift in Sources */,
 				094C314026E0497F007C6A35 /* Welcome.swift in Sources */,
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
+				09E0DF4727335F8500377C75 /* DialPad.swift in Sources */,
 				09F318D326F019600069ED8D /* AppSettings.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
 				09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */,

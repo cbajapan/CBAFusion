@@ -28,6 +28,8 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var presentCommunication: ActiveSheet?
     @Published var connectDate: Date?
     @Published var connectingDate: Date?
+    @Published var showDTMFSheet: Bool = false
+    @Published var presentInCommunication: CommunicationSheets?
     
     override init(){
         super.init()

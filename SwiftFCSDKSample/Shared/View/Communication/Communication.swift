@@ -13,9 +13,12 @@ struct Communication: View {
     @State var inCall: Bool = true
     @State var showDetails: Bool = false
     @State var showSettings: Bool = false
-    @State var flipCamera: Bool = false
+    @State var cameraFront: Bool = false
+    @State var cameraBack: Bool = false
     @State var muteAudio: Bool = false
+    @State var resumeAudio: Bool = false
     @State var muteVideo: Bool = false
+    @State var resumeVideo: Bool = false
     @State var hold: Bool = false
     @State var resume: Bool = false
     @State var pip: Bool = false
@@ -25,6 +28,8 @@ struct Communication: View {
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
     @Binding var isOutgoing: Bool
+    @State var showSheet: CommunicationSheets?
+    
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {
@@ -50,12 +55,15 @@ struct Communication: View {
             ZStack(alignment: .topTrailing) {
                 CommunicationViewControllerRepresenable(
                     pip: self.$pip,
-                    flipCamera: self.$flipCamera,
+                    cameraFront: self.$cameraFront,
+                    cameraBack: self.$cameraBack,
                     destination: self.$passDestination,
                     hasVideo: self.$passVideo,
                     endCall: self.$endCall,
                     muteVideo: self.$muteVideo,
+                    resumeVideo: self.$resumeVideo,
                     muteAudio: self.$muteAudio,
+                    resumeAudio: self.$resumeAudio,
                     hold: self.$hold,
                     resume: self.$resume,
                     acbuc: self.$authenticationServices.acbuc,
@@ -67,7 +75,7 @@ struct Communication: View {
                 VStack(alignment: .trailing) {
                         HStack(alignment: .top) {
                             Button {
-                                self.showSettings = true
+                                self.showSheet = .settingsSheet
                             } label: {
                                 Image(systemName: "gear")
                                     .resizable()
@@ -132,6 +140,11 @@ struct Communication: View {
                         }
                         Button {
                             self.muteAudio.toggle()
+                            if !self.muteAudio {
+                                self.resumeAudio = true
+                            } else if self.muteAudio {
+                                self.resumeAudio = false
+                            }
                         } label: {
                             ZStack {
                                 Circle()
@@ -147,6 +160,11 @@ struct Communication: View {
                         }
                         Button {
                             self.muteVideo.toggle()
+                            if !self.muteVideo {
+                                self.resumeVideo = true
+                            } else if self.muteVideo {
+                                self.resumeVideo = false
+                            }
                         } label: {
                             ZStack {
                                 Circle()
@@ -161,7 +179,12 @@ struct Communication: View {
                             }
                         }
                         Button {
-                            self.flipCamera.toggle()
+                            self.cameraFront.toggle()
+                            if !self.cameraFront {
+                                self.cameraBack = true
+                            } else if self.cameraFront {
+                                self.cameraBack = false
+                            }
                         } label: {
                             ZStack {
                             Circle()
@@ -170,7 +193,7 @@ struct Communication: View {
                             Image(systemName: "arrow.triangle.2.circlepath.camera")
                                 .resizable()
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.flipCamera ? Color.white : Color.blue)
+                                .foregroundColor(self.cameraFront ? Color.white : Color.blue)
                                 .frame(width: 35, height: 25)
                                 .padding()
                             }
@@ -202,13 +225,25 @@ struct Communication: View {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
         }
-        .onChange(of: self.fcsdkCallService.hasEnded, perform: { newValue in
+        .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
             if newValue {
                 self.presentationMode.wrappedValue.dismiss()
             }
-        })
-        .sheet(isPresented: self.$showSettings) {
-            SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSettings, parentTabIndex: 0)
+        }
+        .onChange(of: self.fcsdkCallService.presentInCommunication) { newValue in
+            self.showSheet = newValue
+        }
+        .sheet(item: self.$showSheet) { sheet in
+            switch sheet {
+            case .settingsSheet:
+                SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: 0)
+            case .dtmfSheet:
+                DTMFSheet()
+            }
+           
+        }
+        .sheet(isPresented: self.$fcsdkCallService.showDTMFSheet) {
+            DTMFSheet()
         }
     }
     
@@ -219,5 +254,16 @@ struct Communication: View {
         } else {
             formattedCallDuration = nil
         }
+    }
+    
+
+}
+
+enum CommunicationSheets: Identifiable {
+    case settingsSheet
+    case dtmfSheet
+    
+    var id: Int {
+        hashValue
     }
 }

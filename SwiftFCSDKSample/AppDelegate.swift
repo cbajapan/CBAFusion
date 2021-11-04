@@ -85,7 +85,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             hasVideo: hasVideo,
             previewView: nil,
             remoteView: nil,
-            uuid: UUID(uuidString: uuidString) ?? UUID(),
+            uuid: uuid,
             acbuc: nil,
             call: nil
         )

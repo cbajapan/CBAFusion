@@ -12,17 +12,21 @@ import FCSDKiOS
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     @Binding var pip: Bool
-    @Binding var flipCamera: Bool
+    @Binding var cameraFront: Bool
+    @Binding var cameraBack: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var endCall: Bool
     @Binding var muteVideo: Bool
+    @Binding var resumeVideo: Bool
     @Binding var muteAudio: Bool
+    @Binding var resumeAudio: Bool
     @Binding var hold: Bool
     @Binding var resume: Bool
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
+//    @Binding var clickID: UUID?
     
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
@@ -30,12 +34,15 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     init(
         pip: Binding<Bool>,
-        flipCamera: Binding<Bool>,
+        cameraFront: Binding<Bool>,
+        cameraBack: Binding<Bool>,
         destination: Binding<String>,
         hasVideo: Binding<Bool>,
         endCall: Binding<Bool>,
         muteVideo: Binding<Bool>,
+        resumeVideo: Binding<Bool>,
         muteAudio: Binding<Bool>,
+        resumeAudio: Binding<Bool>,
         hold: Binding<Bool>,
         resume: Binding<Bool>,
         acbuc: Binding<ACBUC?>,
@@ -43,13 +50,16 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         isOutgoing: Binding<Bool>
     ) {
         self._pip = pip
-        self._flipCamera = flipCamera
+        self._cameraFront = cameraFront
+        self._cameraBack = cameraBack
         self._acbuc = acbuc
         self._destination = destination
         self._hasVideo = hasVideo
         self._endCall = endCall
         self._muteVideo = muteVideo
+        self._resumeVideo = resumeVideo
         self._muteAudio = muteAudio
+        self._resumeAudio = resumeAudio
         self._hold = hold
         self._resume = resume
         self._fcsdkCall = fcsdkCall
@@ -78,6 +88,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         uiViewController.callKitManager = self.callKitManager
         uiViewController.acbuc = self.acbuc!
         let call = self.fcsdkCallService
+        
         if call.hasStartedConnecting {
             uiViewController.currentState(state: .hasStartedConnecting)
         }
@@ -90,6 +101,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             uiViewController.currentState(state: .hasConnected)
         }
         
+//        if clickID != context.coordinator.previousClickID {
         if self.hold {
             uiViewController.currentState(state: .hold)
         }
@@ -97,6 +109,31 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         if self.resume {
             uiViewController.currentState(state: .resume)
         }
+        
+        
+        if self.muteVideo {
+            uiViewController.currentState(state: .muteVideo)
+        }
+        
+        if self.resumeVideo {
+            uiViewController.currentState(state: .resumeVideo)
+        }
+        
+        if self.muteAudio {
+            uiViewController.currentState(state: .muteAudio)
+        }
+        
+        if self.resumeAudio {
+            uiViewController.currentState(state: .resumeAudio)
+        }
+        
+        if self.cameraFront {
+            uiViewController.currentState(state: .cameraFront)
+        }
+        if self.cameraBack {
+            uiViewController.currentState(state: .cameraBack)
+        }
+        
         
         if call.hasEnded {
             if !self.endCall {
@@ -119,26 +156,13 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             }
             dismissView()
         }
-        if self.muteVideo {
-            uiViewController.muteVideo(isMute: true)
-        }
-        if !self.muteVideo {
-            uiViewController.muteVideo(isMute: false)
-        }
-        if self.muteAudio {
-            uiViewController.muteAudio(isMute: true)
-        }
-        if !self.muteAudio {
-            uiViewController.muteAudio(isMute: false)
-        }
-        
-        uiViewController.tapLocalView(show: self.flipCamera)
         
     }
     
     class Coordinator: NSObject, FCSDKCallDelegate {
         
         var parent: CommunicationViewControllerRepresenable
+//        var previousClickID: UUID? = nil
         
         init(_ parent: CommunicationViewControllerRepresenable) {
             self.parent = parent

@@ -120,7 +120,7 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {
                         if self.authenticationService.sessionID != "" {
-                            SettingsSheet(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
+                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex)
                         } else {
                             Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
                         }

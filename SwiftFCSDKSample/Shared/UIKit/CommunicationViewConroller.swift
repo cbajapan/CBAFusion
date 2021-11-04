@@ -17,14 +17,22 @@ enum CallState {
     case isRinging
     case hasConnected
     case isOutgoing
+    case hasEnded
+    case cameraFront
+    case cameraBack
     case hold
     case resume
-    case hasEnded
+    case muteAudio
+    case resumeAudio
+    case muteVideo
+    case resumeVideo
+    
+    
 }
 
 
 class CommunicationViewController:  UIViewController {
- 
+    
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var stackView: UIStackView = {
@@ -99,9 +107,9 @@ class CommunicationViewController:  UIViewController {
         case .isRinging:
             self.connectingUI(isRinging: true)
         case .hasConnected:
-                self.removeConnectingUI()
-                self.setupUI()
-                self.anchors()
+            self.removeConnectingUI()
+            self.setupUI()
+            self.anchors()
         case .isOutgoing:
             break
         case .hold:
@@ -112,6 +120,18 @@ class CommunicationViewController:  UIViewController {
             self.breakDownView()
             self.removeConnectingUI()
             self.currentState(state: .setup)
+        case .muteVideo:
+            self.muteVideo(isMute: true)
+        case .resumeVideo:
+            self.muteVideo(isMute: false)
+        case .muteAudio:
+            self.muteAudio(isMute: true)
+        case .resumeAudio:
+            self.muteAudio(isMute: false)
+        case .cameraFront:
+            self.tapLocalView(show: true)
+        case .cameraBack:
+            self.tapLocalView(show: false)
         }
     }
     
@@ -246,14 +266,14 @@ class CommunicationViewController:  UIViewController {
     
     func tapLocalView(show: Bool) {
         if show {
-//        self.currentCamera = self.currentCamera == .back ?.front : .back
+            //        self.currentCamera = self.currentCamera == .back ?.front : .back
             self.currentCamera = .front
         } else {
             self.currentCamera = .back
         }
         self.acbuc.clientPhone.setCamera(self.currentCamera)
     }
-
+    
     @MainActor func configureVideo() async {
         
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
@@ -277,13 +297,13 @@ class CommunicationViewController:  UIViewController {
         _ = acbuc.clientPhone.recommendedCaptureSettings()
     }
     
-
+    
     
 }
 
 //internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
 extension CommunicationViewController {
-//    :AVPictureInPictureVideoCallViewController
+    //    :AVPictureInPictureVideoCallViewController
     
     //    func setupPiP() {
     //

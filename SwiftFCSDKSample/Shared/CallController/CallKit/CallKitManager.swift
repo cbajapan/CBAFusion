@@ -57,6 +57,13 @@ class CallKitManager: NSObject, ObservableObject {
          requestTransaction(transaction)
     }
     
+    func sendDTMF(uuid: UUID, digit: String) {
+        let action = CXPlayDTMFCallAction(call: uuid, digits: digit, type: .singleTone)
+        let transaction = CXTransaction()
+        transaction.addAction(action)
+        requestTransaction(transaction)
+    }
+    
     
     
     private func requestTransaction(_ transaction: CXTransaction) {
