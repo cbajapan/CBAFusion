@@ -11,19 +11,51 @@ import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
-    
+    func configureAudioSession() {
+        // See https://forums.developer.apple.com/thread/64544
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(AVAudioSession.Category.playAndRecord, mode: .default)
+            try session.setActive(true)
+            try session.setMode(AVAudioSession.Mode.voiceChat)
+            try session.setPreferredSampleRate(44100.0)
+            try session.setPreferredIOBufferDuration(0.005)
+        } catch {
+            print(error)
+        }
+    }
+
     
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
         guard let uc = self.acbuc else { return }
         self.playRingtone()
-        
+
         // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
         call?.delegate = self
-
+        
         if UserDefaults.standard.bool(forKey: "AutoAnswer") {
+            
             self.stopRingtone()
-            //Work Auto answer Stuff
+            DispatchQueue.main.async { [weak self] in
+                guard let strongSelf = self else { return }
+                let receivedCall = FCSDKCall(
+                    handle: call?.remoteAddress ?? "",
+                    hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
+                    previewView: nil,
+                    remoteView: nil,
+                    uuid: UUID(),
+                    acbuc: uc,
+                    call: call!
+                )
+                
+                strongSelf.fcsdkCall = receivedCall
+                strongSelf.fcsdkCall?.call?.delegate = call?.delegate
+
+                Task {
+                    await strongSelf.presentCommunicationSheet()
+                }
+            }
             
         } else {
             // we need to pass this to the call manager

@@ -84,16 +84,17 @@ class FCSDKCallService: NSObject, ObservableObject {
             strongSelf.hasConnected = true
             strongSelf.connectDate = Date()
         }
+
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
-        
-        //We pass our view Controllers view to the preview here
+        // We pass our view Controllers view to the preview here
         self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
         guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
-        try? uc.clientPhone.setPreviewView(view)
+
         do {
-            try  self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+            try uc.clientPhone.setPreviewView(view)
+            try self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
         } catch {
-            print(error)
+            print("There was an error answering call Error: \(error)")
         }
     }
     

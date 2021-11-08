@@ -31,6 +31,8 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
     
+    @AppStorage("AutoAnswer") var autoAnswer = false
+    
     init(
         pip: Binding<Bool>,
         cameraFront: Binding<Bool>,
@@ -109,7 +111,6 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             uiViewController.currentState(state: .resume)
         }
         
-        
         if self.muteVideo {
             uiViewController.currentState(state: .muteVideo)
         }
@@ -137,7 +138,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         if call.hasEnded {
             if !self.endCall {
                 Task {
-                await uiViewController.endCall()
+                    await uiViewController.endCall()
                 }
             }
             uiViewController.currentState(state: .hasEnded)
@@ -145,10 +146,14 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         
         if self.endCall {
             if !call.hasEnded {
-                Task {
-                    await uiViewController.endCall()
+                if self.autoAnswer && !self.isOutgoing {
+                    self.fcsdkCallService.endFCSDKCall()
+                } else {
+                    Task {
+                        await uiViewController.endCall()
+                    }
                 }
-                    uiViewController.currentState(state: .hasEnded)
+                uiViewController.currentState(state: .hasEnded)
             } else {
                 //dismiss view
                 uiViewController.currentState(state: .hasEnded)
@@ -161,7 +166,6 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     class Coordinator: NSObject, FCSDKCallDelegate {
         
         var parent: CommunicationViewControllerRepresenable
-//        var previousClickID: UUID? = nil
         
         init(_ parent: CommunicationViewControllerRepresenable) {
             self.parent = parent
@@ -174,6 +178,14 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         @MainActor func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
             self.parent.fcsdkCall?.previewView = preview
             self.parent.fcsdkCall?.remoteView = remoteView
+            
+            if self.parent.autoAnswer {
+                do {
+                    try await self.parent.fcsdkCallService.answerFCSDKCall()
+                } catch {
+                    print("OUR ERROR: \(OurErrors.nilACBUC.rawValue) - Specifically: \(error) ")
+                }
+            }
         }
     }
     
