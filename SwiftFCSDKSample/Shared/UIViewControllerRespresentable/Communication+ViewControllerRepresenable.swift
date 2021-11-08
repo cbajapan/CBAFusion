@@ -26,7 +26,6 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
-//    @Binding var clickID: UUID?
     
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
@@ -78,11 +77,12 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         return communicationViewController
     }
     
-    func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) {
+    func updateUIViewController(_
+                                uiViewController: CommunicationViewController,
+                                context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>
+    ) {
         //        uiViewController.showPip(show: self.pip)
-        
         uiViewController.authenticationService = self.authenticationService
-        
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
@@ -101,7 +101,6 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
             uiViewController.currentState(state: .hasConnected)
         }
         
-//        if clickID != context.coordinator.previousClickID {
         if self.hold {
             uiViewController.currentState(state: .hold)
         }

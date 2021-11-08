@@ -55,6 +55,8 @@ extension FCSDKCallService: ACBClientCallDelegate {
             self.endCall()
         case .ended:
             self.endCall()
+        @unknown default:
+            break
         }
     }
     

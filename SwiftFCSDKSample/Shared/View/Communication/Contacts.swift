@@ -23,6 +23,7 @@ struct Contacts: View {
     @State var callSheet: Bool = false
     @State var destination: String = ""
     @State var hasVideo: Bool = false
+    @State var isOutgoing: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
@@ -46,9 +47,9 @@ struct Contacts: View {
                             self.showFullSheet = .communincationSheet
                             self.destination = contact.number
                             self.hasVideo = true
+                            self.isOutgoing = true
                         }
                 }
-
                     .navigationTitle("Contacts")
             }
             .navigationBarTitleDisplayMode(.large)
@@ -61,7 +62,9 @@ struct Contacts: View {
         .fullScreenCover(item: self.$showFullSheet) { sheet in
             switch sheet {
             case .communincationSheet:
-                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: .constant(true))
+                //We need to pass whether or not this is an inbound or outbound call via isOutgoing rather than an arbitrarry load
+               
+                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
             }
         }
         .onAppear {

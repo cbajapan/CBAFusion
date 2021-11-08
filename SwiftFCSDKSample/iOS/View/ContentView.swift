@@ -126,9 +126,7 @@ struct ContentView: View {
                         }
                     }
                     .onAppear {
-
                         print(self.authenticationService.sessionID, "SESSIONID")
-                        
                         if self.authenticationService.sessionID != "" {
                             
                         } else {

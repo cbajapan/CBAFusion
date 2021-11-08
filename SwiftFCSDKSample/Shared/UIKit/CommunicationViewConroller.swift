@@ -205,9 +205,10 @@ class CommunicationViewController:  UIViewController {
         self.previewView.isUserInteractionEnabled = true
         self.previewView.addGestureRecognizer(panGesture)
     }
+
     
-    //PiP Anchors with custom UI Stuff
     func anchors() {
+        if UIApplication.shared.applicationState != .background {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             
@@ -226,6 +227,7 @@ class CommunicationViewController:  UIViewController {
             strongSelf.previewView.samplePreviewDisplayLayer?.frame = strongSelf.previewView.bounds
             strongSelf.previewView.samplePreviewDisplayLayer?.masksToBounds = true
             strongSelf.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
+        }
         }
     }
     
