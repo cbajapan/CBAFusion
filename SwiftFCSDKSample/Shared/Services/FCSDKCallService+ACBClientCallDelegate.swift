@@ -21,7 +21,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
     func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
         switch status {
         case .setup:
-            break
+           break
         case .alerting:
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
@@ -54,6 +54,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .error:
             self.endCall()
         case .ended:
+            self.acbuc?.clientPhone.audioDeviceManager.stop()
             self.endCall()
         @unknown default:
             break
@@ -61,16 +62,17 @@ extension FCSDKCallService: ACBClientCallDelegate {
     }
     
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
-        if message == "Session interrupted" {
-            if  self.fcsdkCall?.call != nil {
-                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
-                    if !self.isOnHold {
-                        call?.hold()
-                        self.isOnHold = true
-                    }
-                }
-            }
-        }
+        print(message, "MESSAGE_____")
+//        if message == "Session interrupted" {
+//            if  self.fcsdkCall?.call != nil {
+//                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
+//                    if !self.isOnHold {
+//                        call?.hold()
+//                        self.isOnHold = true
+//                    }
+//                }
+//            }
+//        }
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) {

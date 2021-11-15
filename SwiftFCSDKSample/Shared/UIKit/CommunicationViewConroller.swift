@@ -30,8 +30,7 @@ enum CallState {
     
 }
 
-
-class CommunicationViewController:  UIViewController {
+class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
@@ -74,6 +73,10 @@ class CommunicationViewController:  UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit{
+        print("Deinit VC")
     }
     
     override func viewDidLoad() {
@@ -268,7 +271,6 @@ class CommunicationViewController:  UIViewController {
     
     func tapLocalView(show: Bool) {
         if show {
-            //        self.currentCamera = self.currentCamera == .back ?.front : .back
             self.currentCamera = .front
         } else {
             self.currentCamera = .back
@@ -301,30 +303,4 @@ class CommunicationViewController:  UIViewController {
     
     
     
-}
-
-//internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
-extension CommunicationViewController {
-    //    :AVPictureInPictureVideoCallViewController
-    
-    //    func setupPiP() {
-    //
-    //        AVPictureInPictureController.isPictureInPictureSupported()
-    //
-    //        let pipContentSource = AVPictureInPictureController.ContentSource(
-    //            activeVideoCallSourceView: self.remoteView,
-    //            contentViewController: self)
-    //
-    //        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-    //        pipController.canStartPictureInPictureAutomaticallyFromInline = true
-    //        pipController.delegate = self
-    //        pipController.startPictureInPicture()
-    //
-    //    }
-    //    2021-10-11 09:14:19.418617+0800 SwiftFCSDKSample[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
-    
-    
-    //    func showPip(show: Bool) {
-    //        setupPiP()
-    //    }
 }

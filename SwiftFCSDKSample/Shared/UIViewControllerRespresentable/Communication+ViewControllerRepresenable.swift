@@ -12,6 +12,7 @@ import FCSDKiOS
 struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     @Binding var pip: Bool
+    @Binding var removePip: Bool
     @Binding var cameraFront: Bool
     @Binding var cameraBack: Bool
     @Binding var destination: String
@@ -35,6 +36,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     init(
         pip: Binding<Bool>,
+        removePip: Binding<Bool>,
         cameraFront: Binding<Bool>,
         cameraBack: Binding<Bool>,
         destination: Binding<String>,
@@ -51,6 +53,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         isOutgoing: Binding<Bool>
     ) {
         self._pip = pip
+        self._removePip = removePip
         self._cameraFront = cameraFront
         self._cameraBack = cameraBack
         self._acbuc = acbuc
@@ -159,6 +162,14 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
                 uiViewController.currentState(state: .hasEnded)
             }
             dismissView()
+        }
+        
+        if self.pip {
+            uiViewController.showPip(show: true)
+        }
+        
+        if self.removePip {
+            uiViewController.showPip(show: false)
         }
         
     }

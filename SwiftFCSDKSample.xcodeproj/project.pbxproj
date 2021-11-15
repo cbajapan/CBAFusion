@@ -24,7 +24,7 @@
 		094EE30C26DCE212008C1637 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 094EE30B26DCE212008C1637 /* Preview Assets.xcassets */; };
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
-		097F083F2738CC1500B11DE4 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 097F083E2738CC1500B11DE4 /* FCSDKiOS */; };
+		0983D13E273B759100511600 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 0983D13D273B759100511600 /* FCSDKiOS */; };
 		0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987E8FE26FACE060036454C /* FCSDKCall.swift */; };
 		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
@@ -112,7 +112,7 @@
 		094EE31B26DCE212008C1637 /* SwiftFCSDKSampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftFCSDKSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
-		0979B39D2738CA1B0073E022 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
+		0983D13C273B754E00511600 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		0987E8FE26FACE060036454C /* FCSDKCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
 		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
@@ -153,7 +153,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				097F083F2738CC1500B11DE4 /* FCSDKiOS in Frameworks */,
+				0983D13E273B759100511600 /* FCSDKiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,7 +219,7 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
-				0979B39D2738CA1B0073E022 /* swift-fcsdk */,
+				0983D13C273B754E00511600 /* swift-fcsdk */,
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				094EE33926DCE5AA008C1637 /* SwiftFCSDKSample */,
@@ -478,7 +478,7 @@
 			);
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
-				097F083E2738CC1500B11DE4 /* FCSDKiOS */,
+				0983D13D273B759100511600 /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -801,7 +801,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 1.5;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -843,7 +843,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 1.5;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -1014,7 +1014,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		097F083E2738CC1500B11DE4 /* FCSDKiOS */ = {
+		0983D13D273B759100511600 /* FCSDKiOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FCSDKiOS;
 		};

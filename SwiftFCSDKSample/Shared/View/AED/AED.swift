@@ -6,9 +6,12 @@
 //
 
 import SwiftUI
+import FCSDKiOS
 
 struct AED: View {
     
+    
+    @State currentTopic: ACBTopic?
     @State var topicName = ""
     @State var expiry = ""
     @State var key = ""
@@ -17,6 +20,7 @@ struct AED: View {
     @State private var placeholder = ""
     @State private var messageHeight: CGFloat = 0
     @State private var keyboardHeight: CGFloat = 0
+    @EnvironmentObject var authenticationServices: AuthenticationService
     let topics = ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"]
     
     var body: some View {
@@ -73,6 +77,31 @@ struct AED: View {
         .onTapGesture {
 //            hideKeyboard()
         }
+    }
+    
+    func connectToTopic() {
+        let expiry = self.expiry
+        
+        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: Int(expiry), delegate: self)
+        self.topicName = ""
+        self.expiry = ""
+    }
+    
+    func publishData() {
+        self.currentTopic?.submitData(withKey: self.key, value: self.value)
+        self.key = ""
+        self.value = ""
+    }
+    
+    func deleteData() {
+        self.currentTopic?.deleteData(withKey: self.key)
+        self.key = ""
+        self.value = ""
+    }
+    
+    func sendMessage() {
+        self.currentTopic?.sendAedMessage(self.messageText)
+        self.messageText = ""
     }
 }
 

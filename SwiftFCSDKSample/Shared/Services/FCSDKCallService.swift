@@ -25,7 +25,8 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var hasConnected: Bool = false
     @Published var isOnHold: Bool = false
     @Published var hasEnded: Bool = false
-    @Published var presentCommunication: ActiveSheet?
+//    @Published var presentCommunication: ActiveSheet?
+    @Published var presentCommunication: Bool = false
     @Published var connectDate: Date?
     @Published var connectingDate: Date?
     @Published var showDTMFSheet: Bool = false
@@ -63,6 +64,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         
         self.fcsdkCall?.call = outboundCall
         self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+//        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
         self.fcsdkCall?.call?.enableLocalAudio(true)
         self.fcsdkCall?.call?.enableLocalVideo(true)
         return self.fcsdkCall?.call
@@ -71,9 +73,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     func presentCommunicationSheet() async {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-            if strongSelf.presentCommunication != .communincationSheet {
-                strongSelf.presentCommunication = .communincationSheet
-            }
+            strongSelf.presentCommunication = true
         }
     }
     
@@ -88,8 +88,8 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
         // We pass our view Controllers view to the preview here
         self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+//        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
         guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
-
         do {
             try uc.clientPhone.setPreviewView(view)
             try self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
@@ -100,9 +100,11 @@ class FCSDKCallService: NSObject, ObservableObject {
     
     func endFCSDKCall() {
         self.fcsdkCall?.call?.end()
+        print("Ending FCSDKCall")
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.hasEnded = true
+            strongSelf.connectDate = nil
         }
     }
     

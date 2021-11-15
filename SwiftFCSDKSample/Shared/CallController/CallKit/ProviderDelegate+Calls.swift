@@ -129,7 +129,7 @@ extension ProviderDelegate {
         configureAudioSession()
         
         let dtmfDigits:String = action.digits
-        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits)
+        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
 
 //        print(dtmfDigits, "DIGITS_______1")
 //        for (index, _) in dtmfDigits.enumerated() {

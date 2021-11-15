@@ -22,6 +22,7 @@ struct Communication: View {
     @State var hold: Bool = false
     @State var resume: Bool = false
     @State var pip: Bool = false
+    @State var removePip: Bool = false
     @State var endCall: Bool = false
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -55,6 +56,7 @@ struct Communication: View {
             ZStack(alignment: .topTrailing) {
                 CommunicationViewControllerRepresenable(
                     pip: self.$pip,
+                    removePip: self.$removePip,
                     cameraFront: self.$cameraFront,
                     cameraBack: self.$cameraBack,
                     destination: self.$passDestination,
@@ -105,6 +107,11 @@ struct Communication: View {
                         Spacer()
 //                        Button {
 //                            self.pip.toggle()
+//                            if !self.pip {
+//                                self.removePip = true
+//                            } else if self.pip {
+//                                self.removePip = false
+//                            }
 //                        } label: {
 //                            ZStack {
 //                                Circle()
@@ -233,6 +240,10 @@ struct Communication: View {
         .onChange(of: self.fcsdkCallService.presentInCommunication) { newValue in
             self.showSheet = newValue
         }
+        .onDisappear(perform: {
+            self.fcsdkCallService.presentCommunication = false
+            self.fcsdkCallService.hasEnded = false
+        })
         .sheet(item: self.$showSheet) { sheet in
             switch sheet {
             case .settingsSheet:

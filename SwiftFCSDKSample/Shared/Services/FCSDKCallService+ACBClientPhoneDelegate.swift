@@ -71,7 +71,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                     acbuc: uc,
                     call: call!
                 )
-                
+
                 strongSelf.fcsdkCall = receivedCall
                 strongSelf.fcsdkCall?.call?.delegate = call?.delegate
                 Task {
