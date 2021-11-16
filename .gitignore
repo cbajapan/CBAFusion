@@ -130,3 +130,4 @@ iOSInjectionProject/
 
 fcsdk-ios
 FCSDKiOS.xcframework
+*.xcframework

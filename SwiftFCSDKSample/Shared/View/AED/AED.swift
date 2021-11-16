@@ -11,7 +11,7 @@ import FCSDKiOS
 struct AED: View {
     
     
-    @State currentTopic: ACBTopic?
+    @State var currentTopic: ACBTopic?
     @State var topicName = ""
     @State var expiry = ""
     @State var key = ""
@@ -82,7 +82,7 @@ struct AED: View {
     func connectToTopic() {
         let expiry = self.expiry
         
-        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: Int(expiry), delegate: self)
+        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: Int("\(expiry)") ?? 0, delegate: nil)
         self.topicName = ""
         self.expiry = ""
     }

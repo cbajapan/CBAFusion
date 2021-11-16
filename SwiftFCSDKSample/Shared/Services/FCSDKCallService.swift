@@ -25,17 +25,22 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var hasConnected: Bool = false
     @Published var isOnHold: Bool = false
     @Published var hasEnded: Bool = false
-//    @Published var presentCommunication: ActiveSheet?
     @Published var presentCommunication: Bool = false
     @Published var connectDate: Date?
     @Published var connectingDate: Date?
     @Published var showDTMFSheet: Bool = false
     @Published var presentInCommunication: CommunicationSheets?
+    @Published var doNotDisturb: Bool = false
     
     override init(){
         super.init()
     }
 
+    
+    deinit {
+        self.fcsdkCall?.call?.delegate = nil
+    }
+    
     
     func setPhoneDelegate() {
         self.acbuc?.clientPhone.delegate = self

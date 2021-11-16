@@ -50,6 +50,14 @@ struct SwiftFCSDKSampleApp: App {
             switch phase {
             case .active:
                 print("ScenePhase: active")
+                // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
+                if !self.authenticationService.connectedToSocket && !self.authenticationService.sessionID.isEmpty {
+                    Task {
+                        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+                        self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+                        self.fcsdkCallService.setPhoneDelegate()
+                    }
+                }
             case .background:
                 print("ScenePhase: background")
             case .inactive:

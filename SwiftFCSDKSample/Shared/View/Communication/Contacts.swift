@@ -19,9 +19,7 @@ struct AddButton<Destination : View>: View {
 struct Contacts: View {
     
     @Binding var presentCommunication: ActiveSheet?
-//    @State var showFullSheet: ActiveSheet?
     @State var showFullSheet: Bool = false
-//    @State var callSheet: Bool = false
     @State var destination: String = ""
     @State var hasVideo: Bool = false
     @State var isOutgoing: Bool = false
@@ -45,7 +43,6 @@ struct Contacts: View {
                 ForEach(self.contacts, id: \.self) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
-//                            self.showFullSheet = .communincationSheet
                             self.showFullSheet = true
                             self.destination = contact.number
                             self.hasVideo = true
@@ -61,19 +58,14 @@ struct Contacts: View {
                 }
             })
         }
+        .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
+            Button("OK", role: .cancel) { }
+        })
         .fullScreenCover(isPresented: self.$showFullSheet, onDismiss: {
             
         }, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
         })
-//        .fullScreenCover(item: self.$showFullSheet) { sheet in
-//            switch sheet {
-//            case .communincationSheet:
-                //We need to pass whether or not this is an inbound or outbound call via isOutgoing rather than an arbitrarry load
-//                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
-                
-//            }
-//        }
         .onAppear {
             if !self.authenticationService.connectedToSocket {
                 Task {
@@ -83,7 +75,6 @@ struct Contacts: View {
                     await self.authenticationService.createSession(sessionid: UserDefaults.standard.string(forKey: "SessionID") ?? "", networkStatus: monitor.networkStatus())
 #endif
                 }
-                //                                 self.fcsdkCallService.connectedToSocket = self.fcsdkCallService.acbuc?.connection != nil
                 self.fcsdkCallService.acbuc = self.authenticationService.acbuc
                 self.fcsdkCallService.setPhoneDelegate()
             } else {

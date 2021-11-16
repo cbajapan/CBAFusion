@@ -11,6 +11,8 @@ import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
+    
+    
     func configureAudioSession() {
         // See https://forums.developer.apple.com/thread/64544
         let session = AVAudioSession.sharedInstance()
@@ -24,7 +26,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             print(error)
         }
     }
-
     
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
@@ -61,7 +62,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             // we need to pass this to the call manager
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
-                let backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
                 let receivedCall = FCSDKCall(
                     handle: call?.remoteAddress ?? "",
                     hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
@@ -76,7 +76,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 strongSelf.fcsdkCall?.call?.delegate = call?.delegate
                 Task {
                     await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
-                    UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
                 }
             }
         }

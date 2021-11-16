@@ -91,9 +91,10 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         
         let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (data, response) = try await session.data(for: request)
+
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkErrors.requestFailed("unvalid response")
+            throw NetworkErrors.requestFailed("invalid response")
         }
         guard httpResponse.statusCode == 200 else {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")

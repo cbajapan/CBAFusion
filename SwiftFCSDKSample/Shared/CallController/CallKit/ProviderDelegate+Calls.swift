@@ -11,20 +11,24 @@ import AVFoundation
 import FCSDKiOS
 
 extension ProviderDelegate {
-    
-    
+
     func reportIncomingCall(fcsdkCall: FCSDKCall) async {
+        await callKitManager.removeAllCalls()
         
         let update = CXCallUpdate()
         update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
         update.hasVideo = fcsdkCall.hasVideo
-        
         do {
             try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
             await self.fcsdkCallService.presentCommunicationSheet()
             await self.callKitManager.addCall(call: fcsdkCall)
         } catch {
-            print("There was an error in \(#function) - Error: \(error)")
+            if error.localizedDescription == "The operation couldn’t be completed. (com.apple.CallKit.error.incomingcall error 3.)" {
+                DispatchQueue.main.async {
+                    self.fcsdkCallService.doNotDisturb = true
+                }
+            }
+            print("There was an error in \(#function) - Error: \(error.localizedDescription)")
         }
     }
     
@@ -39,7 +43,7 @@ extension ProviderDelegate {
         configureAudioSession()
         Task {
             do {
-            try await self.fcsdkCallService.answerFCSDKCall()
+                try await self.fcsdkCallService.answerFCSDKCall()
             } catch {
                 print("\(OurErrors.nilACBUC.rawValue)")
             }
@@ -80,21 +84,22 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         // Retrieve the FCSDKCall instance corresponding to the action's call UUID
         Task {
-            guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
-                action.fail()
-                return
-            }
+            //            guard let call = await self.callKitManager.callWithUUID(uuid: action.callUUID) else {
+            //                action.fail()
+            //                return
+            //            }
             
             // Stop call audio when ending a call.
             
             // Trigger the call to be ended via the underlying network service.
             self.fcsdkCallService.endFCSDKCall()
-            
+            await callKitManager.removeAllCalls()
             // Signal to the system that the action was successfully performed.
             action.fulfill()
-
+            
             // Remove the ended call from the app's list of calls.
-            await callKitManager.removeCall(call: call)
+            //            await callKitManager.removeCall(call: call)
+
         }
         
     }
@@ -130,19 +135,6 @@ extension ProviderDelegate {
         
         let dtmfDigits:String = action.digits
         self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
-
-//        print(dtmfDigits, "DIGITS_______1")
-//        for (index, _) in dtmfDigits.enumerated() {
-//            let dtmfDigit = dtmfDigits.utf8CString[index]
-//            print(dtmfDigit, "DIGITS_______")
-//
-//            //dtmf on
-//
-//        }
-//
-//        //dtmf off
-        
-        // Signal to the system that the action has been successfully performed.
         action.fulfill()
     }
     
@@ -151,19 +143,20 @@ extension ProviderDelegate {
         print("Provider began")
     }
     
-    //Hold call
-    func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        action.fulfill()
-    }
-    
-    //setGroup Call
-    func provider(_ provider: CXProvider, perform action: CXSetGroupCallAction) {
-        print("set group call")
-        action.fulfill()
-    }
-    
-    func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
-        print("execute transaction")
-        return false
-    }
+    //    //Hold call
+    //    func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
+    //        self.callKitManager.calls.removeAll()
+    //        action.fulfill()
+    //    }
+    //
+    //    //setGroup Call
+    //    func provider(_ provider: CXProvider, perform action: CXSetGroupCallAction) {
+    //        print("set group call")
+    //        action.fulfill()
+    //    }
+    //
+    //    func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
+    //        print("execute transaction")
+    //        return false
+    //    }
 }

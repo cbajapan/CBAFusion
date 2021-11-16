@@ -144,6 +144,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
                     await uiViewController.endCall()
                 }
             }
+            self.isOutgoing = false
             uiViewController.currentState(state: .hasEnded)
         }
         
@@ -161,6 +162,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
                 //dismiss view
                 uiViewController.currentState(state: .hasEnded)
             }
+            self.isOutgoing = false
             dismissView()
         }
         
