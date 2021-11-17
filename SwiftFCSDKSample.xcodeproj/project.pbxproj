@@ -26,6 +26,7 @@
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
 		0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987E8FE26FACE060036454C /* FCSDKCall.swift */; };
+		09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09954BBE2744BED400B2DDCE /* ContactService.swift */; };
 		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
 		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
@@ -45,6 +46,11 @@
 		09E0DF4727335F8500377C75 /* DialPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4627335F8500377C75 /* DialPad.swift */; };
 		09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4827337A5500377C75 /* DTMFSheet.swift */; };
 		09E0DFFE27439AB900505F86 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09E0DFFD27439AB900505F86 /* FCSDKiOS */; };
+		09E0E0012743C4DC00505F86 /* SQLiteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E0002743C4DC00505F86 /* SQLiteStore.swift */; };
+		09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 09E0E0032743C7A900505F86 /* FluentSQLiteDriver */; };
+		09E0E0062743CF8E00505F86 /* AddContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E0052743CF8E00505F86 /* AddContact.swift */; };
+		09E0E00827447CA400505F86 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E00727447CA400505F86 /* ContactModel.swift */; };
+		09E0E00A27447CDD00505F86 /* ContactModelDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E00927447CDD00505F86 /* ContactModelDTO.swift */; };
 		09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */; };
 		09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9126DE1F4E00249DD8 /* Keychain.swift */; };
 		09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */; };
@@ -114,6 +120,7 @@
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
 		0987E8FE26FACE060036454C /* FCSDKCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
+		09954BBE2744BED400B2DDCE /* ContactService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactService.swift; sourceTree = "<group>"; };
 		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
 		099F54B226E88239005500BF /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
@@ -133,6 +140,10 @@
 		09E0DF4627335F8500377C75 /* DialPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DialPad.swift; sourceTree = "<group>"; };
 		09E0DF4827337A5500377C75 /* DTMFSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFSheet.swift; sourceTree = "<group>"; };
 		09E0DFFC274399E300505F86 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
+		09E0E0002743C4DC00505F86 /* SQLiteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteStore.swift; sourceTree = "<group>"; };
+		09E0E0052743CF8E00505F86 /* AddContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContact.swift; sourceTree = "<group>"; };
+		09E0E00727447CA400505F86 /* ContactModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
+		09E0E00927447CDD00505F86 /* ContactModelDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactModelDTO.swift; sourceTree = "<group>"; };
 		09E3CE8E26DE1D4500249DD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRepository.swift; sourceTree = "<group>"; };
 		09E3CE9126DE1F4E00249DD8 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -154,6 +165,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */,
 				09E0DFFE27439AB900505F86 /* FCSDKiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -214,6 +226,7 @@
 				099F54B426E88AAB005500BF /* CallSheet.swift */,
 				09E0DF4627335F8500377C75 /* DialPad.swift */,
 				09E0DF4827337A5500377C75 /* DTMFSheet.swift */,
+				09E0E0052743CF8E00505F86 /* AddContact.swift */,
 			);
 			path = Communication;
 			sourceTree = "<group>";
@@ -315,10 +328,12 @@
 		094EE33026DCE39D008C1637 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				09E0DFFF2743C4CA00505F86 /* Store */,
 				09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */,
 				09CFF9732714EEA700052188 /* FCSDKCallService.swift */,
 				09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */,
 				09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
+				09954BBE2744BED400B2DDCE /* ContactService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -328,6 +343,7 @@
 			children = (
 				0987E8FE26FACE060036454C /* FCSDKCall.swift */,
 				09E3CE9526DE1F8A00249DD8 /* Login.swift */,
+				09E0E00727447CA400505F86 /* ContactModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -337,6 +353,7 @@
 			children = (
 				09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */,
 				09091596271D36AE00A2563A /* FCSDKCallViewModel.swift */,
+				09E0E00927447CDD00505F86 /* ContactModelDTO.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -420,6 +437,14 @@
 			path = CallKit;
 			sourceTree = "<group>";
 		};
+		09E0DFFF2743C4CA00505F86 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				09E0E0002743C4DC00505F86 /* SQLiteStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
 		09E3CE9826DE278800249DD8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -481,6 +506,7 @@
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
 				09E0DFFD27439AB900505F86 /* FCSDKiOS */,
+				09E0E0032743C7A900505F86 /* FluentSQLiteDriver */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -558,6 +584,7 @@
 			);
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
+				09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -603,6 +630,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */,
+				09E0E0012743C4DC00505F86 /* SQLiteStore.swift in Sources */,
 				09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */,
 				094C314226E078A8007C6A35 /* SettingsSheet.swift in Sources */,
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
@@ -611,10 +639,12 @@
 				09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */,
 				09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */,
 				09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */,
+				09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */,
 				09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */,
 				094EE30726DCE211008C1637 /* ContentView.swift in Sources */,
 				09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				099F54AF26E87873005500BF /* PlayerView.swift in Sources */,
+				09E0E0062743CF8E00505F86 /* AddContact.swift in Sources */,
 				090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */,
 				099F54B326E88239005500BF /* CallKitManager.swift in Sources */,
 				09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */,
@@ -624,6 +654,7 @@
 				094EE30526DCE211008C1637 /* SwiftFCSDKSampleApp.swift in Sources */,
 				09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */,
 				09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */,
+				09E0E00827447CA400505F86 /* ContactModel.swift in Sources */,
 				09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */,
 				09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */,
 				09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */,
@@ -635,6 +666,7 @@
 				09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */,
 				09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */,
 				09D86CFD270B089200C62FA0 /* CommunicationViewController+Delegate.swift in Sources */,
+				09E0E00A27447CDD00505F86 /* ContactModelDTO.swift in Sources */,
 				094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */,
 				0908679C26E7590A00A83602 /* AppDelegate.swift in Sources */,
 				09091597271D36AE00A2563A /* FCSDKCallViewModel.swift in Sources */,
@@ -1018,6 +1050,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/fluent-sqlite.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		091F6B4227426CD5001F6F11 /* FCSDKiOS */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1026,6 +1069,11 @@
 		09E0DFFD27439AB900505F86 /* FCSDKiOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FCSDKiOS;
+		};
+		09E0E0032743C7A900505F86 /* FluentSQLiteDriver */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
+			productName = FluentSQLiteDriver;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

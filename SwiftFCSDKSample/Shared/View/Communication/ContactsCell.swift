@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContactsCell: View {
     
-    @State var contact: Contact
+    @State var contact: ContactModel
     @State private var isChecked: Bool = false
     
     var body: some View {
@@ -24,22 +24,16 @@ struct ContactsCell: View {
                         .fill(Color.blue)
                         .frame(width: 30, height: 30, alignment: .leading)
                 }
-                Text(contact.icon)
+//                Text(contact.icon)
             }
             VStack(alignment: .leading, spacing: 0) {
-                Text(contact.name)
+                Text(contact.username)
                     .fontWeight(.bold)
                 Text(contact.number)
                     .fontWeight(.light)
                     .padding(.leading, 10)
             }
         }
-    }
-}
-
-struct ContactsCell_Previews: PreviewProvider {
-    static var previews: some View {
-        ContactsCell(contact: Contact(name: "", number: "", icon: ""))
     }
 }
 

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import NIO
 
 extension AnyTransition {
     static var moveAndFade: AnyTransition {
@@ -17,6 +17,7 @@ extension AnyTransition {
 struct ContentView: View {
     
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var contactService: ContactService
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
     @State var currentTabIndex = 0
@@ -126,7 +127,12 @@ struct ContentView: View {
                         }
                     }
                     .onAppear {
-                        print(self.authenticationService.sessionID, "SESSIONID")
+                        Task {
+                            let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
+                            let store = try await SQLiteStore.create(on: eventLoop)
+                            contactService.delegate = store
+                            try? await contactService.fetchContacts()
+                        }
                         if self.authenticationService.sessionID != "" {
                             
                         } else {

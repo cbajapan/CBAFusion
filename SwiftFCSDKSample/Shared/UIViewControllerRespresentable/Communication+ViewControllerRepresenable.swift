@@ -225,4 +225,5 @@ enum OurErrors: String, Swift.Error {
     case nilPreviewView = "Cannot set previewView because it is nil"
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
+    case nilDelegate = "The delegate is nil"
 }

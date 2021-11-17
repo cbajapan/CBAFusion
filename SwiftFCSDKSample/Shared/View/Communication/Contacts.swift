@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct AddButton<Destination : View>: View {
-
+    
     var destination:  Destination
-
+    
     var body: some View {
-        NavigationLink(destination: self.destination) { Image(systemName: "plus") }
+        NavigationLink(destination: self.destination) { Image(systemName: "phone.fill.arrow.up.right") }
     }
 }
 
@@ -23,24 +23,18 @@ struct Contacts: View {
     @State var destination: String = ""
     @State var hasVideo: Bool = false
     @State var isOutgoing: Bool = false
+    @State var addContact: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
-    
-    let contacts = [
-        Contact(id: UUID(), name: "User1", number: "1001", icon: ""),
-        Contact(id: UUID(), name: "User2", number: "1002", icon: ""),
-        Contact(id: UUID(), name: "User3", number: "1003", icon: ""),
-        Contact(id: UUID(), name: "User4", number: "1004", icon: ""),
-        Contact(id: UUID(), name: "User5", number: "1005", icon: ""),
-        Contact(id: UUID(), name: "User6", number: "1006", icon: "")
-    ]
+    @EnvironmentObject var contact: ContactService
     
     
     var body: some View {
         NavigationView {
+            
             List {
-                ForEach(self.contacts, id: \.self) { contact in
+                ForEach(self.contact.contacts ?? [], id: \.self) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
                             self.showFullSheet = true
@@ -49,12 +43,24 @@ struct Contacts: View {
                             self.isOutgoing = true
                         }
                 }
-                    .navigationTitle("Contacts")
+                
+                .onDelete(perform: self.removeContact)
+                .navigationTitle("Contacts")
             }
+            
             .navigationBarTitleDisplayMode(.large)
             .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        self.addContact = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack { AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo)) }
+                    HStack {
+                        AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo))
+                    }
                 }
             })
         }
@@ -66,7 +72,16 @@ struct Contacts: View {
         }, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
         })
+        .sheet(isPresented: self.$addContact, onDismiss: {
+            
+        }, content: {
+            AddContact()
+        })
         .onAppear {
+            Task {
+            try? await self.contact.fetchContacts()
+            }
+            
             if !self.authenticationService.connectedToSocket {
                 Task {
 #if !DEBUG
@@ -84,6 +99,16 @@ struct Contacts: View {
         }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
             self.showFullSheet = newValue
+        }
+    }
+    
+    func removeContact(at offsets: IndexSet) {
+        for index in offsets {
+            Task {
+                guard let contact = self.contact.contacts?[index] else { return }
+                await self.contact.deleteContact(contact: contact)
+                try? await self.contact.fetchContacts()
+            }
         }
     }
 }

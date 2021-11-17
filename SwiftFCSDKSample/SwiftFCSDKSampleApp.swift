@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import AVKit
+import NIO
 
 
 @main
@@ -20,7 +21,9 @@ struct SwiftFCSDKSampleApp: App {
     @StateObject private var fcsdkCallService = FCSDKCallService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
+    @StateObject private var contact = ContactService()
     @State var prorviderDelegate: ProviderDelegate?
+    @State var exists = SQLiteStore.exists()
     
     init() {
         let audioSession = AVAudioSession.sharedInstance()
@@ -39,11 +42,11 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
+                .environmentObject(contact)
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
-                    
                 }
         }
         .onChange(of: scenePhase) { (phase) in
