@@ -67,9 +67,11 @@ struct Authentication: View {
         .onAppear {
             self.currentTabIndex = self.parentTabIndex
         }
-        .onTapGesture {
-            //            hideKeyboard()
-        }
+        .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
+            Button("OK", role: .cancel) {
+                self.authenticationService.showErrorAlert = false
+            }
+        })
     }
 
     private func login() async {

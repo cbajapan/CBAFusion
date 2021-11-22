@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 protocol FCSDKStore: AnyObject {
     func fetchContacts() async throws -> [ContactModel]
@@ -22,18 +23,29 @@ class ContactService: ObservableObject {
     @Published var number: String = ""
     @Published var delegate: FCSDKStore?
     @Published var contacts: [ContactModel]?
-    
+    @Published var alert: Bool = false
+    @Published var isEdit: Bool = false
+    @Published var contactToEdit: ContactModel?
+    @Published var addSheet: Bool = false
     
     init() {}
     
-    func addContact() async {
-        let contact = ContactModel(id: UUID(), username: username, number: number)
-        do {
-            guard let del = delegate else { throw OurErrors.nilDelegate }
-            try await del.createContact(contact)
-            try? await self.fetchContacts()
-        } catch {
-            print(error)
+    func addContact(_ contact: ContactModel?, isEdit: Bool) async {
+        if !username.isEmpty || !number.isEmpty {
+            do {
+                guard let del = delegate else { throw OurErrors.nilDelegate }
+                let contact = ContactModel(id: contact?.id ?? UUID(), username: username, number: number)
+                if isEdit {
+                    try await del.updateContact(contact)
+                } else {
+                    try await del.createContact(contact)
+                }
+                try? await self.fetchContacts()
+            } catch {
+                print(error)
+            }
+        } else {
+            self.alert = true
         }
     }
     
@@ -60,5 +72,11 @@ class ContactService: ObservableObject {
         } catch {
             print(error)
         }
+    }
+    
+    func editContact(contact: ContactModel, isEdit: Bool) async {
+        self.contactToEdit = contact
+        self.isEdit = true
+        self.addSheet = true
     }
 }

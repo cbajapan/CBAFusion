@@ -12,7 +12,6 @@ struct CallSheet: View {
     @Binding var destination: String
     @State var showFullSheet: ActiveSheet?
     @Binding var hasVideo: Bool
-    @State private var string = ""
     @Environment(\.presentationMode) private var presentationMode
     @State private var orientation = UIDeviceOrientation.unknown
 
@@ -39,20 +38,12 @@ struct CallSheet: View {
                     Toggle("Want Video?", isOn: self.$hasVideo)
                 }
                 .padding()
-                VStack {
-                    DialPad(string: $string, legacyDTMF: .constant(false))
-                        .padding()
-                        .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.8)
-                }
                 }
             }
         }
         .onRotate { newOrientation in
             orientation = newOrientation
         }
-        .onChange(of: self.string, perform: { s in
-            self.destination = s
-        })
         .navigationBarTitle("Let's Talk")
         .navigationBarItems(leading:
                                 Button(action: {

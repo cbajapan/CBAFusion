@@ -23,6 +23,7 @@ final class _ContactModel: FluentKit.Model {
         self.id = contact.id
         self.username = contact.username
         self.number = contact.number
+        $id.exists = !new
     }
 
     func makeContact() throws -> ContactModel {

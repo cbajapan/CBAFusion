@@ -87,6 +87,7 @@ struct Communication: View {
                                     .padding()
                             }
                             Spacer()
+                            ZStack {
                             self.formattedCallDuration
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
@@ -94,13 +95,23 @@ struct Communication: View {
                                 .onReceive(Communication.timer) { _ in
                                     self.updateFormattedCallDuration()
                                 }
+                            }
                             Spacer()
                             VStack(alignment: .trailing) {
                                 Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(Color.white)
-                                    .padding()
+                                Button {
+                                    if self.fcsdkCallService.hasConnected {
+                                    self.fcsdkCallService.showDTMFSheet = true
+                                    }
+                                } label: {
+                                    self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
+                                        .font(.title2)
+                                        .bold()
+                                }
                             }
+                            .padding()
                         }
                     Spacer()
                     HStack(alignment: .center) {
@@ -137,11 +148,11 @@ struct Communication: View {
                                 Circle()
                                     .fill(self.hold ? Color.white : Color.gray)
                                     .frame(width: 50, height: 50)
-                                Image(systemName: "nosign")
+                                Image(systemName: "pause.circle")
                                     .resizable()
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(self.hold ? Color.gray : Color.white)
-                                    .frame(width: 25, height: 25)
+                                    .frame(width: 35, height: 35)
                                     .padding()
                             }
                         }
@@ -157,9 +168,9 @@ struct Communication: View {
                                 Circle()
                                     .fill(self.muteAudio ? Color.white : Color.gray)
                                     .frame(width: 50, height: 50)
-                                Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.fill")
+                                Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.wave.3.fill")
                                     .resizable()
-                                    .frame(width: 25, height: 13)
+                                    .frame(width: 25, height: 28)
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
                                     .padding()
@@ -179,7 +190,7 @@ struct Communication: View {
                                     .frame(width: 50, height: 50)
                                 Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
                                     .resizable()
-                                    .frame(width: 25, height: 13)
+                                    .frame(width: 33, height: 20)
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
                                     .padding()
@@ -195,7 +206,7 @@ struct Communication: View {
                         } label: {
                             ZStack {
                             Circle()
-                                .fill(self.hold ? Color.white : Color.gray)
+                                .fill(self.cameraFront ? Color.white : Color.gray)
                                 .frame(width: 50, height: 50)
                             Image(systemName: "arrow.triangle.2.circlepath.camera")
                                 .resizable()
@@ -254,7 +265,14 @@ struct Communication: View {
            
         }
         .sheet(isPresented: self.$fcsdkCallService.showDTMFSheet) {
+            if self.fcsdkCallService.showDTMFSheet {
             DTMFSheet()
+            }
+        }
+        .alert(self.fcsdkCallService.errorMessage, isPresented: self.$fcsdkCallService.sendErrorMessage) {
+            Button("OK", role: .cancel) {
+                self.fcsdkCallService.sendErrorMessage = false
+            }
         }
     }
     

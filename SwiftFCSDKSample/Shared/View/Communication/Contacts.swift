@@ -23,7 +23,6 @@ struct Contacts: View {
     @State var destination: String = ""
     @State var hasVideo: Bool = false
     @State var isOutgoing: Bool = false
-    @State var addContact: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
@@ -34,7 +33,7 @@ struct Contacts: View {
         NavigationView {
             
             List {
-                ForEach(self.contact.contacts ?? [], id: \.self) { contact in
+                ForEach(self.contact.contacts ?? [], id: \.id) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
                             self.showFullSheet = true
@@ -42,9 +41,19 @@ struct Contacts: View {
                             self.hasVideo = true
                             self.isOutgoing = true
                         }
+                        .swipeActions(edge: .trailing) {
+                            Button("Delete") {
+                                self.removeContact(contact)
+                            }
+                            .tint(.red)
+                        }
+                        .swipeActions(edge: .leading) {
+                            Button("Edit") {
+                                self.editContact(contact)
+                            }
+                            .tint(.green)
+                        }
                 }
-                
-                .onDelete(perform: self.removeContact)
                 .navigationTitle("Contacts")
             }
             
@@ -52,7 +61,7 @@ struct Contacts: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        self.addContact = true
+                        self.contact.addSheet = true
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -67,19 +76,15 @@ struct Contacts: View {
         .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
             Button("OK", role: .cancel) { }
         })
-        .fullScreenCover(isPresented: self.$showFullSheet, onDismiss: {
-            
-        }, content: {
+        .fullScreenCover(isPresented: self.$showFullSheet, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
         })
-        .sheet(isPresented: self.$addContact, onDismiss: {
-            
-        }, content: {
+        .sheet(isPresented: self.$contact.addSheet, content: {
             AddContact()
         })
         .onAppear {
             Task {
-            try? await self.contact.fetchContacts()
+                try? await self.contact.fetchContacts()
             }
             
             if !self.authenticationService.connectedToSocket {
@@ -102,16 +107,19 @@ struct Contacts: View {
         }
     }
     
-    func removeContact(at offsets: IndexSet) {
-        for index in offsets {
-            Task {
-                guard let contact = self.contact.contacts?[index] else { return }
-                await self.contact.deleteContact(contact: contact)
-                try? await self.contact.fetchContacts()
-            }
+    func editContact(_ contact: ContactModel) {
+        Task {
+            await self.contact.editContact(contact: contact, isEdit: true)
+        }
+    }
+    
+    func removeContact(_ contact: ContactModel) {
+        Task {
+            await self.contact.deleteContact(contact: contact)
         }
     }
 }
+
 
 enum ActiveSheet: Identifiable {
     case communincationSheet

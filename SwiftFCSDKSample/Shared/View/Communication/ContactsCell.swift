@@ -24,7 +24,6 @@ struct ContactsCell: View {
                         .fill(Color.blue)
                         .frame(width: 30, height: 30, alignment: .leading)
                 }
-//                Text(contact.icon)
             }
             VStack(alignment: .leading, spacing: 0) {
                 Text(contact.username)

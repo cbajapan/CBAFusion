@@ -191,6 +191,6 @@ extension AppDelegate: PKPushRegistryDelegate {
 
     /// Display the incoming call to the user.
     func displayIncomingCall(fcsdkCall: FCSDKCall) async {
-        await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
+        providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
     }
 }

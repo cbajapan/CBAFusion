@@ -49,7 +49,7 @@ class CallKitManager: NSObject, ObservableObject {
         requestTransaction(transaction)
     }
     
-    func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
+    @MainActor func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
         let hold = CXSetHeldCallAction(call: call.uuid, onHold: onHold)
         let transaction = CXTransaction()
         transaction.addAction(hold)

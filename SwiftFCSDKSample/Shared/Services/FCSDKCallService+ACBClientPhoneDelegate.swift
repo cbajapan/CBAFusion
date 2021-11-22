@@ -30,14 +30,16 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
         guard let uc = self.acbuc else { return }
-        self.playRingtone()
-
+        Task {
+        await self.playRingtone()
+        }
         // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
         call?.delegate = self
         
         if UserDefaults.standard.bool(forKey: "AutoAnswer") {
-            
-            self.stopRingtone()
+            Task {
+            await self.stopRingtone()
+            }
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
                 let receivedCall = FCSDKCall(

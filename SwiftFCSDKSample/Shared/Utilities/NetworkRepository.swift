@@ -12,7 +12,6 @@ class NetworkRepository: NSObject {
     
     static let shared = NetworkRepository()
     
-    
     func login(loginReq: LoginViewModel) -> AnyPublisher<LoginResponse, Error> {
         let scheme = loginReq.secureSwitch ? "https" : "http"
         let url = "\(scheme)://\(loginReq.server):\(loginReq.port)/csdk-sample/SDK/login"
@@ -21,18 +20,11 @@ class NetworkRepository: NSObject {
         return NetworkManager.shared.combineCodableNetworkWrapper(urlString: url, httpMethod: "POST", httpBody: body)
     }
     
-    func asyncLogin(loginReq: LoginViewModel) async throws -> LoginResponse {
+    func asyncLogin(loginReq: LoginViewModel) async throws -> (Data, URLResponse) {
         let scheme = loginReq.secureSwitch ? "https" : "http"
         let url = "\(scheme)://\(loginReq.server):\(loginReq.port)/csdk-sample/SDK/login"
         let body = try? JSONEncoder().encode(loginReq.requestLoginObject())
-        var data: LoginResponse?
-        do {
-            data = try await NetworkManager.shared.asyncCodableNetworkWrapper(type: LoginResponse.self, urlString: url, httpMethod: "POST", httpBody: body)
-        } catch {
-            print(error)
-        }
-        guard let d = data else { throw Errors.nilResponseError }
-        return d
+        return try await NetworkManager.shared.asyncCodableNetworkWrapper(type: LoginResponse.self, urlString: url, httpMethod: "POST", httpBody: body)
     }
     
     func asyncLogout(logoutReq: LoginViewModel, sessionid: String) async {

@@ -12,7 +12,6 @@ import FCSDKiOS
 class AuthenticationService: NSObject, ObservableObject {
     
     override init(){}
-    
     @Published var username = UserDefaults.standard.string(forKey: "Username") ?? ""
     @Published var password = KeychainItem.getPassword
     @Published var server = UserDefaults.standard.string(forKey: "Server") ?? ""
@@ -27,6 +26,9 @@ class AuthenticationService: NSObject, ObservableObject {
 #endif
     @Published var connectedToSocket = false
     @Published var acbuc: ACBUC?
+    @Published var showErrorAlert: Bool = false
+    @Published var errorMessage: String = ""
+    var audioDeviceManager: ACBAudioDeviceManager?
     
     
     /// Authenticate the User
@@ -52,22 +54,65 @@ class AuthenticationService: NSObject, ObservableObject {
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
-        let payload = try? await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
-        self.sessionID = payload?.sessionid ?? ""
-        await self.createSession(sessionid: payload?.sessionid ?? "", networkStatus: networkStatus)
-        self.connectedToSocket = self.acbuc?.connection != nil
-        
+        do {
+            let (data, response) = try await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
+            let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
+            
+            
+            await fireStatus(response: response)
+            
+            self.sessionID = payload.sessionid
+            await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
+            self.connectedToSocket = self.acbuc?.connection != nil
+            
 #if !DEBUG
-        if KeychainItem.getSessionID == "" {
-            KeychainItem.saveSessionID(sessionid: sessionID)
-        }
+            if KeychainItem.getSessionID == "" {
+                KeychainItem.saveSessionID(sessionid: sessionID)
+            }
 #else
-        if UserDefaults.standard.string(forKey: "SessionID") != "" {
-            UserDefaults.standard.set(sessionID, forKey: "SessionID")
-        }
+            if UserDefaults.standard.string(forKey: "SessionID") != "" {
+                UserDefaults.standard.set(sessionID, forKey: "SessionID")
+            }
 #endif
+        } catch {
+            await errorCaught(error: error)
+            print(error)
+        }
     }
     
+    func errorCaught(error: Error) async {
+        await showAlert(error: error)
+    }
+    
+    func fireStatus(response: URLResponse) async {
+        guard let httpResponse = response as? HTTPURLResponse else {return}
+        switch httpResponse.statusCode {
+        case 200...299:
+            print("success")
+        case 401:
+            await showAlert(response: httpResponse)
+        case 402...500:
+            await showAlert(response: httpResponse)
+        case 501...599:
+            await showAlert(response: httpResponse)
+        case 600:
+            await showAlert(response: httpResponse)
+        default:
+            await showAlert(response: httpResponse)
+        }
+    }
+    
+    @MainActor
+    func showAlert(response: HTTPURLResponse? = nil, error: Error? = nil) async {
+        var message: String = "No Message"
+        if response == nil {
+            message = error?.localizedDescription ?? "Error string empty"
+        } else {
+            message = "\(String(describing: response))"
+        }
+        self.errorMessage = message
+        self.showErrorAlert = true
+    }
     
     /// Create the Session
     func createSession(sessionid: String, networkStatus: Bool) async {
@@ -78,11 +123,14 @@ class AuthenticationService: NSObject, ObservableObject {
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         self.acbuc?.useCookies = useCookies
         self.acbuc?.startSession()
+        
+        //We need to start the Audio Manager so we can use it
+        self.audioDeviceManager = self.acbuc?.clientPhone.audioDeviceManager
+        audioDeviceManager?.start()
     }
     
     
     /// Logout and stop the session
-    @MainActor
     func logout() async {
         print("Logging out of server: \(server) with: \(username)")
         let loginCredentials = LoginViewModel(login:
@@ -97,6 +145,10 @@ class AuthenticationService: NSObject, ObservableObject {
                                                 ))
         await stopSession()
         await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
+        await setSessionID(id: sessionID)
+    }
+    
+    @MainActor func setSessionID(id: String) async {
         self.connectedToSocket = self.acbuc?.connection != nil
 #if !DEBUG
         KeychainItem.deleteSessionID()
@@ -114,9 +166,9 @@ class AuthenticationService: NSObject, ObservableObject {
     func selectAudio(audio: AudioOptions) {
         switch audio {
         case .ear:
-            _ = self.acbuc?.clientPhone.audioDeviceManager.setAudioDevice(device: .earpiece)
+            self.audioDeviceManager?.setAudioDevice(device: .earpiece)
         case .speaker:
-          _ = self.acbuc?.clientPhone.audioDeviceManager.setAudioDevice(device: .speakerphone)
+            self.audioDeviceManager?.setAudioDevice(device: .speakerphone)
         }
     }
     
@@ -141,7 +193,7 @@ class AuthenticationService: NSObject, ObservableObject {
             self.acbuc?.clientPhone.preferredCaptureFrameRate = 30
         }
     }
-
+    
 }
 
 

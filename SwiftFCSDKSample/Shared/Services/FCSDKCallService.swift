@@ -31,6 +31,8 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var showDTMFSheet: Bool = false
     @Published var presentInCommunication: CommunicationSheets?
     @Published var doNotDisturb: Bool = false
+    @Published var sendErrorMessage: Bool = false
+    @Published var errorMessage: String = "Unknown Error"
     
     override init(){
         super.init()
@@ -68,8 +70,8 @@ class FCSDKCallService: NSObject, ObservableObject {
         )
         
         self.fcsdkCall?.call = outboundCall
-        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-//        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+//        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
         self.fcsdkCall?.call?.enableLocalAudio(true)
         self.fcsdkCall?.call?.enableLocalVideo(true)
         return self.fcsdkCall?.call
@@ -92,8 +94,8 @@ class FCSDKCallService: NSObject, ObservableObject {
 
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
         // We pass our view Controllers view to the preview here
-        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-//        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+//        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
         guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
         do {
             try uc.clientPhone.setPreviewView(view)
@@ -119,7 +121,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
     }
     
-    func playRingtone() {
+    func playRingtone() async {
         let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
         let fileURL = URL(fileURLWithPath: path!)
         self.audioPlayer = try? AVAudioPlayer(contentsOf: fileURL)
@@ -129,7 +131,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.audioPlayer?.play()
     }
     
-    func stopRingtone() {
+    func stopRingtone() async {
         guard let player = self.audioPlayer else { return }
         player.stop()
     }

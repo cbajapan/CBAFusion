@@ -63,6 +63,8 @@ struct SwiftFCSDKSampleApp: App {
                 }
             case .background:
                 print("ScenePhase: background")
+                self.authenticationService.connectedToSocket = false
+                self.authenticationService.acbuc?.connection = false
             case .inactive:
                 print("ScenePhase: inactive")
             @unknown default:

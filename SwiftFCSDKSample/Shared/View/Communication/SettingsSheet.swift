@@ -106,16 +106,6 @@ struct SettingsSheet: View {
                             }
                     }
                     Divider()
-                    Button {
-                        if self.fcsdkCallService.hasConnected {
-                        self.fcsdkCallService.showDTMFSheet = true
-                        self.presentationMode.wrappedValue.dismiss()
-                        }
-                    } label: {
-                        self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
-                            .font(.title2)
-                            .bold()
-                    }
                     Spacer()
                     HStack {
                         VStack(alignment: .leading) {

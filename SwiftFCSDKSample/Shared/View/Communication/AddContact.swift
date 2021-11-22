@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct AddContact: View {
-
+    
     @EnvironmentObject var contact: ContactService
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         NavigationView  {
             Form {
-                Section(header: Text("Add Contact")) {
+                Section(header: Text(self.contact.isEdit ? "Edit Contact" : "Add Contact")) {
                     VStack(alignment: .leading) {
                         Text("Contact")
                             .bold()
@@ -28,15 +28,22 @@ struct AddContact: View {
                 }
                 Button(action: {
                     Task {
-                    await self.contact.addContact()
-                    await self.contact.clearToDismiss()
-                    self.presentationMode.wrappedValue.dismiss()
+                        if self.contact.isEdit {
+                            await self.contact.addContact(self.contact.contactToEdit, isEdit: true)
+                        } else {
+                            await self.contact.addContact(nil, isEdit: false)
+                        }
+                        await self.contact.clearToDismiss()
+                        self.presentationMode.wrappedValue.dismiss()
                     }
                 }, label: {
                     Text("Save")
                 })
             }
-            .navigationBarTitle("Add Contact")
+            .alert("Please fill in the Contact information", isPresented: self.$contact.alert, actions: {
+                Button("OK", role: .cancel) { }
+            })
+            .navigationBarTitle(self.contact.isEdit ? "Edit Contact" : "Add Contact")
         }
     }
 }

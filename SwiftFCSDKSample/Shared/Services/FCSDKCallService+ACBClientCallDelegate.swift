@@ -11,79 +11,106 @@ import AVFoundation
 
 extension FCSDKCallService: ACBClientCallDelegate {
     
-    private func endCall() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.hasEnded = true
-        }
+    @MainActor private func endCall() async {
+        self.hasEnded = true
     }
     
     func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
         switch status {
         case .setup:
-           break
+            break
         case .alerting:
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf.hasStartedConnecting = true
+            Task {
+                await self.alerting()
             }
         case .ringing:
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf.hasStartedConnecting = false
-                strongSelf.connectingDate = Date()
-                strongSelf.isRinging = true
+            Task {
+                await ringing()
+                await self.playRingtone()
             }
-            self.playRingtone()
         case .mediaPending:
-          break
+            break
         case .inCall:
-            self.stopRingtone()
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf.isRinging = false
-                strongSelf.hasConnected = true
-                strongSelf.connectDate = Date()
+            Task {
+                await self.stopRingtone()
+                await self.inCall()
             }
         case .timedOut:
-            self.endCall()
+            Task {
+                await setErrorMessage(message: "Call timed out")
+                await self.endCall()
+            }
         case .busy:
-            self.endCall()
+            Task {
+                await setErrorMessage(message: "User is Busy")
+                await self.endCall()
+            }
         case .notFound:
-            self.endCall()
+            Task {
+                await setErrorMessage(message: "Could not find user")
+                await self.endCall()
+            }
         case .error:
-            self.endCall()
+            Task {
+                await setErrorMessage(message: "Unkown Error")
+                await self.endCall()
+            }
         case .ended:
-            self.acbuc?.clientPhone.audioDeviceManager.stop()
-            self.endCall()
+            Task {
+                await self.endCall()
+            }
         @unknown default:
             break
         }
     }
     
+    @MainActor func alerting() async {
+        self.hasStartedConnecting = true
+    }
+    
+    @MainActor func inCall() async {
+        self.isRinging = false
+        self.hasConnected = true
+        self.connectDate = Date()
+    }
+    
+    @MainActor func ringing() async {
+        self.hasStartedConnecting = false
+        self.connectingDate = Date()
+        self.isRinging = true
+    }
+    
+    @MainActor func setErrorMessage(message: String) async {
+        self.sendErrorMessage = true
+        self.errorMessage = message
+    }
+    
     func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
-//        if message == "Session interrupted" {
-//            if  self.fcsdkCall?.call != nil {
-//                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
-//                    if !self.isOnHold {
-//                        call?.hold()
-//                        self.isOnHold = true
-//                    }
-//                }
-//            }
-//        }
+        if message == "Session interrupted" {
+            if  self.fcsdkCall?.call != nil {
+                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
+                    if !self.isOnHold {
+                        call?.hold()
+                        self.isOnHold = true
+                    }
+                }
+            }
+        }
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) {
-        //TODO: - Reflect in UI
+        self.sendErrorMessage = true
+        self.errorMessage = error?.localizedDescription ?? "didReceiveCallFailureWithError Error"
     }
     
     func call(_ call: ACBClientCall?, didReceiveDialFailureWithError error: Error?) {
-        //TODO: - Reflect in UI
+        self.sendErrorMessage = true
+        self.errorMessage = error?.localizedDescription ?? "didReceiveDialFailureWithError Error"
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String?) {
-        //TODO: - Reflect in UI
+        self.sendErrorMessage = true
+        self.errorMessage = message ?? "didReceiveCallRecordingPermissionFailure Error"
     }
     
     func call(_ call: ACBClientCall?, didReceiveSSRCsForAudio audioSSRCs: [AnyHashable]?, andVideo videoSSRCs: [AnyHashable]?) {
