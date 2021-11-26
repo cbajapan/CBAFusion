@@ -24,13 +24,13 @@ struct Communication: View {
     @State var pip: Bool = false
     @State var removePip: Bool = false
     @State var endCall: Bool = false
-    @Binding var destination: String
-    @Binding var hasVideo: Bool
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
+    @State private var formattedCallDuration: Text?
+    @State var currentTabIndex = 0
+    @Binding var destination: String
+    @Binding var hasVideo: Bool
     @Binding var isOutgoing: Bool
-    @State var showSheet: CommunicationSheets?
-    
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {
@@ -39,22 +39,18 @@ struct Communication: View {
         dateFormatter.unitsStyle = .positional
         dateFormatter.allowedUnits = [.minute, .second]
         dateFormatter.zeroFormattingBehavior = .pad
-
         return dateFormatter
     }()
-    @State private var formattedCallDuration: Text?
-    
+
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var authenticationServices: AuthenticationService
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
-    @State var currentTabIndex = 0
-    
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
-                CommunicationViewControllerRepresenable(
+                CommunicationViewControllerRepresentable(
                     pip: self.$pip,
                     removePip: self.$removePip,
                     cameraFront: self.$cameraFront,
@@ -69,25 +65,25 @@ struct Communication: View {
                     hold: self.$hold,
                     resume: self.$resume,
                     acbuc: self.$authenticationServices.acbuc,
-                    fcsdkCall: self.$fcsdkCallService.fcsdkCall,
-                    isOutgoing: self.$isOutgoing
+                    isOutgoing: self.$isOutgoing,
+                    fcsdkCall: self.$fcsdkCallService.fcsdkCall
                 )
                     .ignoresSafeArea(.all)
-    
+                
                 VStack(alignment: .trailing) {
-                        HStack(alignment: .top) {
-                            Button {
-                                self.showSheet = .settingsSheet
-                            } label: {
-                                Image(systemName: "gear")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.showSettings ? Color.white : Color.blue)
-                                    .frame(width: 25, height: 25)
-                                    .padding()
-                            }
-                            Spacer()
-                            ZStack {
+                    HStack(alignment: .top) {
+                        Button {
+                            self.showSettings = true
+                        } label: {
+                            Image(systemName: "gear")
+                                .resizable()
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(self.showSettings ? Color.white : Color.blue)
+                                .frame(width: 25, height: 25)
+                                .padding()
+                        }
+                        Spacer()
+                        ZStack {
                             self.formattedCallDuration
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
@@ -95,47 +91,47 @@ struct Communication: View {
                                 .onReceive(Communication.timer) { _ in
                                     self.updateFormattedCallDuration()
                                 }
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing) {
-                                Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(Color.white)
-                                Button {
-                                    if self.fcsdkCallService.hasConnected {
-                                    self.fcsdkCallService.showDTMFSheet = true
-                                    }
-                                } label: {
-                                    self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
-                                        .font(.title2)
-                                        .bold()
-                                }
-                            }
-                            .padding()
                         }
+                        Spacer()
+                        VStack(alignment: .trailing) {
+                            Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(Color.white)
+                            Button {
+                                if self.fcsdkCallService.hasConnected {
+                                    self.fcsdkCallService.showDTMFSheet = true
+                                }
+                            } label: {
+                                self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
+                                    .font(.title2)
+                                    .bold()
+                            }
+                        }
+                        .padding()
+                    }
                     Spacer()
                     HStack(alignment: .center) {
                         Spacer()
-//                        Button {
-//                            self.pip.toggle()
-//                            if !self.pip {
-//                                self.removePip = true
-//                            } else if self.pip {
-//                                self.removePip = false
-//                            }
-//                        } label: {
-//                            ZStack {
-//                                Circle()
-//                                    .fill(self.pip ? Color.white : Color.gray)
-//                                    .frame(width: 50, height: 50)
-//                                Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-//                                    .resizable()
-//                                    .multilineTextAlignment(.trailing)
-//                                    .foregroundColor(Color.black)
-//                                    .frame(width: 25, height: 25)
-//                                    .padding()
-//                            }
-//                        }
+                        //                        Button {
+                        //                            self.pip.toggle()
+                        //                            if !self.pip {
+                        //                                self.removePip = true
+                        //                            } else if self.pip {
+                        //                                self.removePip = false
+                        //                            }
+                        //                        } label: {
+                        //                            ZStack {
+                        //                                Circle()
+                        //                                    .fill(self.pip ? Color.white : Color.gray)
+                        //                                    .frame(width: 50, height: 50)
+                        //                                Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                        //                                    .resizable()
+                        //                                    .multilineTextAlignment(.trailing)
+                        //                                    .foregroundColor(Color.black)
+                        //                                    .frame(width: 25, height: 25)
+                        //                                    .padding()
+                        //                            }
+                        //                        }
                         Button {
                             self.hold.toggle()
                             if !self.hold {
@@ -205,15 +201,15 @@ struct Communication: View {
                             }
                         } label: {
                             ZStack {
-                            Circle()
-                                .fill(self.cameraFront ? Color.white : Color.gray)
-                                .frame(width: 50, height: 50)
-                            Image(systemName: "arrow.triangle.2.circlepath.camera")
-                                .resizable()
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.cameraFront ? Color.white : Color.blue)
-                                .frame(width: 35, height: 25)
-                                .padding()
+                                Circle()
+                                    .fill(self.cameraFront ? Color.white : Color.gray)
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                    .resizable()
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(self.cameraFront ? Color.white : Color.blue)
+                                    .frame(width: 35, height: 25)
+                                    .padding()
                             }
                         }
                         Button {
@@ -248,25 +244,18 @@ struct Communication: View {
                 self.presentationMode.wrappedValue.dismiss()
             }
         }
-        .onChange(of: self.fcsdkCallService.presentInCommunication) { newValue in
-            self.showSheet = newValue
-        }
         .onDisappear(perform: {
             self.fcsdkCallService.presentCommunication = false
+            self.endCall = false
             self.fcsdkCallService.hasEnded = false
+            self.callKitManager.calls.removeAll()
         })
-        .sheet(item: self.$showSheet) { sheet in
-            switch sheet {
-            case .settingsSheet:
-                SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: 0)
-            case .dtmfSheet:
-                DTMFSheet()
-            }
-           
-        }
+        .sheet(isPresented: self.$showSettings, content: {
+            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: 0)
+        })
         .sheet(isPresented: self.$fcsdkCallService.showDTMFSheet) {
             if self.fcsdkCallService.showDTMFSheet {
-            DTMFSheet()
+                DTMFSheet()
             }
         }
         .alert(self.fcsdkCallService.errorMessage, isPresented: self.$fcsdkCallService.sendErrorMessage) {
@@ -283,16 +272,5 @@ struct Communication: View {
         } else {
             formattedCallDuration = nil
         }
-    }
-    
-
-}
-
-enum CommunicationSheets: Identifiable {
-    case settingsSheet
-    case dtmfSheet
-    
-    var id: Int {
-        hashValue
     }
 }

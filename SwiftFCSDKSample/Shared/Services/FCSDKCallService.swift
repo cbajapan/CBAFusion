@@ -11,6 +11,7 @@ import SwiftUI
 import FCSDKiOS
 import CallKit
 
+
 class FCSDKCallService: NSObject, ObservableObject {
     
     var audioPlayer: AVAudioPlayer?
@@ -29,7 +30,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var connectDate: Date?
     @Published var connectingDate: Date?
     @Published var showDTMFSheet: Bool = false
-    @Published var presentInCommunication: CommunicationSheets?
     @Published var doNotDisturb: Bool = false
     @Published var sendErrorMessage: Bool = false
     @Published var errorMessage: String = "Unknown Error"
@@ -37,7 +37,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     override init(){
         super.init()
     }
-
+    
     
     deinit {
         self.fcsdkCall?.call?.delegate = nil
@@ -48,17 +48,18 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.acbuc?.clientPhone.delegate = self
     }
     
+    
     func initializeCall(previewView: ACBView) async throws {
         await self.requestMicrophoneAndCameraPermissionFromAppSettings()
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.hasStartedConnecting = true
-            strongSelf.connectingDate = Date()
+        await MainActor.run {
+            self.hasStartedConnecting = true
+            self.connectingDate = Date()
         }
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         uc.clientPhone.delegate = self
         try? uc.clientPhone.setPreviewView(previewView)
     }
+    
     
     func startFCSDKCall() async throws -> ACBClientCall? {
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
@@ -70,48 +71,48 @@ class FCSDKCallService: NSObject, ObservableObject {
         )
         
         self.fcsdkCall?.call = outboundCall
-//        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
-        self.fcsdkCall?.call?.enableLocalAudio(true)
-        self.fcsdkCall?.call?.enableLocalVideo(true)
+        await MainActor.run {
+            self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+            //        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+            self.fcsdkCall?.call?.enableLocalAudio(true)
+            self.fcsdkCall?.call?.enableLocalVideo(true)
+        }
         return self.fcsdkCall?.call
     }
     
+    @MainActor
     func presentCommunicationSheet() async {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.presentCommunication = true
-        }
+        self.presentCommunication = true
     }
     
     func answerFCSDKCall() async throws {
         await self.requestMicrophoneAndCameraPermissionFromAppSettings()
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.hasConnected = true
-            strongSelf.connectDate = Date()
+        
+        try? await MainActor.run {
+            self.hasConnected = true
+            self.connectDate = Date()
+            self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
+            //        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+            guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
+            guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
+            try? uc.clientPhone.setPreviewView(view)
         }
-
-        guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
-        // We pass our view Controllers view to the preview here
-//        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
-        guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
+        
         do {
-            try uc.clientPhone.setPreviewView(view)
             try self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
         } catch {
             print("There was an error answering call Error: \(error)")
         }
     }
     
-    func endFCSDKCall() {
+    
+    func endFCSDKCall() async {
+
         self.fcsdkCall?.call?.end()
         print("Ending FCSDKCall")
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.hasEnded = true
-            strongSelf.connectDate = nil
+        await MainActor.run {
+            self.hasEnded = true
+            self.connectDate = nil
         }
     }
     
@@ -148,7 +149,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let connectDate = connectDate else {
             return 0
         }
-
+        
         return Date().timeIntervalSince(connectDate)
     }
 }

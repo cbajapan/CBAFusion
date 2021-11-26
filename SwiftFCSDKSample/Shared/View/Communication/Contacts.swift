@@ -18,25 +18,24 @@ struct AddButton<Destination : View>: View {
 
 struct Contacts: View {
     
-    @Binding var presentCommunication: ActiveSheet?
-    @State var showFullSheet: Bool = false
+    @State var showCommunication: Bool = false
     @State var destination: String = ""
-    @State var hasVideo: Bool = false
+    @State var hasVideo: Bool = true
     @State var isOutgoing: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
     @EnvironmentObject var contact: ContactService
-    
+    @EnvironmentObject var callKitManager: CallKitManager
     
     var body: some View {
         NavigationView {
-            
+            ZStack {
             List {
                 ForEach(self.contact.contacts ?? [], id: \.id) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
-                            self.showFullSheet = true
+                            self.showCommunication = true
                             self.destination = contact.number
                             self.hasVideo = true
                             self.isOutgoing = true
@@ -56,7 +55,12 @@ struct Contacts: View {
                 }
                 .navigationTitle("Contacts")
             }
-            
+                if !self.authenticationService.connectedToSocket {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+                }
+            }
             .navigationBarTitleDisplayMode(.large)
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -68,7 +72,7 @@ struct Contacts: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo))
+                        AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$showCommunication))
                     }
                 }
             })
@@ -76,11 +80,14 @@ struct Contacts: View {
         .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
             Button("OK", role: .cancel) { }
         })
-        .fullScreenCover(isPresented: self.$showFullSheet, content: {
+        .fullScreenCover(isPresented: self.$showCommunication, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
+                .environmentObject(self.authenticationService)
+                .environmentObject(self.fcsdkCallService)
+                .environmentObject(self.callKitManager)
         })
         .sheet(isPresented: self.$contact.addSheet, content: {
-            AddContact()
+            AddContact().environmentObject(self.contact)
         })
         .onAppear {
             Task {
@@ -103,7 +110,7 @@ struct Contacts: View {
             }
         }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
-            self.showFullSheet = newValue
+            self.showCommunication = newValue
         }
     }
     
@@ -117,14 +124,5 @@ struct Contacts: View {
         Task {
             await self.contact.deleteContact(contact: contact)
         }
-    }
-}
-
-
-enum ActiveSheet: Identifiable {
-    case communincationSheet
-    
-    var id: Int {
-        hashValue
     }
 }

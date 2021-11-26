@@ -40,6 +40,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             Task {
             await self.stopRingtone()
             }
+            
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
                 let receivedCall = FCSDKCall(

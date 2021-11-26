@@ -31,7 +31,7 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
                         if self.authenticationService.sessionID != "" {
-                            Contacts(presentCommunication: .constant(Optional.none))
+                            Contacts()
                         } else {
                             if self.animateCommunication {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
@@ -121,9 +121,9 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {
                         if self.authenticationService.sessionID != "" {
-                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex)
+                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex).environmentObject(self.authenticationService)
                         } else {
-                            Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
+                            Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex).environmentObject(self.authenticationService)
                         }
                     }
                     .onAppear {

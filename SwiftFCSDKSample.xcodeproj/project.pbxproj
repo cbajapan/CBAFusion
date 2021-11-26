@@ -31,6 +31,7 @@
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
 		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
 		099F54B526E88AAB005500BF /* CallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B426E88AAB005500BF /* CallSheet.swift */; };
+		09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09AD366F274E61DE000C4355 /* FCSDKiOS */; };
 		09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A026DDAD0700B73ADA /* Communication.swift */; };
 		09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A226DDAD1200B73ADA /* AED.swift */; };
 		09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A626DDAD3400B73ADA /* Authentication.swift */; };
@@ -56,7 +57,6 @@
 		09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9C26DE52AC00249DD8 /* LoginResponse.swift */; };
 		09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9E26DE52BF00249DD8 /* LoginRequest.swift */; };
 		09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */; };
-		09EDD845274B328000C70038 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09EDD844274B328000C70038 /* FCSDKiOS */; };
 		09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6AE26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift */; };
 		09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */; };
 		09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */; };
@@ -163,7 +163,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09EDD845274B328000C70038 /* FCSDKiOS in Frameworks */,
+				09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */,
 				09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -503,7 +503,7 @@
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
 				09E0E0032743C7A900505F86 /* FluentSQLiteDriver */,
-				09EDD844274B328000C70038 /* FCSDKiOS */,
+				09AD366F274E61DE000C4355 /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -836,7 +836,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -845,9 +845,10 @@
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -857,6 +858,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -878,7 +880,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -887,9 +889,10 @@
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -899,6 +902,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1062,14 +1066,14 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = FCSDKiOS;
 		};
+		09AD366F274E61DE000C4355 /* FCSDKiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FCSDKiOS;
+		};
 		09E0E0032743C7A900505F86 /* FluentSQLiteDriver */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
-		};
-		09EDD844274B328000C70038 /* FCSDKiOS */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FCSDKiOS;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

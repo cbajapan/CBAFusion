@@ -87,7 +87,7 @@ extension ProviderDelegate {
         // Retrieve the FCSDKCall instance corresponding to the action's call UUID
         Task {
             // Trigger the call to be ended via the underlying network service.
-            self.fcsdkCallService.endFCSDKCall()
+            await self.fcsdkCallService.endFCSDKCall()
             await callKitManager.removeAllCalls()
             // Signal to the system that the action was successfully performed.
             action.fulfill()

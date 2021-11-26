@@ -30,6 +30,7 @@ class ContactService: ObservableObject {
     
     init() {}
     
+    
     func addContact(_ contact: ContactModel?, isEdit: Bool) async {
         if !username.isEmpty || !number.isEmpty {
             do {
@@ -64,6 +65,7 @@ class ContactService: ObservableObject {
         }
     }
     
+
     func deleteContact(contact: ContactModel) async {
         do {
             guard let del = self.delegate else { throw OurErrors.nilDelegate }
