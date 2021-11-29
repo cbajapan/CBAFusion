@@ -20,6 +20,7 @@ struct SwiftFCSDKSampleApp: App {
     @StateObject private var fcsdkCallService = FCSDKCallService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
+    @StateObject private var aedService = AEDService()
     @State var prorviderDelegate: ProviderDelegate?
     
     init() {
@@ -39,6 +40,7 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
+                .environmentObject(aedService)
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, fcsdkCallService: fcsdkCallService)

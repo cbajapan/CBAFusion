@@ -8,10 +8,10 @@
 import SwiftUI
 import FCSDKiOS
 
-struct AED: View {
+struct AED: View{
     
     
-    @State currentTopic: ACBTopic?
+    @State var currentTopic: ACBTopic?
     @State var topicName = ""
     @State var expiry = ""
     @State var key = ""
@@ -21,6 +21,7 @@ struct AED: View {
     @State private var messageHeight: CGFloat = 0
     @State private var keyboardHeight: CGFloat = 0
     @EnvironmentObject var authenticationServices: AuthenticationService
+    @EnvironmentObject var aedService: AEDService
     let topics = ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"]
     
     var body: some View {
@@ -80,9 +81,9 @@ struct AED: View {
     }
     
     func connectToTopic() {
-        let expiry = self.expiry
+        let expiry = Int(self.expiry) ?? 0
         
-        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: Int(expiry), delegate: self)
+        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
         self.topicName = ""
         self.expiry = ""
     }
