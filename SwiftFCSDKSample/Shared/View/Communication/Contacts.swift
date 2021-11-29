@@ -8,72 +8,87 @@
 import SwiftUI
 
 struct AddButton<Destination : View>: View {
-
+    
     var destination:  Destination
-
+    
     var body: some View {
-        NavigationLink(destination: self.destination) { Image(systemName: "plus") }
+        NavigationLink(destination: self.destination) { Image(systemName: "phone.fill.arrow.up.right") }
     }
 }
 
 struct Contacts: View {
     
-    @Binding var presentCommunication: ActiveSheet?
-//    @State var showFullSheet: ActiveSheet?
-    @State var showFullSheet: Bool = false
-//    @State var callSheet: Bool = false
+    @State var showCommunication: Bool = false
     @State var destination: String = ""
-    @State var hasVideo: Bool = false
+    @State var hasVideo: Bool = true
     @State var isOutgoing: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
-    
-    let contacts = [
-        Contact(id: UUID(), name: "User1", number: "1001", icon: ""),
-        Contact(id: UUID(), name: "User2", number: "1002", icon: ""),
-        Contact(id: UUID(), name: "User3", number: "1003", icon: ""),
-        Contact(id: UUID(), name: "User4", number: "1004", icon: ""),
-        Contact(id: UUID(), name: "User5", number: "1005", icon: ""),
-        Contact(id: UUID(), name: "User6", number: "1006", icon: "")
-    ]
-    
+    @EnvironmentObject var contact: ContactService
+    @EnvironmentObject var callKitManager: CallKitManager
     
     var body: some View {
         NavigationView {
+            ZStack {
             List {
-                ForEach(self.contacts, id: \.self) { contact in
+                ForEach(self.contact.contacts ?? [], id: \.id) { contact in
                     ContactsCell(contact: contact)
                         .onTapGesture {
-//                            self.showFullSheet = .communincationSheet
-                            self.showFullSheet = true
+                            self.showCommunication = true
                             self.destination = contact.number
                             self.hasVideo = true
                             self.isOutgoing = true
                         }
+                        .swipeActions(edge: .trailing) {
+                            Button("Delete") {
+                                self.removeContact(contact)
+                            }
+                            .tint(.red)
+                        }
+                        .swipeActions(edge: .leading) {
+                            Button("Edit") {
+                                self.editContact(contact)
+                            }
+                            .tint(.green)
+                        }
                 }
-                    .navigationTitle("Contacts")
+                .navigationTitle("Contacts")
+            }
+                if !self.authenticationService.connectedToSocket {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+                }
             }
             .navigationBarTitleDisplayMode(.large)
             .toolbar(content: {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        self.contact.addSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack { AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo)) }
+                    HStack {
+                        AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$showCommunication))
+                    }
                 }
             })
         }
-        .fullScreenCover(isPresented: self.$showFullSheet, onDismiss: {
-            
-        }, content: {
-            Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
+        .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
+            Button("OK", role: .cancel) { }
         })
-//        .fullScreenCover(item: self.$showFullSheet) { sheet in
-//            switch sheet {
-//            case .communincationSheet:
-                //We need to pass whether or not this is an inbound or outbound call via isOutgoing rather than an arbitrarry load
-//                Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
-                
-//            }
-//        }
+        .fullScreenCover(isPresented: self.$showCommunication, content: {
+            Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
+                .environmentObject(self.authenticationService)
+                .environmentObject(self.fcsdkCallService)
+                .environmentObject(self.callKitManager)
+        })
+        .sheet(isPresented: self.$contact.addSheet, content: {
+            AddContact().environmentObject(self.contact)
+        })
         .onAppear {
             if !self.authenticationService.connectedToSocket {
                 Task {
@@ -83,7 +98,6 @@ struct Contacts: View {
                     await self.authenticationService.createSession(sessionid: UserDefaults.standard.string(forKey: "SessionID") ?? "", networkStatus: monitor.networkStatus())
 #endif
                 }
-                //                                 self.fcsdkCallService.connectedToSocket = self.fcsdkCallService.acbuc?.connection != nil
                 self.fcsdkCallService.acbuc = self.authenticationService.acbuc
                 self.fcsdkCallService.setPhoneDelegate()
             } else {
@@ -92,15 +106,24 @@ struct Contacts: View {
             }
         }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
-            self.showFullSheet = newValue
+            self.showCommunication = newValue
+        }
+        .onChange(of: self.contact.contacts) { newValue in
+            Task {
+                try? await self.contact.fetchContacts()
+            }
         }
     }
-}
-
-enum ActiveSheet: Identifiable {
-    case communincationSheet
     
-    var id: Int {
-        hashValue
+    func editContact(_ contact: ContactModel) {
+        Task {
+            await self.contact.editContact(contact: contact, isEdit: true)
+        }
+    }
+    
+    func removeContact(_ contact: ContactModel) {
+        Task {
+            await self.contact.deleteContact(contact: contact)
+        }
     }
 }

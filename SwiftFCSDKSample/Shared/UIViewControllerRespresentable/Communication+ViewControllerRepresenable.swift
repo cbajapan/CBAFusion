@@ -9,7 +9,7 @@ import UIKit
 import SwiftUI
 import FCSDKiOS
 
-struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
+struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
     @Binding var pip: Bool
     @Binding var removePip: Bool
@@ -34,43 +34,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     @AppStorage("AutoAnswer") var autoAnswer = false
     
-    init(
-        pip: Binding<Bool>,
-        removePip: Binding<Bool>,
-        cameraFront: Binding<Bool>,
-        cameraBack: Binding<Bool>,
-        destination: Binding<String>,
-        hasVideo: Binding<Bool>,
-        endCall: Binding<Bool>,
-        muteVideo: Binding<Bool>,
-        resumeVideo: Binding<Bool>,
-        muteAudio: Binding<Bool>,
-        resumeAudio: Binding<Bool>,
-        hold: Binding<Bool>,
-        resume: Binding<Bool>,
-        acbuc: Binding<ACBUC?>,
-        fcsdkCall: Binding<FCSDKCall?>,
-        isOutgoing: Binding<Bool>
-    ) {
-        self._pip = pip
-        self._removePip = removePip
-        self._cameraFront = cameraFront
-        self._cameraBack = cameraBack
-        self._acbuc = acbuc
-        self._destination = destination
-        self._hasVideo = hasVideo
-        self._endCall = endCall
-        self._muteVideo = muteVideo
-        self._resumeVideo = resumeVideo
-        self._muteAudio = muteAudio
-        self._resumeAudio = resumeAudio
-        self._hold = hold
-        self._resume = resume
-        self._fcsdkCall = fcsdkCall
-        self._isOutgoing = isOutgoing
-    }
-    
-    func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>) -> CommunicationViewController {
+    func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
         let communicationViewController = CommunicationViewController(
             callKitManager: self.callKitManager,
             destination: self.destination,
@@ -82,9 +46,10 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         return communicationViewController
     }
     
+    
     func updateUIViewController(_
                                 uiViewController: CommunicationViewController,
-                                context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresenable>
+                                context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>
     ) {
         //        uiViewController.showPip(show: self.pip)
         uiViewController.authenticationService = self.authenticationService
@@ -95,73 +60,97 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         let call = self.fcsdkCallService
         
         if call.hasStartedConnecting {
-            uiViewController.currentState(state: .hasStartedConnecting)
+            Task {
+                await uiViewController.currentState(state: .hasStartedConnecting)
+            }
         }
         
         if call.isRinging {
-            uiViewController.currentState(state: .isRinging)
+            Task {
+                await uiViewController.currentState(state: .isRinging)
+            }
         }
         
         if call.hasConnected {
-            uiViewController.currentState(state: .hasConnected)
+            Task {
+                await uiViewController.currentState(state: .hasConnected)
+            }
         }
         
         if self.hold {
-            uiViewController.currentState(state: .hold)
+            Task {
+                await uiViewController.currentState(state: .hold)
+            }
         }
         
         if self.resume {
-            uiViewController.currentState(state: .resume)
+            Task {
+                await uiViewController.currentState(state: .resume)
+            }
         }
         
         if self.muteVideo {
-            uiViewController.currentState(state: .muteVideo)
+            Task {
+                await uiViewController.currentState(state: .muteVideo)
+            }
         }
         
         if self.resumeVideo {
-            uiViewController.currentState(state: .resumeVideo)
+            Task {
+                await uiViewController.currentState(state: .resumeVideo)
+            }
         }
         
         if self.muteAudio {
-            uiViewController.currentState(state: .muteAudio)
+            Task {
+                await uiViewController.currentState(state: .muteAudio)
+            }
         }
         
         if self.resumeAudio {
-            uiViewController.currentState(state: .resumeAudio)
+            Task {
+                await uiViewController.currentState(state: .resumeAudio)
+            }
         }
         
         if self.cameraFront {
-            uiViewController.currentState(state: .cameraFront)
+            Task {
+                await uiViewController.currentState(state: .cameraFront)
+            }
         }
         if self.cameraBack {
-            uiViewController.currentState(state: .cameraBack)
+            Task {
+                await uiViewController.currentState(state: .cameraBack)
+            }
         }
         
         
-        if call.hasEnded {
+        if self.endCall {
+            if !call.hasEnded {
+                Task {
+                    await self.fcsdkCallService.endFCSDKCall()
+                    await uiViewController.endCall()
+                    await uiViewController.currentState(state: .hasEnded)
+                }
+            } else {
+                //dismiss view
+                Task {
+                    await uiViewController.currentState(state: .hasEnded)
+                }
+            }
+            self.isOutgoing = false
+            self.setServiceHasEnded()
+        } else if call.hasEnded {
             if !self.endCall {
                 Task {
                     await uiViewController.endCall()
                 }
             }
-            uiViewController.currentState(state: .hasEnded)
-        }
-        
-        if self.endCall {
-            if !call.hasEnded {
-                if self.autoAnswer && !self.isOutgoing {
-                    self.fcsdkCallService.endFCSDKCall()
-                } else {
-                    Task {
-                        await uiViewController.endCall()
-                    }
-                }
-                uiViewController.currentState(state: .hasEnded)
-            } else {
-                //dismiss view
-                uiViewController.currentState(state: .hasEnded)
+            self.isOutgoing = false
+            Task {
+                await uiViewController.currentState(state: .hasEnded)
             }
-            dismissView()
+            self.setServiceHasEnded()
         }
         
         if self.pip {
@@ -176,23 +165,27 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
     
     class Coordinator: NSObject, FCSDKCallDelegate {
         
-        var parent: CommunicationViewControllerRepresenable
+        var parent: CommunicationViewControllerRepresentable
         
-        init(_ parent: CommunicationViewControllerRepresenable) {
+        init(_ parent: CommunicationViewControllerRepresentable) {
             self.parent = parent
         }
         
-        @MainActor func passCallToService(_ call: FCSDKCall) async {
+        @MainActor
+        func passCallToService(_ call: FCSDKCall) async {
             self.parent.fcsdkCall = call
         }
         
-        @MainActor func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
-            self.parent.fcsdkCall?.previewView = preview
-            self.parent.fcsdkCall?.remoteView = remoteView
+        
+        func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
+            await self.parent.fcsdkCall?.previewView = preview
+            await self.parent.fcsdkCall?.remoteView = remoteView
             
-            if self.parent.autoAnswer {
+            if await self.parent.autoAnswer {
                 do {
-                    try await self.parent.fcsdkCallService.answerFCSDKCall()
+                    if await self.parent.fcsdkCall?.call != nil {
+                        try await self.parent.fcsdkCallService.answerFCSDKCall()
+                    }
                 } catch {
                     print("OUR ERROR: \(OurErrors.nilACBUC.rawValue) - Specifically: \(error) ")
                 }
@@ -200,7 +193,7 @@ struct CommunicationViewControllerRepresenable: UIViewControllerRepresentable {
         }
     }
     
-    func dismissView() {
+    func setServiceHasEnded() {
         if !self.fcsdkCallService.hasEnded {
             self.fcsdkCallService.hasEnded = true
         }
@@ -223,4 +216,5 @@ enum OurErrors: String, Swift.Error {
     case nilPreviewView = "Cannot set previewView because it is nil"
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
+    case nilDelegate = "The FCSDKStore delegate is nil"
 }

@@ -30,6 +30,7 @@ enum CallState {
     
 }
 
+
 class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     weak var delegate: CommunicationViewControllerDelegate?
@@ -96,45 +97,45 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
             self.authenticationService?.selectFramerate(rate: rate)
             self.authenticationService?.selectResolution(res: res)
             self.authenticationService?.selectAudio(audio: audio)
-            self.gestures()
+            await self.gestures()
         }
     }
     
-    
-    func currentState(state: CallState) {
+    @MainActor
+    func currentState(state: CallState) async {
         switch state {
         case .setup:
             break
         case .hasStartedConnecting:
-            self.connectingUI(isRinging: false)
+            await self.connectingUI(isRinging: false)
         case .isRinging:
-            self.connectingUI(isRinging: true)
+            await self.connectingUI(isRinging: true)
         case .hasConnected:
-            self.removeConnectingUI()
-            self.setupUI()
-            self.anchors()
+            await self.removeConnectingUI()
+            await self.setupUI()
+            await self.anchors()
         case .isOutgoing:
             break
         case .hold:
-            self.onHoldView()
+            await self.onHoldView()
         case .resume:
-            self.removeOnHold()
+            await self.removeOnHold()
         case .hasEnded:
-            self.breakDownView()
-            self.removeConnectingUI()
-            self.currentState(state: .setup)
+            await self.breakDownView()
+            await self.removeConnectingUI()
+            await self.currentState(state: .setup)
         case .muteVideo:
-            self.muteVideo(isMute: true)
+            await self.muteVideo(isMute: true)
         case .resumeVideo:
-            self.muteVideo(isMute: false)
+            await self.muteVideo(isMute: false)
         case .muteAudio:
-            self.muteAudio(isMute: true)
+            await self.muteAudio(isMute: true)
         case .resumeAudio:
-            self.muteAudio(isMute: false)
+            await self.muteAudio(isMute: false)
         case .cameraFront:
-            self.tapLocalView(show: true)
+            await self.tapLocalView(show: true)
         case .cameraBack:
-            self.tapLocalView(show: false)
+            await self.tapLocalView(show: false)
         }
     }
     
@@ -150,7 +151,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.callKitManager.finishEnd(call: currentCall)
     }
     
-    func muteVideo(isMute: Bool) {
+    @MainActor
+    func muteVideo(isMute: Bool) async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         if isMute {
             currentCall.call?.enableLocalVideo(false)
@@ -159,7 +161,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         }
     }
     
-    func muteAudio(isMute: Bool) {
+    @MainActor
+    func muteAudio(isMute: Bool) async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         if isMute {
             currentCall.call?.enableLocalAudio(false)
@@ -168,100 +171,88 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         }
     }
     
-    
-    func connectingUI(isRinging: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.numberLabel.text = strongSelf.fcsdkCallViewModel?.call?.remoteAddress
-            strongSelf.numberLabel.font = .boldSystemFont(ofSize: 18)
-            if isRinging {
-                strongSelf.nameLabel.text = "Ringing..."
-            } else {
-                strongSelf.nameLabel.text = "FCSDK iOS Connecting..."
-            }
-            strongSelf.nameLabel.font = .systemFont(ofSize: 16)
-            strongSelf.view.addSubview(strongSelf.stackView)
-            strongSelf.stackView.addArrangedSubview(strongSelf.numberLabel)
-            strongSelf.stackView.addArrangedSubview(strongSelf.nameLabel)
-            strongSelf.stackView.axis = .vertical
-            strongSelf.stackView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: nil, trailing: strongSelf.view.trailingAnchor, paddingTop: 50, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+    @MainActor
+    func connectingUI(isRinging: Bool) async {
+        self.numberLabel.text = self.fcsdkCallViewModel?.call?.remoteAddress
+        self.numberLabel.font = .boldSystemFont(ofSize: 18)
+        if isRinging {
+            self.nameLabel.text = "Ringing..."
+        } else {
+            self.nameLabel.text = "FCSDK iOS Connecting..."
         }
+        self.nameLabel.font = .systemFont(ofSize: 16)
+        self.view.addSubview(self.stackView)
+        self.stackView.addArrangedSubview(self.numberLabel)
+        self.stackView.addArrangedSubview(self.nameLabel)
+        self.stackView.axis = .vertical
+        self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, paddingTop: 50, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
     }
-    
-    func removeConnectingUI() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.stackView.removeFromSuperview()
-        }
+    @MainActor
+    func removeConnectingUI() async {
+        self.stackView.removeFromSuperview()
     }
-    
-    func setupUI() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.view.addSubview(strongSelf.remoteView)
-            strongSelf.remoteView.addSubview(strongSelf.previewView)
-        }
+    @MainActor
+    func setupUI() async {
+        self.view.addSubview(self.remoteView)
+        self.remoteView.addSubview(self.previewView)
     }
-    
-    func gestures() {
+    @MainActor
+    func gestures() async {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
         self.previewView.isUserInteractionEnabled = true
         self.previewView.addGestureRecognizer(panGesture)
     }
-
     
-    func anchors() {
+    @MainActor
+    func anchors() async {
         if UIApplication.shared.applicationState != .background {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
-            strongSelf.remoteView.anchors(top: strongSelf.view.topAnchor, leading: strongSelf.view.leadingAnchor, bottom: strongSelf.view.bottomAnchor, trailing: strongSelf.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+            self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
             
             if UIDevice.current.userInterfaceIdiom == .phone {
-                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 150, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.remoteView.bottomAnchor, trailing: self.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 150, height: 200)
                 
             } else {
-                strongSelf.previewView.anchors(top: nil, leading: nil, bottom: strongSelf.remoteView.bottomAnchor, trailing: strongSelf.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 250, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.remoteView.bottomAnchor, trailing: self.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 250, height: 200)
             }
             
             //Not needed for video display just some custom UI Stuff
-            strongSelf.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
+            self.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
             // This will fill the frame, which could distort the video
-            strongSelf.previewView.samplePreviewDisplayLayer?.frame = strongSelf.previewView.bounds
-            strongSelf.previewView.samplePreviewDisplayLayer?.masksToBounds = true
-            strongSelf.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
-        }
+            self.previewView.samplePreviewDisplayLayer?.frame = self.previewView.bounds
+            self.previewView.samplePreviewDisplayLayer?.masksToBounds = true
+            self.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
         }
     }
     
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        anchors()
-    }
-    
-    func breakDownView() {
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.remoteView.removeFromSuperview()
-            strongSelf.previewView.removeFromSuperview()
+        Task {
+            await anchors()
         }
     }
     
-    func onHoldView() {
+    @MainActor
+    func breakDownView() async {
+        self.remoteView.removeFromSuperview()
+        self.previewView.removeFromSuperview()
+    }
+    
+    
+    func onHoldView() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.hold()
-        breakDownView()
+        await breakDownView()
     }
     
-    func removeOnHold() {
+    func removeOnHold() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.resume()
-        setupUI()
+        await setupUI()
     }
     
-    // Gestures
-    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer){
+    @MainActor
+    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) async {
         self.view.bringSubviewToFront(previewView)
         let translation = sender.translation(in: self.view)
         previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
@@ -269,7 +260,9 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }
     
     
-    func tapLocalView(show: Bool) {
+    
+    @MainActor
+    func tapLocalView(show: Bool) async {
         if show {
             self.currentCamera = .front
         } else {
@@ -278,8 +271,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.acbuc.clientPhone.setCamera(self.currentCamera)
     }
     
-    @MainActor func configureVideo() async {
-        
+    @MainActor
+    func configureVideo() async {
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
         

@@ -14,6 +14,7 @@
 		090F31652710577B00F1D247 /* NSUserActivity+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */; };
 		090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31662710579500F1D247 /* StartCallConvertible.swift */; };
 		090F3169271057B700F1D247 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F3168271057B700F1D247 /* URL+Extension.swift */; };
+		091F6B4327426CD5001F6F11 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 091F6B4227426CD5001F6F11 /* FCSDKiOS */; };
 		094C313B26E03658007C6A35 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313A26E03658007C6A35 /* Contacts.swift */; };
 		094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313D26E03729007C6A35 /* ContactsCell.swift */; };
 		094C314026E0497F007C6A35 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313F26E0497F007C6A35 /* Welcome.swift */; };
@@ -25,13 +26,14 @@
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
 		0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987E8FE26FACE060036454C /* FCSDKCall.swift */; };
+		09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09954BBE2744BED400B2DDCE /* ContactService.swift */; };
 		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
 		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
 		099F54B526E88AAB005500BF /* CallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B426E88AAB005500BF /* CallSheet.swift */; };
+		09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09AD366F274E61DE000C4355 /* FCSDKiOS */; };
 		09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A026DDAD0700B73ADA /* Communication.swift */; };
 		09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A226DDAD1200B73ADA /* AED.swift */; };
-		09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A426DDAD1E00B73ADA /* Session.swift */; };
 		09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A626DDAD3400B73ADA /* Authentication.swift */; };
 		09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */; };
 		09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */; };
@@ -43,6 +45,11 @@
 		09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */; };
 		09E0DF4727335F8500377C75 /* DialPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4627335F8500377C75 /* DialPad.swift */; };
 		09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0DF4827337A5500377C75 /* DTMFSheet.swift */; };
+		09E0E0012743C4DC00505F86 /* SQLiteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E0002743C4DC00505F86 /* SQLiteStore.swift */; };
+		09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 09E0E0032743C7A900505F86 /* FluentSQLiteDriver */; };
+		09E0E0062743CF8E00505F86 /* AddContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E0052743CF8E00505F86 /* AddContact.swift */; };
+		09E0E00827447CA400505F86 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E00727447CA400505F86 /* ContactModel.swift */; };
+		09E0E00A27447CDD00505F86 /* ContactModelDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E0E00927447CDD00505F86 /* ContactModelDTO.swift */; };
 		09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */; };
 		09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9126DE1F4E00249DD8 /* Keychain.swift */; };
 		09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */; };
@@ -114,13 +121,13 @@
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
 		0987E8FE26FACE060036454C /* FCSDKCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
+		09954BBE2744BED400B2DDCE /* ContactService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactService.swift; sourceTree = "<group>"; };
 		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
 		099F54B226E88239005500BF /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
 		099F54B426E88AAB005500BF /* CallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallSheet.swift; sourceTree = "<group>"; };
 		09B4A0A026DDAD0700B73ADA /* Communication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Communication.swift; sourceTree = "<group>"; };
 		09B4A0A226DDAD1200B73ADA /* AED.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AED.swift; sourceTree = "<group>"; };
-		09B4A0A426DDAD1E00B73ADA /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
 		09B4A0A626DDAD3400B73ADA /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
@@ -132,6 +139,10 @@
 		09D86CFE270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+PiPDelegate.swift"; sourceTree = "<group>"; };
 		09E0DF4627335F8500377C75 /* DialPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DialPad.swift; sourceTree = "<group>"; };
 		09E0DF4827337A5500377C75 /* DTMFSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFSheet.swift; sourceTree = "<group>"; };
+		09E0E0002743C4DC00505F86 /* SQLiteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteStore.swift; sourceTree = "<group>"; };
+		09E0E0052743CF8E00505F86 /* AddContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContact.swift; sourceTree = "<group>"; };
+		09E0E00727447CA400505F86 /* ContactModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
+		09E0E00927447CDD00505F86 /* ContactModelDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactModelDTO.swift; sourceTree = "<group>"; };
 		09E3CE8E26DE1D4500249DD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRepository.swift; sourceTree = "<group>"; };
 		09E3CE9126DE1F4E00249DD8 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -140,6 +151,7 @@
 		09E3CE9C26DE52AC00249DD8 /* LoginResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginResponse.swift; sourceTree = "<group>"; };
 		09E3CE9E26DE52BF00249DD8 /* LoginRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequest.swift; sourceTree = "<group>"; };
 		09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		09EDD843274B2FD400C70038 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		09EDF6AE26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Communication+ViewControllerRepresenable.swift"; sourceTree = "<group>"; };
 		09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewConroller.swift; sourceTree = "<group>"; };
 		09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoResizingTextView.swift; sourceTree = "<group>"; };
@@ -155,7 +167,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				FD73E9BA274F441E000E2116 /* FCSDKiOS in Frameworks */,
+=======
+				09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */,
+				09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */,
+>>>>>>> refs/remotes/origin/main
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +180,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				091F6B4327426CD5001F6F11 /* FCSDKiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +232,7 @@
 				099F54B426E88AAB005500BF /* CallSheet.swift */,
 				09E0DF4627335F8500377C75 /* DialPad.swift */,
 				09E0DF4827337A5500377C75 /* DTMFSheet.swift */,
+				09E0E0052743CF8E00505F86 /* AddContact.swift */,
 			);
 			path = Communication;
 			sourceTree = "<group>";
@@ -221,7 +240,11 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< HEAD
 				FDB27C70274ACCE300005422 /* swift-fcsdk */,
+=======
+				09EDD843274B2FD400C70038 /* swift-fcsdk */,
+>>>>>>> refs/remotes/origin/main
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				094EE33926DCE5AA008C1637 /* SwiftFCSDKSample */,
@@ -289,7 +312,6 @@
 			children = (
 				094C313C26E0370C007C6A35 /* Communication */,
 				09EDF6BE26DF93A000B34664 /* AED */,
-				09B4A0A426DDAD1E00B73ADA /* Session.swift */,
 				09B4A0A626DDAD3400B73ADA /* Authentication.swift */,
 				094C313F26E0497F007C6A35 /* Welcome.swift */,
 			);
@@ -315,11 +337,16 @@
 		094EE33026DCE39D008C1637 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				09E0DFFF2743C4CA00505F86 /* Store */,
 				09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */,
 				09CFF9732714EEA700052188 /* FCSDKCallService.swift */,
 				09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */,
 				09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
+<<<<<<< HEAD
 				FDB27C73274ADEC500005422 /* AEDService.swift */,
+=======
+				09954BBE2744BED400B2DDCE /* ContactService.swift */,
+>>>>>>> refs/remotes/origin/main
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -329,6 +356,7 @@
 			children = (
 				0987E8FE26FACE060036454C /* FCSDKCall.swift */,
 				09E3CE9526DE1F8A00249DD8 /* Login.swift */,
+				09E0E00727447CA400505F86 /* ContactModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -338,6 +366,7 @@
 			children = (
 				09E3CE9326DE1F8000249DD8 /* LoginViewModel.swift */,
 				09091596271D36AE00A2563A /* FCSDKCallViewModel.swift */,
+				09E0E00927447CDD00505F86 /* ContactModelDTO.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -361,7 +390,6 @@
 		094EE33526DCE3C1008C1637 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */,
 				09E3CE8F26DE1F3300249DD8 /* NetworkRepository.swift */,
 				09E3CE9126DE1F4E00249DD8 /* Keychain.swift */,
 				09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */,
@@ -373,6 +401,7 @@
 		094EE33626DCE3C7008C1637 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */,
 				09EDF6BA26DF88A900B34664 /* View+Extension.swift */,
 			);
 			path = Extensions;
@@ -419,6 +448,14 @@
 				09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */,
 			);
 			path = CallKit;
+			sourceTree = "<group>";
+		};
+		09E0DFFF2743C4CA00505F86 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				09E0E0002743C4DC00505F86 /* SQLiteStore.swift */,
+			);
+			path = Store;
 			sourceTree = "<group>";
 		};
 		09E3CE9826DE278800249DD8 /* Frameworks */ = {
@@ -481,7 +518,12 @@
 			);
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
+<<<<<<< HEAD
 				FD73E9B9274F441E000E2116 /* FCSDKiOS */,
+=======
+				09E0E0032743C7A900505F86 /* FluentSQLiteDriver */,
+				09AD366F274E61DE000C4355 /* FCSDKiOS */,
+>>>>>>> refs/remotes/origin/main
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -501,6 +543,9 @@
 				094EE31326DCE212008C1637 /* PBXTargetDependency */,
 			);
 			name = SwiftFCSDKSampleTests;
+			packageProductDependencies = (
+				091F6B4227426CD5001F6F11 /* FCSDKiOS */,
+			);
 			productName = SwiftFCSDKSampleTests;
 			productReference = 094EE31126DCE212008C1637 /* SwiftFCSDKSampleTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -556,6 +601,7 @@
 			);
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
+				09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -601,18 +647,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */,
+				09E0E0012743C4DC00505F86 /* SQLiteStore.swift in Sources */,
 				09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */,
 				094C314226E078A8007C6A35 /* SettingsSheet.swift in Sources */,
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
 				099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */,
 				094C313B26E03658007C6A35 /* Contacts.swift in Sources */,
 				09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */,
-				09B4A0A526DDAD1E00B73ADA /* Session.swift in Sources */,
 				09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */,
+				09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */,
 				09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */,
 				094EE30726DCE211008C1637 /* ContentView.swift in Sources */,
 				09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				099F54AF26E87873005500BF /* PlayerView.swift in Sources */,
+				09E0E0062743CF8E00505F86 /* AddContact.swift in Sources */,
 				090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */,
 				099F54B326E88239005500BF /* CallKitManager.swift in Sources */,
 				09E3CE9F26DE52BF00249DD8 /* LoginRequest.swift in Sources */,
@@ -622,6 +670,7 @@
 				094EE30526DCE211008C1637 /* SwiftFCSDKSampleApp.swift in Sources */,
 				09E3CEA126DEF2C200249DD8 /* NetworkMonitor.swift in Sources */,
 				09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */,
+				09E0E00827447CA400505F86 /* ContactModel.swift in Sources */,
 				09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */,
 				09E3CE9D26DE52AC00249DD8 /* LoginResponse.swift in Sources */,
 				09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */,
@@ -634,6 +683,7 @@
 				09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */,
 				FDB27C74274ADEC500005422 /* AEDService.swift in Sources */,
 				09D86CFD270B089200C62FA0 /* CommunicationViewController+Delegate.swift in Sources */,
+				09E0E00A27447CDD00505F86 /* ContactModelDTO.swift in Sources */,
 				094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */,
 				0908679C26E7590A00A83602 /* AppDelegate.swift in Sources */,
 				09091597271D36AE00A2563A /* FCSDKCallViewModel.swift in Sources */,
@@ -805,7 +855,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.5;
+				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -816,9 +866,10 @@
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -827,7 +878,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -847,7 +898,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.5;
+				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -858,9 +909,10 @@
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -869,7 +921,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1017,10 +1069,34 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/fluent-sqlite.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+<<<<<<< HEAD
 		FD73E9B9274F441E000E2116 /* FCSDKiOS */ = {
+=======
+		091F6B4227426CD5001F6F11 /* FCSDKiOS */ = {
+>>>>>>> refs/remotes/origin/main
 			isa = XCSwiftPackageProductDependency;
 			productName = FCSDKiOS;
+		};
+		09AD366F274E61DE000C4355 /* FCSDKiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FCSDKiOS;
+		};
+		09E0E0032743C7A900505F86 /* FluentSQLiteDriver */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
+			productName = FluentSQLiteDriver;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

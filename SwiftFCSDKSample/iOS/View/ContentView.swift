@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import NIO
 
 extension AnyTransition {
     static var moveAndFade: AnyTransition {
@@ -17,6 +17,7 @@ extension AnyTransition {
 struct ContentView: View {
     
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var contactService: ContactService
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
     @State var currentTabIndex = 0
@@ -30,7 +31,7 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                     if currentTabIndex == 0 {
                         if self.authenticationService.sessionID != "" {
-                            Contacts(presentCommunication: .constant(Optional.none))
+                            Contacts()
                         } else {
                             if self.animateCommunication {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
@@ -120,13 +121,18 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {
                         if self.authenticationService.sessionID != "" {
-                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex)
+                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex).environmentObject(self.authenticationService)
                         } else {
-                            Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
+                            Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex).environmentObject(self.authenticationService)
                         }
                     }
                     .onAppear {
-                        print(self.authenticationService.sessionID, "SESSIONID")
+                        Task {
+                            let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
+                            let store = try await SQLiteStore.create(on: eventLoop)
+                            contactService.delegate = store
+                            try? await contactService.fetchContacts()
+                        }
                         if self.authenticationService.sessionID != "" {
                             
                         } else {

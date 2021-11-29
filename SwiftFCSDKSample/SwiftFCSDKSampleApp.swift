@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import AVKit
+import NIO
 
 
 @main
@@ -20,8 +21,13 @@ struct SwiftFCSDKSampleApp: App {
     @StateObject private var fcsdkCallService = FCSDKCallService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
+<<<<<<< HEAD
     @StateObject private var aedService = AEDService()
+=======
+    @StateObject private var contact = ContactService()
+>>>>>>> refs/remotes/origin/main
     @State var prorviderDelegate: ProviderDelegate?
+    @State var exists = SQLiteStore.exists()
     
     init() {
         let audioSession = AVAudioSession.sharedInstance()
@@ -40,20 +46,33 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
+<<<<<<< HEAD
                 .environmentObject(aedService)
+=======
+                .environmentObject(contact)
+>>>>>>> refs/remotes/origin/main
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
-                    
                 }
         }
         .onChange(of: scenePhase) { (phase) in
             switch phase {
             case .active:
                 print("ScenePhase: active")
+                // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
+                if !self.authenticationService.connectedToSocket && !self.authenticationService.sessionID.isEmpty {
+                    Task {
+                        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+                        self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+                        self.fcsdkCallService.setPhoneDelegate()
+                    }
+                }
             case .background:
                 print("ScenePhase: background")
+                self.authenticationService.connectedToSocket = false
+                self.authenticationService.acbuc?.connection = false
             case .inactive:
                 print("ScenePhase: inactive")
             @unknown default:

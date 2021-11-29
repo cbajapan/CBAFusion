@@ -11,6 +11,8 @@ import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
+    
+    
     func configureAudioSession() {
         // See https://forums.developer.apple.com/thread/64544
         let session = AVAudioSession.sharedInstance()
@@ -24,19 +26,21 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             print(error)
         }
     }
-
     
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {
         guard let uc = self.acbuc else { return }
-        self.playRingtone()
-
+        Task {
+        await self.playRingtone()
+        }
         // We need to temporarily assign ourselves as the call's delegate so that we get notified if it ends before we answer it.
         call?.delegate = self
         
         if UserDefaults.standard.bool(forKey: "AutoAnswer") {
+            Task {
+            await self.stopRingtone()
+            }
             
-            self.stopRingtone()
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
                 let receivedCall = FCSDKCall(
@@ -61,7 +65,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             // we need to pass this to the call manager
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
-                let backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
                 let receivedCall = FCSDKCall(
                     handle: call?.remoteAddress ?? "",
                     hasVideo: strongSelf.fcsdkCall?.hasVideo ?? false,
@@ -76,7 +79,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 strongSelf.fcsdkCall?.call?.delegate = call?.delegate
                 Task {
                     await strongSelf.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
-                    UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
                 }
             }
         }

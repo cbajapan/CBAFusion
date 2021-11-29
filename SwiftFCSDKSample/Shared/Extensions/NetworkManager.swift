@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     
@@ -71,7 +72,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         httpBody: Data? = nil,
         headerField: String = "",
         headerValue: String = ""
-    ) async throws -> T {
+    ) async throws -> (Data, URLResponse) {
         
         let url = URL(string: urlString)
         var request = URLRequest(url: url!)
@@ -91,20 +92,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         
         let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (data, response) = try await session.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkErrors.requestFailed("unvalid response")
-        }
-        guard httpResponse.statusCode == 200 else {
-            throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
-        }
-        
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw NetworkErrors.jsonConversionFailure(error.localizedDescription)
-        }
+        return (data, response)
     }
     
     func asyncNetworkWrapper(

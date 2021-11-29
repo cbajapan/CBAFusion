@@ -83,7 +83,11 @@ struct AED: View{
     func connectToTopic() {
         let expiry = Int(self.expiry) ?? 0
         
+<<<<<<< HEAD
         self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
+=======
+        self.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: Int("\(expiry)") ?? 0, delegate: nil)
+>>>>>>> refs/remotes/origin/main
         self.topicName = ""
         self.expiry = ""
     }
