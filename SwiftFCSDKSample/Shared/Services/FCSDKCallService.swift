@@ -107,9 +107,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     
     
     func endFCSDKCall() async {
-
         self.fcsdkCall?.call?.end()
-        print("Ending FCSDKCall")
         await MainActor.run {
             self.hasEnded = true
             self.connectDate = nil

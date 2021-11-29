@@ -38,25 +38,21 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .timedOut:
             Task {
                 await setErrorMessage(message: "Call timed out")
-                await self.endCall()
                 await self.stopRingtone()
             }
         case .busy:
             Task {
                 await setErrorMessage(message: "User is Busy")
-                await self.endCall()
                 await self.stopRingtone()
             }
         case .notFound:
             Task {
                 await setErrorMessage(message: "Could not find user")
-                await self.endCall()
                 await self.stopRingtone()
             }
         case .error:
             Task {
                 await setErrorMessage(message: "Unkown Error")
-                await self.endCall()
                 await self.stopRingtone()
             }
         case .ended:
@@ -103,7 +99,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) {
+    func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) throws {
         self.sendErrorMessage = true
         self.errorMessage = error?.localizedDescription ?? "didReceiveCallFailureWithError Error"
     }

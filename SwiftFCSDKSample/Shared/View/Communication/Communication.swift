@@ -166,7 +166,7 @@ struct Communication: View {
                                     .frame(width: 50, height: 50)
                                 Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.wave.3.fill")
                                     .resizable()
-                                    .frame(width: 25, height: 28)
+                                    .frame(width: 25, height: 26)
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
                                     .padding()
@@ -207,7 +207,7 @@ struct Communication: View {
                                 Image(systemName: "arrow.triangle.2.circlepath.camera")
                                     .resizable()
                                     .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.cameraFront ? Color.white : Color.blue)
+                                    .foregroundColor(self.cameraFront ? Color.gray : Color.blue)
                                     .frame(width: 35, height: 25)
                                     .padding()
                             }
@@ -261,6 +261,7 @@ struct Communication: View {
         .alert(self.fcsdkCallService.errorMessage, isPresented: self.$fcsdkCallService.sendErrorMessage) {
             Button("OK", role: .cancel) {
                 self.fcsdkCallService.sendErrorMessage = false
+                self.fcsdkCallService.hasEnded = true
             }
         }
     }

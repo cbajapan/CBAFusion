@@ -125,18 +125,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         
-        if call.hasEnded {
-            if !self.endCall {
-                Task {
-                    await uiViewController.endCall()
-                }
-            }
-            self.isOutgoing = false
-            Task {
-                await uiViewController.currentState(state: .hasEnded)
-            }
-        }
-        
         if self.endCall {
             if !call.hasEnded {
                 Task {
@@ -151,7 +139,18 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 }
             }
             self.isOutgoing = false
-            dismissView()
+            self.setServiceHasEnded()
+        } else if call.hasEnded {
+            if !self.endCall {
+                Task {
+                    await uiViewController.endCall()
+                }
+            }
+            self.isOutgoing = false
+            Task {
+                await uiViewController.currentState(state: .hasEnded)
+            }
+            self.setServiceHasEnded()
         }
         
         if self.pip {
@@ -194,7 +193,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
     }
     
-    func dismissView() {
+    func setServiceHasEnded() {
         if !self.fcsdkCallService.hasEnded {
             self.fcsdkCallService.hasEnded = true
         }
@@ -217,5 +216,5 @@ enum OurErrors: String, Swift.Error {
     case nilPreviewView = "Cannot set previewView because it is nil"
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
-    case nilDelegate = "The delegate is nil"
+    case nilDelegate = "The FCSDKStore delegate is nil"
 }

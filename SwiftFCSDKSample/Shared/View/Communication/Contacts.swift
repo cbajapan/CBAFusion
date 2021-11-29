@@ -90,10 +90,6 @@ struct Contacts: View {
             AddContact().environmentObject(self.contact)
         })
         .onAppear {
-            Task {
-                try? await self.contact.fetchContacts()
-            }
-            
             if !self.authenticationService.connectedToSocket {
                 Task {
 #if !DEBUG
@@ -111,6 +107,11 @@ struct Contacts: View {
         }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
             self.showCommunication = newValue
+        }
+        .onChange(of: self.contact.contacts) { newValue in
+            Task {
+                try? await self.contact.fetchContacts()
+            }
         }
     }
     

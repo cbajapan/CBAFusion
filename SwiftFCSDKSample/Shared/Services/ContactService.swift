@@ -43,7 +43,7 @@ class ContactService: ObservableObject {
                 }
                 try? await self.fetchContacts()
             } catch {
-                print(error)
+                print(OurErrors.nilDelegate.rawValue)
             }
         } else {
             self.alert = true
@@ -61,7 +61,7 @@ class ContactService: ObservableObject {
             guard let del = self.delegate else { throw OurErrors.nilDelegate }
             self.contacts = try await del.fetchContacts()
         } catch {
-            print(error)
+            print(OurErrors.nilDelegate.rawValue)
         }
     }
     
@@ -72,7 +72,7 @@ class ContactService: ObservableObject {
             try await del.removeContact(contact)
             try? await fetchContacts()
         } catch {
-            print(error)
+            print(OurErrors.nilDelegate.rawValue)
         }
     }
     
