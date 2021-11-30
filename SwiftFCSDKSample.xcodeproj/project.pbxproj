@@ -15,6 +15,7 @@
 		090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31662710579500F1D247 /* StartCallConvertible.swift */; };
 		090F3169271057B700F1D247 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F3168271057B700F1D247 /* URL+Extension.swift */; };
 		091F6B4327426CD5001F6F11 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 091F6B4227426CD5001F6F11 /* FCSDKiOS */; };
+		0929FFCA2754D05C002DF9B3 /* AEDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929FFC92754D05C002DF9B3 /* AEDService.swift */; };
 		094C313B26E03658007C6A35 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313A26E03658007C6A35 /* Contacts.swift */; };
 		094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313D26E03729007C6A35 /* ContactsCell.swift */; };
 		094C314026E0497F007C6A35 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313F26E0497F007C6A35 /* Welcome.swift */; };
@@ -103,6 +104,7 @@
 		090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSUserActivity+Extension.swift"; sourceTree = "<group>"; };
 		090F31662710579500F1D247 /* StartCallConvertible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartCallConvertible.swift; sourceTree = "<group>"; };
 		090F3168271057B700F1D247 /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
+		0929FFC92754D05C002DF9B3 /* AEDService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AEDService.swift; sourceTree = "<group>"; };
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		094C313A26E03658007C6A35 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		094C313D26E03729007C6A35 /* ContactsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsCell.swift; sourceTree = "<group>"; };
@@ -326,6 +328,7 @@
 			isa = PBXGroup;
 			children = (
 				09E0DFFF2743C4CA00505F86 /* Store */,
+				0929FFC92754D05C002DF9B3 /* AEDService.swift */,
 				09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */,
 				09CFF9732714EEA700052188 /* FCSDKCallService.swift */,
 				09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */,
@@ -631,6 +634,7 @@
 				09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */,
 				094C314226E078A8007C6A35 /* SettingsSheet.swift in Sources */,
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
+				0929FFCA2754D05C002DF9B3 /* AEDService.swift in Sources */,
 				099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */,
 				094C313B26E03658007C6A35 /* Contacts.swift in Sources */,
 				09E0DF4927337A5500377C75 /* DTMFSheet.swift in Sources */,

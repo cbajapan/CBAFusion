@@ -22,11 +22,12 @@ struct AutoSizingTextView : UIViewRepresentable {
     
     func makeUIView(context: Context) -> UITextView {
         let view = UITextView()
+        view.textContainerInset = .zero
+        view.textContainer.lineFragmentPadding = 0
         view.isEditable = false
         view.isScrollEnabled = true
         view.text = self.placeholder
-        view.font = .systemFont(ofSize: 18)
-        view.textColor = .gray
+        view.font = .systemFont(ofSize: 14, weight: .regular)
         view.delegate = context.coordinator
         return view
     }
@@ -35,7 +36,14 @@ struct AutoSizingTextView : UIViewRepresentable {
         DispatchQueue.main.async {
             withAnimation {
                 self.height = uiView.contentSize.height
+            
+            if uiView.text.count > 0 {
+                let location = uiView.text.count - 1
+                let bottom = NSMakeRange(location, 1)
+                uiView.scrollRangeToVisible(bottom)
             }
+            }
+            uiView.text = self.text
         }
     }
     
@@ -44,20 +52,6 @@ struct AutoSizingTextView : UIViewRepresentable {
         
         init(parent: AutoSizingTextView) {
             self.parent = parent
-        }
-        
-        func textViewDidBeginEditing(_ textView: UITextView) {
-            if self.parent.text == "" {
-                textView.text = ""
-                textView.textColor = .white
-            }
-        }
-        
-        func textViewDidEndEditing(_ textView: UITextView) {
-            if self.parent.text == "" {
-                textView.text = parent.placeholder
-                textView.textColor = .gray
-            }
         }
         
         func textViewDidChange(_ textView: UITextView) {

@@ -58,7 +58,6 @@ class AuthenticationService: NSObject, ObservableObject {
             let (data, response) = try await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials)
             let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
             
-            
             await fireStatus(response: response)
             
             self.sessionID = payload.sessionid
@@ -76,7 +75,7 @@ class AuthenticationService: NSObject, ObservableObject {
 #endif
         } catch {
             await errorCaught(error: error)
-            print(error)
+            print(error.localizedDescription)
         }
     }
     

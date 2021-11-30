@@ -22,6 +22,7 @@ struct SwiftFCSDKSampleApp: App {
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contact = ContactService()
+    @StateObject private var aedService = AEDService()
     @State var prorviderDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     
@@ -43,6 +44,7 @@ struct SwiftFCSDKSampleApp: App {
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contact)
+                .environmentObject(aedService)
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, fcsdkCallService: fcsdkCallService)

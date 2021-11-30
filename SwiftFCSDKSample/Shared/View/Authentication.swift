@@ -82,6 +82,7 @@ struct Authentication: View {
         .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
             Button("OK", role: .cancel) {
                 self.authenticationService.showErrorAlert = false
+                self.loggingIn = false
             }
         })
     }

@@ -18,6 +18,7 @@ struct ContentView: View {
     
     @EnvironmentObject private var authenticationService: AuthenticationService
     @EnvironmentObject private var contactService: ContactService
+    @Environment(\.colorScheme) var colorScheme
     @State var selectedParentIndex: Int = 0
     @State var showSubscriptionsSheet = false
     @State var currentTabIndex = 0
@@ -80,32 +81,32 @@ struct ContentView: View {
                                         if num == 0 {
                                             VStack {
                                                 Image(systemName: "video.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
                                                 Text("Communication")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         } else if num == 1 {
                                             VStack {
                                                 Image(systemName: "plus.message.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: .center)
                                                 Text("AED")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         } else if num == 2 {
                                             VStack {
                                                 Image(systemName: "person.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
                                                 Text(self.authenticationService.sessionID != "" ? "Session" : "Authenticate")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : .white)
+                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         }
                                         Spacer()

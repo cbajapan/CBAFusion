@@ -248,6 +248,7 @@ struct Communication: View {
             self.fcsdkCallService.presentCommunication = false
             self.endCall = false
             self.fcsdkCallService.hasEnded = false
+            self.fcsdkCallService.hasConnected = false
             self.callKitManager.calls.removeAll()
         })
         .sheet(isPresented: self.$showSettings, content: {
