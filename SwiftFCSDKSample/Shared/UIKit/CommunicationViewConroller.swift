@@ -56,7 +56,6 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     var isOutgoing: Bool
     var authenticationService: AuthenticationService?
     
-    
     init(
         callKitManager: CallKitManager,
         destination: String,
@@ -148,7 +147,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     func endCall() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
-        self.callKitManager.finishEnd(call: currentCall)
+        await self.callKitManager.finishEnd(call: currentCall)
     }
     
     @MainActor
@@ -268,7 +267,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         } else {
             self.currentCamera = .back
         }
-        self.acbuc.clientPhone.setCamera(self.currentCamera)
+        self.acbuc.phone.setCamera(self.currentCamera)
     }
     
     @MainActor
@@ -284,14 +283,14 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     /// Configurations for Capture
     func configureResolutionOptions() throws {
-        _ = self.acbuc.clientPhone.recommendedCaptureSettings()
+        _ = self.acbuc.phone.recommendedCaptureSettings()
     }
     
     
     
     
     func configureFramerateOptions() throws {
-        _ = acbuc.clientPhone.recommendedCaptureSettings()
+        _ = acbuc.phone.recommendedCaptureSettings()
     }
     
     

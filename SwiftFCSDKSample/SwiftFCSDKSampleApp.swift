@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 import AVKit
 import NIO
-
+import FCSDKiOS
 
 @main
 struct SwiftFCSDKSampleApp: App {
@@ -35,6 +35,11 @@ struct SwiftFCSDKSampleApp: App {
         }
     }
     
+    func requestMicrophoneAndCameraPermissionFromAppSettings() async {
+        let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
+        let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
+        ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
+    }
     
     var body: some Scene {
         WindowGroup {
@@ -55,9 +60,10 @@ struct SwiftFCSDKSampleApp: App {
             switch phase {
             case .active:
                 print("ScenePhase: active")
+                Task {
+                    await self.requestMicrophoneAndCameraPermissionFromAppSettings()
                 // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
-                if !self.authenticationService.connectedToSocket && !self.authenticationService.sessionID.isEmpty {
-                    Task {
+                    if self.authenticationService.acbuc == nil && !self.authenticationService.sessionID.isEmpty {
                         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
                         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
                         self.fcsdkCallService.setPhoneDelegate()
@@ -65,8 +71,6 @@ struct SwiftFCSDKSampleApp: App {
                 }
             case .background:
                 print("ScenePhase: background")
-                self.authenticationService.connectedToSocket = false
-                self.authenticationService.acbuc?.connection = false
             case .inactive:
                 print("ScenePhase: inactive")
             @unknown default:

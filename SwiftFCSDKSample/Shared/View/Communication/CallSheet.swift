@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CallSheet: View {
     
-//    @Binding var showSheet: Bool = false
+    //    @Binding var showSheet: Bool = false
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var isOutgoing: Bool
@@ -32,12 +32,6 @@ struct CallSheet: View {
                 .padding()
             }
         }
-//        .fullScreenCover(isPresented: self.$showSheet, content: {
-//            Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
-//                .environmentObject(self.authenticationService)
-//                .environmentObject(self.fcsdkCallService)
-//                .environmentObject(self.callKitManager)
-//        })
         .navigationBarBackButtonHidden(true)
         .navigationBarTitle("Let's Talk")
         .navigationBarItems(leading:
@@ -49,7 +43,6 @@ struct CallSheet: View {
         }
                                       ), trailing:
                                 Button(action: {
-//            self.showSheet = true
             self.isOutgoing = true
             self.showCommunication = true
             self.presentationMode.wrappedValue.dismiss()

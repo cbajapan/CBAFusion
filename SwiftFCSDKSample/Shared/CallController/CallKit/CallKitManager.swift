@@ -28,51 +28,46 @@ class CallKitManager: NSObject, ObservableObject {
 
     
     func initializeCall(_ call: FCSDKCall) async {
-        self.makeCall(uuid: call.uuid, handle: call.handle, hasVideo: call.hasVideo)
+        await self.makeCall(uuid: call.uuid, handle: call.handle, hasVideo: call.hasVideo)
     }
-    
-    func makeCall(uuid: UUID, handle: String, hasVideo: Bool = false) {
+    func makeCall(uuid: UUID, handle: String, hasVideo: Bool = false) async {
         let handle = CXHandle(type: .phoneNumber, value: handle)
         let startCallAction = CXStartCallAction(call: uuid, handle: handle)
         startCallAction.isVideo = hasVideo
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
-
-        requestTransaction(transaction)
+        await requestTransaction(transaction)
     }
 
 
-    func finishEnd(call: FCSDKCall) {
+    func finishEnd(call: FCSDKCall) async {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let transaction = CXTransaction()
         transaction.addAction(endCallAction)
-        requestTransaction(transaction)
+        await requestTransaction(transaction)
     }
     
-    @MainActor func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
+    func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
         let hold = CXSetHeldCallAction(call: call.uuid, onHold: onHold)
         let transaction = CXTransaction()
         transaction.addAction(hold)
-        
-         requestTransaction(transaction)
+         await requestTransaction(transaction)
     }
     
-    func sendDTMF(uuid: UUID, digit: String) {
+    func sendDTMF(uuid: UUID, digit: String) async {
         let action = CXPlayDTMFCallAction(call: uuid, digits: digit, type: .singleTone)
         let transaction = CXTransaction()
         transaction.addAction(action)
-        requestTransaction(transaction)
+        await requestTransaction(transaction)
     }
     
     
     
-    private func requestTransaction(_ transaction: CXTransaction) {
-        callController.request(transaction) { error in
-            if let error = error {
-                print("Error requesting transaction:", error)
-            } else {
-                print("Requested transaction successfully")
-            }
+    private func requestTransaction(_ transaction: CXTransaction) async {
+        do {
+            try await callController.request(transaction)
+        } catch {
+            print("Error requesting transaction:", error)
         }
     }
     
@@ -80,7 +75,6 @@ class CallKitManager: NSObject, ObservableObject {
         guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
         return calls[index]
     }
-    
     func addCall(call: FCSDKCall) async {
         calls.append(call)
     }

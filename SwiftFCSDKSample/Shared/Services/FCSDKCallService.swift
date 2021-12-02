@@ -45,25 +45,24 @@ class FCSDKCallService: NSObject, ObservableObject {
     
     
     func setPhoneDelegate() {
-        self.acbuc?.clientPhone.delegate = self
+        self.acbuc?.phone.delegate = self
     }
     
     
     func initializeCall(previewView: ACBView) async throws {
-        await self.requestMicrophoneAndCameraPermissionFromAppSettings()
         await MainActor.run {
             self.hasStartedConnecting = true
             self.connectingDate = Date()
         }
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
-        uc.clientPhone.delegate = self
-        try? uc.clientPhone.setPreviewView(previewView)
+        uc.phone.delegate = self
+        try? uc.phone.setPreviewView(previewView)
     }
     
     
     func startFCSDKCall() async throws -> ACBClientCall? {
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
-        let outboundCall = uc.clientPhone.createCall(
+        let outboundCall = uc.phone.createCall(
             toAddress: self.fcsdkCall?.handle,
             withAudio: AppSettings.perferredAudioDirection(),
             video: AppSettings.perferredVideoDirection(),
@@ -86,8 +85,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func answerFCSDKCall() async throws {
-        await self.requestMicrophoneAndCameraPermissionFromAppSettings()
-        
         try? await MainActor.run {
             self.hasConnected = true
             self.connectDate = Date()
@@ -95,7 +92,7 @@ class FCSDKCallService: NSObject, ObservableObject {
             //        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
             guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
             guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
-            try? uc.clientPhone.setPreviewView(view)
+            try? uc.phone.setPreviewView(view)
         }
         
         do {
@@ -108,16 +105,11 @@ class FCSDKCallService: NSObject, ObservableObject {
     
     func endFCSDKCall() async {
         self.fcsdkCall?.call?.end()
+        self.fcsdkCall?.call?.end()
         await MainActor.run {
             self.hasEnded = true
             self.connectDate = nil
         }
-    }
-    
-    func requestMicrophoneAndCameraPermissionFromAppSettings() async {
-        let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
-        let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
-        ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
     }
     
     func playRingtone() async {

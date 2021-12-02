@@ -9,21 +9,41 @@ import SwiftUI
 
 struct DTMFSheet: View {
     
-    @State private var string = ""
+    @State private var key = ""
+    @State private var storedKey = ""
     @EnvironmentObject private var fcsdkCallService: FCSDKCallService
+    @EnvironmentObject private var callKitManager: CallKitManager
     @Environment(\.presentationMode) private var presentationMode
     
     var body: some View {
         GeometryReader { geometry in
             NavigationView {
-                DialPad(string: self.$string, legacyDTMF: .constant(false))
-                    .padding()
-                    .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.6)
-                    .navigationTitle("DTMF Sheet")
-            }
+                VStack {
+                    Text(self.storedKey)
+                    TextField("Press For DTMF", text: self.$key)
+                        .keyboardType(.numberPad)
+                        .navigationTitle("DTMF Sheet")
+                    Spacer()
+                }
+            }.padding()
+        }
+        .onTapGesture {
+            hideKeyboard()
         }
         .onDisappear {
             self.fcsdkCallService.showDTMFSheet = false
+        }
+        .onChange(of: key) { newValue in
+            if key != "" {
+                print(newValue)
+                Task {
+                    if self.fcsdkCallService.fcsdkCall?.call != nil {
+                        await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.uuid, digit: newValue)
+                        storedKey += key
+                        key = ""
+                    }
+                }
+            }
         }
     }
 }

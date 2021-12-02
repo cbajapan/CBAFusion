@@ -40,3 +40,4 @@ class SwiftFCSDKSampleUITests: XCTestCase {
         }
     }
 }
+

@@ -27,7 +27,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
-    
+
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
@@ -125,10 +125,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         
+        //This is kinda wanky, updateUIViewController is firing several times, The SDK will prevent multiple ends on the same call, but we can improve this in the App also
         if self.endCall {
             if !call.hasEnded {
                 Task {
-                    await self.fcsdkCallService.endFCSDKCall()
                     await uiViewController.endCall()
                     await uiViewController.currentState(state: .hasEnded)
                 }
@@ -136,21 +136,22 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 //dismiss view
                 Task {
                     await uiViewController.currentState(state: .hasEnded)
+                    await self.setServiceHasEnded()
                 }
             }
+
             self.isOutgoing = false
-            self.setServiceHasEnded()
         } else if call.hasEnded {
             if !self.endCall {
                 Task {
                     await uiViewController.endCall()
                 }
             }
-            self.isOutgoing = false
             Task {
                 await uiViewController.currentState(state: .hasEnded)
+                await self.setServiceHasEnded()
             }
-            self.setServiceHasEnded()
+            self.isOutgoing = false
         }
         
         if self.pip {
@@ -193,7 +194,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
     }
     
-    func setServiceHasEnded() {
+    func setServiceHasEnded() async {
         if !self.fcsdkCallService.hasEnded {
             self.fcsdkCallService.hasEnded = true
         }

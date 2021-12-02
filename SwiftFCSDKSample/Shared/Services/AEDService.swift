@@ -35,7 +35,7 @@ class AEDService : NSObject, ObservableObject, ACBTopicDelegate {
                 self.consoleMessage = msg
             }
         }
-        guard let topicData = data.data else { return }
+        guard let topicData = data.topicData else { return }
         
         for data in topicData{
             print("Key:'\(data.key ?? "")' Value:'\(data.value ?? "")'")

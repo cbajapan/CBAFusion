@@ -14,7 +14,7 @@ struct LoginResponse: Codable {
     var voiceDomain: String
 }
 
-
 struct LogoutResponse: Codable {
     var response: String
 }
+

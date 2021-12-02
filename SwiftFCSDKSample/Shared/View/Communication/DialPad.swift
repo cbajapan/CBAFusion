@@ -29,7 +29,9 @@ struct DialPad: View {
                 self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(key, localPlayback: true)
             } else {
                 // Really should use this and let Apple handle DTMF Stuff, but if you want you can use the Legacy way with no problem
-                self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.uuid, digit: key)
+                Task {
+                await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.uuid, digit: key)
+                }
             }
         } else {
             switch key {

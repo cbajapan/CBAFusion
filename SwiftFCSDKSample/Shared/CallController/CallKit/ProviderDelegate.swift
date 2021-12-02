@@ -27,7 +27,7 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
         self.fcsdkCallService = fcsdkCallService
         self.provider = CXProvider(configuration: type(of: self).providerConfiguration)
         super.init()
-        self.provider?.setDelegate(self, queue: nil)
+        self.provider?.setDelegate(self, queue: .global())
     }
     
     static let providerConfiguration: CXProviderConfiguration = {

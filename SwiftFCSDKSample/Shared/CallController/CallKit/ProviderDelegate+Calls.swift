@@ -19,13 +19,16 @@ extension ProviderDelegate {
             let update = CXCallUpdate()
             update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
             update.hasVideo = fcsdkCall.hasVideo
+            update.supportsDTMF = true
+            update.supportsHolding = true
+            
             do {
                 try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
                 await self.fcsdkCallService.presentCommunicationSheet()
                 await self.callKitManager.addCall(call: fcsdkCall)
             } catch {
                 if error.localizedDescription == "The operation couldn’t be completed. (com.apple.CallKit.error.incomingcall error 3.)" {
-                    DispatchQueue.main.async {
+                    await MainActor.run {
                         self.fcsdkCallService.doNotDisturb = true
                     }
                 }
@@ -64,10 +67,18 @@ extension ProviderDelegate {
             var acbCall: ACBClientCall?
             do {
                 self.outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall
-                guard let preView = outgoingFCSDKCall?.previewView else { return }
-                try await self.fcsdkCallService.initializeCall(previewView: preView)
+                guard let outgoingFCSDKCall = outgoingFCSDKCall else { return }
+                guard let preview = outgoingFCSDKCall.previewView else { return }
+                try await self.fcsdkCallService.initializeCall(previewView: preview)
                 acbCall = try await self.fcsdkCallService.startFCSDKCall()
-                outgoingFCSDKCall?.call = acbCall
+                outgoingFCSDKCall.call = acbCall
+                
+                let callUpdate = CXCallUpdate()
+                callUpdate.supportsDTMF = true
+                callUpdate.hasVideo = fcsdkCallService.hasVideo
+                callUpdate.supportsHolding = true
+                provider.reportCall(with: outgoingFCSDKCall.uuid, updated: callUpdate)
+                
             } catch {
                 print("\(OurErrors.nilACBUC.rawValue)")
             }
@@ -84,22 +95,22 @@ extension ProviderDelegate {
     
     //End Call
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        // Retrieve the FCSDKCall instance corresponding to the action's call UUID
         Task {
-            // Trigger the call to be ended via the underlying network service.
-            await self.fcsdkCallService.endFCSDKCall()
-            await callKitManager.removeAllCalls()
-            // Signal to the system that the action was successfully performed.
+            await asyncEnd()
             action.fulfill()
         }
-        
+    }
+    
+    func asyncEnd() async {
+        // Retrieve the FCSDKCall instance corresponding to the action's call UUID
+        await self.fcsdkCallService.endFCSDKCall()
+        await callKitManager.removeAllCalls()
     }
     
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
         print("Provider - CXPlayDTMFCallAction")
         configureAudioSession()
-        
         let dtmfDigits:String = action.digits
         self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
         action.fulfill()

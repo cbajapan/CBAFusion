@@ -62,8 +62,7 @@ class AuthenticationService: NSObject, ObservableObject {
             
             self.sessionID = payload.sessionid
             await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-            self.connectedToSocket = self.acbuc?.connection != nil
-            
+
 #if !DEBUG
             if KeychainItem.getSessionID == "" {
                 KeychainItem.saveSessionID(sessionid: sessionID)
@@ -122,9 +121,10 @@ class AuthenticationService: NSObject, ObservableObject {
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         self.acbuc?.useCookies = useCookies
         self.acbuc?.startSession()
-        
+        self.connectedToSocket = self.acbuc?.connection != nil
+        print("WE ARE CONNECTED", self.connectedToSocket)
         //We need to start the Audio Manager so we can use it
-        self.audioDeviceManager = self.acbuc?.clientPhone.audioDeviceManager
+        self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
         audioDeviceManager?.start()
     }
     
@@ -174,22 +174,22 @@ class AuthenticationService: NSObject, ObservableObject {
     func selectResolution(res: ResolutionOptions) {
         switch res {
         case .auto:
-            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.autoResolution;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.autoResolution;
         case .res288p:
-            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
         case .res480p:
-            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution640x480;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution640x480;
         case .res720p:
-            self.acbuc?.clientPhone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720;
         }
     }
     
     func selectFramerate(rate: FrameRateOptions) {
         switch rate {
         case .fro20:
-            self.acbuc?.clientPhone.preferredCaptureFrameRate = 20
+            self.acbuc?.phone.preferredCaptureFrameRate = 20
         case .fro30:
-            self.acbuc?.clientPhone.preferredCaptureFrameRate = 30
+            self.acbuc?.phone.preferredCaptureFrameRate = 30
         }
     }
     

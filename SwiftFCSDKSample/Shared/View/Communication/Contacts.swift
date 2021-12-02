@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct AddButton<Destination : View>: View {
+struct PushDetail<Destination : View>: View {
     
     var destination:  Destination
-    
+    var image: String
     var body: some View {
-        NavigationLink(destination: self.destination) { Image(systemName: "phone.fill.arrow.up.right") }
+        NavigationLink(destination: self.destination) { Image(systemName: self.image) }
     }
 }
 
@@ -72,7 +72,7 @@ struct Contacts: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        AddButton(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$showCommunication))
+                        PushDetail(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$showCommunication), image: "phone.fill.arrow.up.right")
                     }
                 }
             })
@@ -82,29 +82,10 @@ struct Contacts: View {
         })
         .fullScreenCover(isPresented: self.$showCommunication, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
-                .environmentObject(self.authenticationService)
-                .environmentObject(self.fcsdkCallService)
-                .environmentObject(self.callKitManager)
         })
         .sheet(isPresented: self.$contact.addSheet, content: {
             AddContact().environmentObject(self.contact)
         })
-        .onAppear {
-            if !self.authenticationService.connectedToSocket {
-                Task {
-#if !DEBUG
-                    await self.authenticationService.createSession(sessionid: KeychainItem.getSessionID, networkStatus: monitor.networkStatus())
-#else
-                    await self.authenticationService.createSession(sessionid: UserDefaults.standard.string(forKey: "SessionID") ?? "", networkStatus: monitor.networkStatus())
-#endif
-                }
-                self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-                self.fcsdkCallService.setPhoneDelegate()
-            } else {
-                self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-                self.fcsdkCallService.setPhoneDelegate()
-            }
-        }
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
             self.showCommunication = newValue
         }

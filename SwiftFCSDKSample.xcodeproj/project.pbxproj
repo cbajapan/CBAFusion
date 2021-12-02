@@ -39,6 +39,7 @@
 		09B4A0A926DDDCAA00B73ADA /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */; };
 		09B4A0AB26DDE2FA00B73ADA /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */; };
 		09CFF9742714EEA700052188 /* FCSDKCallService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CFF9732714EEA700052188 /* FCSDKCallService.swift */; };
+		09D551BA27584076002C8A34 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D551B927584076002C8A34 /* Console.swift */; };
 		09D86CF5270B06C000C62FA0 /* ProviderDelegate+Calls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */; };
 		09D86CF7270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */; };
 		09D86CF9270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */; };
@@ -62,7 +63,6 @@
 		09EDF6B226DF404700B34664 /* CommunicationViewConroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */; };
 		09EDF6B926DF83F400B34664 /* AutoResizingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */; };
 		09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6BA26DF88A900B34664 /* View+Extension.swift */; };
-		09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EDF6BC26DF8D6300B34664 /* TopicCell.swift */; };
 		09F318D326F019600069ED8D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F318D226F019600069ED8D /* AppSettings.swift */; };
 /* End PBXBuildFile section */
 
@@ -132,6 +132,7 @@
 		09B4A0A826DDDCAA00B73ADA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		09B4A0AA26DDE2FA00B73ADA /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
 		09CFF9732714EEA700052188 /* FCSDKCallService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCallService.swift; sourceTree = "<group>"; };
+		09D551B927584076002C8A34 /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		09D86CF4270B06C000C62FA0 /* ProviderDelegate+Calls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProviderDelegate+Calls.swift"; sourceTree = "<group>"; };
 		09D86CF6270B076800C62FA0 /* FCSDKCallService+ACBClientCallDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCallService+ACBClientCallDelegate.swift"; sourceTree = "<group>"; };
 		09D86CF8270B07D900C62FA0 /* FCSDKCallService+ACBClientPhoneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FCSDKCallService+ACBClientPhoneDelegate.swift"; sourceTree = "<group>"; };
@@ -156,7 +157,6 @@
 		09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewConroller.swift; sourceTree = "<group>"; };
 		09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoResizingTextView.swift; sourceTree = "<group>"; };
 		09EDF6BA26DF88A900B34664 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
-		09EDF6BC26DF8D6300B34664 /* TopicCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicCell.swift; sourceTree = "<group>"; };
 		09F318D226F019600069ED8D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -481,8 +481,8 @@
 		09EDF6BE26DF93A000B34664 /* AED */ = {
 			isa = PBXGroup;
 			children = (
-				09EDF6BC26DF8D6300B34664 /* TopicCell.swift */,
 				09B4A0A226DDAD1200B73ADA /* AED.swift */,
+				09D551B927584076002C8A34 /* Console.swift */,
 			);
 			path = AED;
 			sourceTree = "<group>";
@@ -631,7 +631,6 @@
 			files = (
 				09E3CE9026DE1F3300249DD8 /* NetworkRepository.swift in Sources */,
 				09E0E0012743C4DC00505F86 /* SQLiteStore.swift in Sources */,
-				09EDF6BD26DF8D6300B34664 /* TopicCell.swift in Sources */,
 				094C314226E078A8007C6A35 /* SettingsSheet.swift in Sources */,
 				09EDF6AF26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift in Sources */,
 				0929FFCA2754D05C002DF9B3 /* AEDService.swift in Sources */,
@@ -641,6 +640,7 @@
 				09E3CE9426DE1F8000249DD8 /* LoginViewModel.swift in Sources */,
 				09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */,
 				09E3CE9626DE1F8A00249DD8 /* Login.swift in Sources */,
+				09D551BA27584076002C8A34 /* Console.swift in Sources */,
 				094EE30726DCE211008C1637 /* ContentView.swift in Sources */,
 				09D86CFF270B08B800C62FA0 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				099F54AF26E87873005500BF /* PlayerView.swift in Sources */,
@@ -922,7 +922,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -947,7 +947,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -971,7 +971,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -994,7 +994,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

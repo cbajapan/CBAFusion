@@ -22,49 +22,6 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     static let shared = NetworkManager()
     let configuration = URLSessionConfiguration.default
     
-    func combineCodableNetworkWrapper<T: Codable>(
-        urlString: String,
-        httpMethod: String,
-        httpBody: Data? = nil,
-        headerField: String = "",
-        headerValue: String = ""
-    ) -> AnyPublisher<T, Error> {
-        
-        let url = URL(string: urlString)
-        var request = URLRequest(url: url!)
-        request.httpMethod = httpMethod
-        
-        if httpMethod == "POST" || httpMethod == "PUT" {
-            request.httpBody = httpBody
-        }
-        
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let allCookies = HTTPCookieStorage.shared.cookies
-        for cookie in allCookies ?? [] {
-            HTTPCookieStorage.shared.deleteCookie(cookie)
-        }
-        
-        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue.main)
-        return session.dataTaskPublisher(for: request)
-            .tryMap { data, response -> Data in
-                return data
-            }
-            .flatMap { data in
-                return Just(data)
-                    .tryMap{ (data) -> T in
-                        return try JSONDecoder().decode(T.self, from: data)
-                    }
-                    .receive(on: DispatchQueue.main)
-            }
-            .mapError { error in
-                print("Error in Combine Codable Wrapper: \(error)")
-                return error
-            }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
-    
     func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
         urlString: String,
@@ -88,10 +45,13 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         for cookie in allCookies ?? [] {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
-        
-        
         let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (data, response) = try await session.data(for: request)
+        
+        //If we have some json issue print out the string to see the problem
+#if DEBUG
+        data.printJSON()
+#endif
         return (data, response)
     }
     
@@ -117,7 +77,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         for cookie in allCookies ?? [] {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
-    
+        
         let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (_, response) = try await session.data(for: request)
         
@@ -127,7 +87,9 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         guard httpResponse.statusCode == 200 else {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
         }
+#if DEBUG
         print("Response_______", response)
+#endif
     }
     
     
@@ -144,6 +106,13 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             let trust: SecTrust = challenge.protectionSpace.serverTrust!
             let credential = URLCredential(trust: trust)
             completionHandler(.useCredential, credential)
+        }
+    }
+}
+extension Data {
+    func printJSON() {
+        if let JSONString = String(data: self, encoding: String.Encoding.utf8) {
+            print(JSONString)
         }
     }
 }

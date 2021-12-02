@@ -20,77 +20,40 @@ struct AED: View{
     @State private var keyboardHeight: CGFloat = 0
     @State private var console: String = ""
     @State private var isChecked: Bool = false
-    @EnvironmentObject var authenticationServices: AuthenticationService
+    @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var aedService: AEDService
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         GeometryReader { geometry in
-        NavigationView  {
-            Form {
-                Section(header: Text("Topic")) {
-                    TextField("Topic Name", text: $topicName)
-                    TextField("Expiry", text: $expiry)
-                }
-                Button {
-                    Task {
-                        await self.connectToTopic()
-                    }
-                } label: {
-                    Text("Connect")
-                }
-                .buttonStyle(.borderless)
-                Section(header: Text("Data")) {
-                    TextField("Key", text: $key)
-                    TextField("Value", text: $value)
-                    Button {
-                        Task {
-                            await self.publishData()
-                        }
-                    } label: {
-                        Text("Publish")
-                    }
-                    
-                    
-                    Button {
-                        Task {
-                            await self.deleteData()
-                        }
-                    } label: {
-                        Text("Delete")
-                    }
-                }
-                
-                Section(header: Text("Message")) {
-                    TextField("Your message", text: $messageText)
-                    Button {
-                        Task {
-                            await self.sendMessage()
-                        }
-                    } label: {
-                        Text("Send")
-                    }
-                }
-                
-                Section(header: Text("Connected Topics")) {
-                    List {
-                        ForEach(self.aedService.topicList, id: \.id) { topic in
-                            TopicCell(topic: topic.name ?? "No Topic Name", isChecked: self.$isChecked)
-                                    .onTapGesture {
-                                        Task {
-                                        await self.didTapTopic(topic)
-                                        }
-                                        if self.isChecked == true {
-                                            self.isChecked = false
-                                        } else {
-                                            self.isChecked = true
-                                        }
+            NavigationView  {
+                Form {
+                    Section(header: Text("Connected Topics")) {
+                        List {
+                            ForEach(self.aedService.topicList, id: \.self) { topic in
+                                HStack{
+                                    Text(topic.name)
+                                    Spacer()
+                                    if self.isChecked {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(Color.green)
                                     }
+                                }
+                                .onTapGesture {
+                                    Task {
+                                        await self.didTapTopic(topic)
+                                    }
+                                    if self.isChecked == true {
+                                        self.isChecked = false
+                                    } else {
+                                        self.isChecked = true
+                                    }
+                                }
                                 
                                 .swipeActions(edge: .trailing) {
                                     Button("Delete") {
                                         Task {
-                                        await self.disconnectOrDeleteTopic(topic, delete: true)
+                                            await self.disconnectOrDeleteTopic(topic, delete: true)
                                         }
                                     }
                                     .tint(.red)
@@ -98,96 +61,187 @@ struct AED: View{
                                 .swipeActions(edge: .leading) {
                                     Button("Disconnect") {
                                         Task {
-                                        await self.disconnectOrDeleteTopic(topic, delete: false)
+                                            await self.disconnectOrDeleteTopic(topic, delete: false)
                                         }
                                     }
                                     .tint(.green)
                                 }
+                            }
+                        }
+                    }
+                    Section(header: Text("Topic")) {
+                        TextField("Topic Name", text: $topicName)
+                        TextField("Expiry", text: $expiry)
+                            .keyboardType(.numberPad)
+                    }
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        Button {
+                            Task {
+                                await self.connectToTopic()
+                            }
+                        } label: {
+                            Text("Connect")
+                        }
+                        .buttonStyle(.borderless)
+                    Section(header: Text("Data")) {
+                        TextField("Key", text: $key)
+                        TextField("Value", text: $value)
+                        Button {
+                            Task {
+                                await self.publishData()
+                            }
+                        } label: {
+                            Text("Publish")
+                        }
+                        
+                        
+                        Button {
+                            Task {
+                                await self.deleteData()
+                            }
+                        } label: {
+                            Text("Delete")
+                        }
+                    }
+                    
+                    Section(header: Text("Message")) {
+                        TextField("Your message", text: $messageText)
+                        Button {
+                            Task {
+                                await self.sendMessage()
+                            }
+                        } label: {
+                            Text("Send")
+                        }
+                    }
+                    }
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        Section(header: Text("Console")) {
+                            AutoSizingTextView(text: self.$console, height: self.$messageHeight, placeholder: self.$placeholder)
+                                .frame(width: geometry.size.width - 80, height: self.messageHeight < 350 ? self.messageHeight : 350)
+                                .font(.body)
+                                .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+                                .background(colorScheme == .dark ? Color.black : Color.white)
+                                .background(colorScheme == .dark ? Color.black : Color.white)
+                                .listRowBackground(colorScheme == .dark ? Color.black : Color.white)
+                        }
+
+                    } else {
+                        NavigationLink(destination: Console(topicName: self.$topicName, expiry: self.$expiry)) {
+                            Text("Connect")
+                                .foregroundColor(.blue)
                         }
                     }
                 }
-                Section(header: Text("Console")) {
-                    AutoSizingTextView(text: self.$console, height: self.$messageHeight, placeholder: self.$placeholder)
-                        .frame(width: geometry.size.width - 80, height: self.messageHeight < 350 ? self.messageHeight : 350)
-                        .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
-                        .background(colorScheme == .dark ? Color.black : Color.white)
-                        .font(.body)
-                }
-                .background(colorScheme == .dark ? Color.black : Color.white)
-                .listRowBackground(colorScheme == .dark ? Color.black : Color.white)
-                .onChange(of: self.aedService.consoleMessage) { newValue in
-                    self.console += "\n\(newValue)"
-                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar(content: {
+                    ToolbarItem(placement: .principal, content: {
+                        Text("Application Event Distribution")
+                    })})
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
-                ToolbarItem(placement: .principal, content: {
-                    Text("Application Event Distribution")
-                })})
-        }
+            .onChange(of: self.aedService.consoleMessage) { newValue in
+                self.console += "\n\(newValue)"
+            }
+            .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
+                Button("OK", role: .cancel) {
+                    self.authenticationService.showErrorAlert = false
+                }
+            })
+        }.onTapGesture {
+            hideKeyboard()
         }
     }
     
     func disconnectOrDeleteTopic(_ topic: ACBTopic?, delete: Bool) async {
-        if self.aedService.currentTopic == topic {
-            self.aedService.currentTopic = nil
-        }
-        
-        if topic?.connected != nil {
-            topic?.disconnect(withDeleteFlag: delete)
-            self.aedService.topicList.removeAll(where: { $0 == topic })
-            print(self.aedService.topicList)
-            await MainActor.run {
-            let msg = "Topic \(topic?.name ?? "") disconnected."
-            self.aedService.consoleMessage = msg
+        if self.topicName.count > 0 {
+            if self.aedService.currentTopic == topic {
+                self.aedService.currentTopic = nil
+            }
+            
+            if topic?.connected != nil {
+                topic?.disconnect(withDeleteFlag: delete)
+                self.aedService.topicList.removeAll(where: { $0 == topic })
+                print(self.aedService.topicList)
+                await MainActor.run {
+                    let msg = "Topic \(topic?.name ?? "") disconnected."
+                    self.aedService.consoleMessage = msg
+                }
+            } else {
+                await MainActor.run {
+                    let msg = "Topic \(self.aedService.currentTopic?.name ?? "") already disconnected."
+                    self.aedService.consoleMessage = msg
+                }
+            }
+            
+            if self.aedService.currentTopic == nil && self.aedService.topicList.count > 0 {
+                self.aedService.currentTopic = topic
+                self.aedService.currentTopic = self.aedService.topicList.first
             }
         } else {
-            await MainActor.run {
-            let msg = "Topic \(self.aedService.currentTopic?.name ?? "") already disconnected."
-            self.aedService.consoleMessage = msg
-            }
-        }
-        
-        if self.aedService.currentTopic == nil && self.aedService.topicList.count > 0 {
-            self.aedService.currentTopic = topic
-            self.aedService.currentTopic = self.aedService.topicList.first
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Topic Name is empty"
         }
         
     }
-
+    
     @MainActor
     func didTapTopic(_ topic: ACBTopic) async {
-        self.aedService.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: topic.name ?? "", delegate: self.aedService)
-        let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
-        self.console += "\n\(msg)"
+        if self.topicName.count > 0 {
+            self.aedService.currentTopic = self.authenticationService.acbuc?.aed?.createTopic(withName: topic.name, delegate: self.aedService)
+            let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
+            self.console += "\n\(msg)"
+        } else {
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Topic Name is empty"
+        }
     }
     
     @MainActor
     func connectToTopic() async {
-        let expiry = Int(self.expiry) ?? 0
-        self.aedService.currentTopic = self.authenticationServices.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
-        self.topicName = ""
-        self.expiry = ""
+        if self.topicName.count > 0 {
+            let expiry = Int(self.expiry) ?? 0
+            self.aedService.currentTopic = self.authenticationService.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
+            self.topicName = ""
+            self.expiry = ""
+        } else {
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Please enter a Topic Name"
+        }
     }
     
     @MainActor
     func publishData() async {
-        self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
-        self.key = ""
-        self.value = ""
+        if self.key.count > 0 && self.value.count > 0 {
+            self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
+            self.key = ""
+            self.value = ""
+        } else {
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Please enter a Key Value Pair"
+        }
     }
     
     @MainActor
     func deleteData() async {
-        self.aedService.currentTopic?.deleteData(withKey: self.key)
-        self.key = ""
-        self.value = ""
+        if self.key.count > 0 {
+            self.aedService.currentTopic?.deleteData(withKey: self.key)
+            self.key = ""
+            self.value = ""
+        } else {
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Please enter a Key to delete"
+        }
     }
     
     @MainActor
     func sendMessage() async {
-        self.aedService.currentTopic?.sendAedMessage(self.messageText)
-        self.messageText = ""
+        if self.messageText.count > 0 {
+            self.aedService.currentTopic?.sendAedMessage(self.messageText)
+            self.messageText = ""
+        } else {
+            self.authenticationService.showErrorAlert = true
+            self.authenticationService.errorMessage = "Please enter a Message"
+        }
     }
 }
 
