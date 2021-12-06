@@ -96,8 +96,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
             self.authenticationService?.selectFramerate(rate: rate)
             self.authenticationService?.selectResolution(res: res)
             self.authenticationService?.selectAudio(audio: audio)
-            await self.gestures()
         }
+        self.gestures()
     }
     
     @MainActor
@@ -186,17 +186,19 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.stackView.axis = .vertical
         self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, paddingTop: 50, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
     }
+    
     @MainActor
     func removeConnectingUI() async {
         self.stackView.removeFromSuperview()
     }
+    
     @MainActor
     func setupUI() async {
         self.view.addSubview(self.remoteView)
         self.remoteView.addSubview(self.previewView)
     }
-    @MainActor
-    func gestures() async {
+    
+    func gestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
         self.previewView.isUserInteractionEnabled = true
         self.previewView.addGestureRecognizer(panGesture)
@@ -204,14 +206,20 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
     @MainActor
     func anchors() async {
+        
+        //We can adjust the size of video if we want to via the constraints API, the next 2 lines can center a view
+        //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+        //        self.remoteView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        
         if UIApplication.shared.applicationState != .background {
+            //We can change width and height as we wish
             self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
             
             if UIDevice.current.userInterfaceIdiom == .phone {
-                self.previewView.anchors(top: nil, leading: nil, bottom: self.remoteView.bottomAnchor, trailing: self.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 150, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 110, paddingRight: 20, width: 150, height: 200)
                 
             } else {
-                self.previewView.anchors(top: nil, leading: nil, bottom: self.remoteView.bottomAnchor, trailing: self.remoteView.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 90, paddingRight: 30, width: 250, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 110, paddingRight: 20, width: 250, height: 200)
             }
             
             //Not needed for video display just some custom UI Stuff
@@ -222,7 +230,6 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
             self.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
         }
     }
-    
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -250,12 +257,15 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         await setupUI()
     }
     
-    @MainActor
-    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) async {
-        self.view.bringSubviewToFront(previewView)
-        let translation = sender.translation(in: self.view)
-        previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
-        sender.setTranslation(CGPoint.zero, in: self.view)
+    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) {
+        Task {
+            await MainActor.run {
+                self.view.bringSubviewToFront(previewView)
+                let translation = sender.translation(in: self.view)
+                previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
+                sender.setTranslation(CGPoint.zero, in: self.view)
+            }
+        }
     }
     
     

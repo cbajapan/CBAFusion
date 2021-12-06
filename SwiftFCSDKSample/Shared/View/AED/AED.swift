@@ -19,7 +19,6 @@ struct AED: View{
     @State private var messageHeight: CGFloat = 0
     @State private var keyboardHeight: CGFloat = 0
     @State private var console: String = ""
-    @State private var isChecked: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var aedService: AEDService
     @Environment(\.colorScheme) var colorScheme

@@ -104,7 +104,7 @@ extension ProviderDelegate {
     func asyncEnd() async {
         // Retrieve the FCSDKCall instance corresponding to the action's call UUID
         await self.fcsdkCallService.endFCSDKCall()
-        await callKitManager.removeAllCalls()
+//        await callKitManager.removeAllCalls()
     }
     
     //DTMF

@@ -14,7 +14,6 @@ struct Communication: View {
     @State var showDetails: Bool = false
     @State var showSettings: Bool = false
     @State var cameraFront: Bool = false
-    @State var cameraBack: Bool = false
     @State var muteAudio: Bool = false
     @State var resumeAudio: Bool = false
     @State var muteVideo: Bool = false
@@ -23,11 +22,19 @@ struct Communication: View {
     @State var resume: Bool = false
     @State var pip: Bool = false
     @State var removePip: Bool = false
-    @State var endCall: Bool = false
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
-    @State private var formattedCallDuration: Text?
     @State var currentTabIndex = 0
+    @State var closeClickedID: UUID? = nil
+    @State var cameraFrontID: UUID? = nil
+    @State var cameraBackID: UUID? = nil
+    @State var holdID: UUID? = nil
+    @State var resumeID: UUID? = nil
+    @State var muteAudioID: UUID? = nil
+    @State var resumeAudioID: UUID? = nil
+    @State var muteVideoID: UUID? = nil
+    @State var resumeVideoID: UUID? = nil
+    @State private var formattedCallDuration: Text?
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var isOutgoing: Bool
@@ -41,7 +48,7 @@ struct Communication: View {
         dateFormatter.zeroFormattingBehavior = .pad
         return dateFormatter
     }()
-
+    
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var authenticationServices: AuthenticationService
     @EnvironmentObject var callKitManager: CallKitManager
@@ -53,20 +60,23 @@ struct Communication: View {
                 CommunicationViewControllerRepresentable(
                     pip: self.$pip,
                     removePip: self.$removePip,
-                    cameraFront: self.$cameraFront,
-                    cameraBack: self.$cameraBack,
                     destination: self.$passDestination,
                     hasVideo: self.$passVideo,
-                    endCall: self.$endCall,
                     muteVideo: self.$muteVideo,
-                    resumeVideo: self.$resumeVideo,
                     muteAudio: self.$muteAudio,
-                    resumeAudio: self.$resumeAudio,
                     hold: self.$hold,
-                    resume: self.$resume,
                     acbuc: self.$authenticationServices.acbuc,
                     isOutgoing: self.$isOutgoing,
-                    fcsdkCall: self.$fcsdkCallService.fcsdkCall
+                    fcsdkCall: self.$fcsdkCallService.fcsdkCall,
+                    closeClickID: self.$closeClickedID,
+                    cameraFrontID: self.$cameraFrontID,
+                    cameraBackID: self.$cameraBackID,
+                    holdID: self.$holdID,
+                    resumeID: self.$resumeID,
+                    muteAudioID: self.$muteAudioID,
+                    resumeAudioID: self.$resumeAudioID,
+                    muteVideoID: self.$muteVideoID,
+                    resumeVideoID: self.$resumeVideoID
                 )
                     .ignoresSafeArea(.all)
                 
@@ -134,10 +144,10 @@ struct Communication: View {
                         //                        }
                         Button {
                             self.hold.toggle()
-                            if !self.hold {
-                                self.resume = true
-                            } else if self.hold {
-                                self.resume = false
+                            if self.hold {
+                                self.holdID = UUID()
+                            } else {
+                                self.resumeID = UUID()
                             }
                         } label: {
                             ZStack {
@@ -154,10 +164,10 @@ struct Communication: View {
                         }
                         Button {
                             self.muteAudio.toggle()
-                            if !self.muteAudio {
-                                self.resumeAudio = true
-                            } else if self.muteAudio {
-                                self.resumeAudio = false
+                            if self.muteAudio {
+                                self.muteAudioID = UUID()
+                            } else {
+                                self.resumeAudioID = UUID()
                             }
                         } label: {
                             ZStack {
@@ -174,10 +184,10 @@ struct Communication: View {
                         }
                         Button {
                             self.muteVideo.toggle()
-                            if !self.muteVideo {
-                                self.resumeVideo = true
-                            } else if self.muteVideo {
-                                self.resumeVideo = false
+                            if self.muteVideo {
+                                self.muteVideoID = UUID()
+                            } else {
+                                self.resumeVideoID = UUID()
                             }
                         } label: {
                             ZStack {
@@ -194,10 +204,10 @@ struct Communication: View {
                         }
                         Button {
                             self.cameraFront.toggle()
-                            if !self.cameraFront {
-                                self.cameraBack = true
-                            } else if self.cameraFront {
-                                self.cameraBack = false
+                            if self.cameraFront {
+                                self.cameraFrontID = UUID()
+                            } else {
+                                self.cameraBackID = UUID()
                             }
                         } label: {
                             ZStack {
@@ -213,7 +223,7 @@ struct Communication: View {
                             }
                         }
                         Button {
-                            self.endCall.toggle()
+                            self.closeClickedID = UUID()
                         } label: {
                             ZStack {
                                 Circle()
@@ -244,9 +254,13 @@ struct Communication: View {
                 self.presentationMode.wrappedValue.dismiss()
             }
         }
+        .onChange(of: self.fcsdkCallService.hasEnded, perform: { newValue in
+            if newValue == true {
+                self.closeClickedID = UUID()
+            }
+        })
         .onDisappear(perform: {
             self.fcsdkCallService.presentCommunication = false
-            self.endCall = false
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false
             self.callKitManager.calls.removeAll()

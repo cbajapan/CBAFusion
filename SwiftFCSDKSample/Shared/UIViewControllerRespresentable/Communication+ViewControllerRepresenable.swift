@@ -13,21 +13,24 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
     @Binding var pip: Bool
     @Binding var removePip: Bool
-    @Binding var cameraFront: Bool
-    @Binding var cameraBack: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
-    @Binding var endCall: Bool
     @Binding var muteVideo: Bool
-    @Binding var resumeVideo: Bool
     @Binding var muteAudio: Bool
-    @Binding var resumeAudio: Bool
     @Binding var hold: Bool
-    @Binding var resume: Bool
     @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
-
+    @Binding var closeClickID: UUID?
+    @Binding var cameraFrontID: UUID?
+    @Binding var cameraBackID: UUID?
+    @Binding var holdID: UUID?
+    @Binding var resumeID: UUID?
+    @Binding var muteAudioID: UUID?
+    @Binding var resumeAudioID: UUID?
+    @Binding var muteVideoID: UUID?
+    @Binding var resumeVideoID: UUID?
+    
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
@@ -77,82 +80,70 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             }
         }
         
-        if self.hold {
+        if holdID != context.coordinator.previousHoldID {
             Task {
                 await uiViewController.currentState(state: .hold)
             }
+            context.coordinator.previousHoldID = holdID
         }
         
-        if self.resume {
+        if resumeID != context.coordinator.previousResumeID {
             Task {
                 await uiViewController.currentState(state: .resume)
             }
+            context.coordinator.previousResumeID = resumeID
         }
         
-        if self.muteVideo {
+        if muteVideoID != context.coordinator.previousMuteVideoID {
             Task {
                 await uiViewController.currentState(state: .muteVideo)
             }
+            context.coordinator.previousMuteVideoID = muteVideoID
         }
         
-        if self.resumeVideo {
+        if resumeVideoID != context.coordinator.previousResumeVideoID {
             Task {
                 await uiViewController.currentState(state: .resumeVideo)
             }
+            context.coordinator.previousResumeVideoID = resumeVideoID
         }
         
-        if self.muteAudio {
+        if muteAudioID != context.coordinator.previousMuteAudioID {
             Task {
                 await uiViewController.currentState(state: .muteAudio)
             }
+            context.coordinator.previousMuteAudioID = muteAudioID
         }
         
-        if self.resumeAudio {
+        if resumeAudioID != context.coordinator.previousResumeAudioID {
             Task {
                 await uiViewController.currentState(state: .resumeAudio)
             }
+            context.coordinator.previousResumeAudioID = resumeAudioID
         }
         
-        if self.cameraFront {
+        if cameraFrontID != context.coordinator.previousCameraFrontID {
             Task {
                 await uiViewController.currentState(state: .cameraFront)
             }
+            context.coordinator.previousCameraFrontID = cameraFrontID
         }
-        if self.cameraBack {
+        if cameraBackID != context.coordinator.previousCameraBackID {
             Task {
                 await uiViewController.currentState(state: .cameraBack)
             }
+            context.coordinator.previousCameraBackID = cameraBackID
         }
         
-        
-        //This is kinda wanky, updateUIViewController is firing several times, The SDK will prevent multiple ends on the same call, but we can improve this in the App also
-        if self.endCall {
-            if !call.hasEnded {
-                Task {
-                    await uiViewController.endCall()
-                    await uiViewController.currentState(state: .hasEnded)
-                }
-            } else {
-                //dismiss view
-                Task {
-                    await uiViewController.currentState(state: .hasEnded)
-                    await self.setServiceHasEnded()
-                }
-            }
-
-            self.isOutgoing = false
-        } else if call.hasEnded {
-            if !self.endCall {
-                Task {
-                    await uiViewController.endCall()
-                }
-            }
+        if closeClickID != context.coordinator.previousCloseClickID {
             Task {
+                await uiViewController.endCall()
                 await uiViewController.currentState(state: .hasEnded)
-                await self.setServiceHasEnded()
             }
             self.isOutgoing = false
+            context.coordinator.previousCloseClickID = closeClickID
         }
+        
         
         if self.pip {
             uiViewController.showPip(show: true)
@@ -167,6 +158,15 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     class Coordinator: NSObject, FCSDKCallDelegate {
         
         var parent: CommunicationViewControllerRepresentable
+        var previousCloseClickID: UUID? = nil
+        var previousCameraFrontID: UUID? = nil
+        var previousCameraBackID: UUID? = nil
+        var previousResumeAudioID: UUID? = nil
+        var previousMuteAudioID: UUID? = nil
+        var previousHoldID: UUID? = nil
+        var previousResumeID: UUID? = nil
+        var previousMuteVideoID: UUID? = nil
+        var previousResumeVideoID: UUID? = nil
         
         init(_ parent: CommunicationViewControllerRepresentable) {
             self.parent = parent

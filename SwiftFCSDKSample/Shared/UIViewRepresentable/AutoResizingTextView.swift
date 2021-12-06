@@ -33,17 +33,19 @@ struct AutoSizingTextView : UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UITextView, context: Context) {
-        DispatchQueue.main.async {
-            withAnimation {
-                self.height = uiView.contentSize.height
-            
-            if uiView.text.count > 0 {
-                let location = uiView.text.count - 1
-                let bottom = NSMakeRange(location, 1)
-                uiView.scrollRangeToVisible(bottom)
+        Task {
+            await MainActor.run {
+                withAnimation {
+                    self.height = uiView.contentSize.height
+                    
+                    if uiView.text.count > 0 {
+                        let location = uiView.text.count - 1
+                        let bottom = NSMakeRange(location, 1)
+                        uiView.scrollRangeToVisible(bottom)
+                    }
+                }
+                uiView.text = self.text
             }
-            }
-            uiView.text = self.text
         }
     }
     
@@ -55,9 +57,11 @@ struct AutoSizingTextView : UIViewRepresentable {
         }
         
         func textViewDidChange(_ textView: UITextView) {
-            DispatchQueue.main.async {
+            Task {
+                await MainActor.run {
                 self.parent.height = textView.contentSize.height
                 self.parent.text = textView.text
+                }
             }
         }
     }
