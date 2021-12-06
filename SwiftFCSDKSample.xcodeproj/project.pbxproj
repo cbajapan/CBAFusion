@@ -26,6 +26,7 @@
 		094EE30C26DCE212008C1637 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 094EE30B26DCE212008C1637 /* Preview Assets.xcassets */; };
 		094EE31626DCE212008C1637 /* SwiftFCSDKSampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31526DCE212008C1637 /* SwiftFCSDKSampleTests.swift */; };
 		094EE32026DCE212008C1637 /* SwiftFCSDKSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */; };
+		095C0D1C275D8D49000C3946 /* AEDTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095C0D1B275D8D49000C3946 /* AEDTopic.swift */; };
 		0987E8FF26FACE060036454C /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987E8FE26FACE060036454C /* FCSDKCall.swift */; };
 		09954BBF2744BED400B2DDCE /* ContactService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09954BBE2744BED400B2DDCE /* ContactService.swift */; };
 		099F54AF26E87873005500BF /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54AE26E87873005500BF /* PlayerView.swift */; };
@@ -120,6 +121,7 @@
 		094EE31B26DCE212008C1637 /* SwiftFCSDKSampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftFCSDKSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		094EE31F26DCE212008C1637 /* SwiftFCSDKSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftFCSDKSampleUITests.swift; sourceTree = "<group>"; };
 		094EE32D26DCE2A8008C1637 /* SwiftFCSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftFCSDKSample.entitlements; sourceTree = "<group>"; };
+		095C0D1B275D8D49000C3946 /* AEDTopic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AEDTopic.swift; sourceTree = "<group>"; };
 		0987E8FE26FACE060036454C /* FCSDKCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
 		09954BBE2744BED400B2DDCE /* ContactService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactService.swift; sourceTree = "<group>"; };
 		099F54AE26E87873005500BF /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
@@ -483,6 +485,7 @@
 			children = (
 				09B4A0A226DDAD1200B73ADA /* AED.swift */,
 				09D551B927584076002C8A34 /* Console.swift */,
+				095C0D1B275D8D49000C3946 /* AEDTopic.swift */,
 			);
 			path = AED;
 			sourceTree = "<group>";
@@ -673,6 +676,7 @@
 				094C314026E0497F007C6A35 /* Welcome.swift in Sources */,
 				09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */,
 				09E0DF4727335F8500377C75 /* DialPad.swift in Sources */,
+				095C0D1C275D8D49000C3946 /* AEDTopic.swift in Sources */,
 				09F318D326F019600069ED8D /* AppSettings.swift in Sources */,
 				09EDF6BB26DF88A900B34664 /* View+Extension.swift in Sources */,
 				09E3CE9226DE1F4E00249DD8 /* Keychain.swift in Sources */,
@@ -840,7 +844,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -862,6 +866,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -883,7 +888,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.0;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftFCSDKSample/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SwiftFCSDKSample/Info.plist;
@@ -905,6 +910,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.SwiftFCSDKSample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -922,7 +928,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -947,7 +953,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -971,7 +977,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -994,7 +1000,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

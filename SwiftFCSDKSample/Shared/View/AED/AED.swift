@@ -31,25 +31,7 @@ struct AED: View{
                     Section(header: Text("Connected Topics")) {
                         List {
                             ForEach(self.aedService.topicList, id: \.self) { topic in
-                                HStack{
-                                    Text(topic.name)
-                                    Spacer()
-                                    if self.isChecked {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(Color.green)
-                                    }
-                                }
-                                .onTapGesture {
-                                    Task {
-                                        await self.didTapTopic(topic)
-                                    }
-                                    if self.isChecked == true {
-                                        self.isChecked = false
-                                    } else {
-                                        self.isChecked = true
-                                    }
-                                }
-                                
+                                AEDTopic(topic: topic, console: self.$console)
                                 .swipeActions(edge: .trailing) {
                                     Button("Delete") {
                                         Task {
@@ -153,17 +135,18 @@ struct AED: View{
     }
     
     func disconnectOrDeleteTopic(_ topic: ACBTopic?, delete: Bool) async {
-        if self.topicName.count > 0 {
+        guard let topic = topic else {return}
+        if !topic.name.isEmpty {
             if self.aedService.currentTopic == topic {
                 self.aedService.currentTopic = nil
             }
             
-            if topic?.connected != nil {
-                topic?.disconnect(withDeleteFlag: delete)
+            if topic.connected {
+                topic.disconnect(withDeleteFlag: delete)
                 self.aedService.topicList.removeAll(where: { $0 == topic })
                 print(self.aedService.topicList)
                 await MainActor.run {
-                    let msg = "Topic \(topic?.name ?? "") disconnected."
+                    let msg = "Topic \(topic.name) disconnected."
                     self.aedService.consoleMessage = msg
                 }
             } else {
@@ -185,20 +168,8 @@ struct AED: View{
     }
     
     @MainActor
-    func didTapTopic(_ topic: ACBTopic) async {
-        if self.topicName.count > 0 {
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed?.createTopic(withName: topic.name, delegate: self.aedService)
-            let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
-            self.console += "\n\(msg)"
-        } else {
-            self.authenticationService.showErrorAlert = true
-            self.authenticationService.errorMessage = "Topic Name is empty"
-        }
-    }
-    
-    @MainActor
     func connectToTopic() async {
-        if self.topicName.count > 0 {
+        if !self.topicName.isEmpty{
             let expiry = Int(self.expiry) ?? 0
             self.aedService.currentTopic = self.authenticationService.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
             self.topicName = ""
@@ -211,7 +182,7 @@ struct AED: View{
     
     @MainActor
     func publishData() async {
-        if self.key.count > 0 && self.value.count > 0 {
+        if !self.key.isEmpty && !self.value.isEmpty {
             self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
             self.key = ""
             self.value = ""
@@ -223,7 +194,7 @@ struct AED: View{
     
     @MainActor
     func deleteData() async {
-        if self.key.count > 0 {
+        if !self.key.isEmpty {
             self.aedService.currentTopic?.deleteData(withKey: self.key)
             self.key = ""
             self.value = ""
@@ -235,7 +206,7 @@ struct AED: View{
     
     @MainActor
     func sendMessage() async {
-        if self.messageText.count > 0 {
+        if !self.messageText.isEmpty{
             self.aedService.currentTopic?.sendAedMessage(self.messageText)
             self.messageText = ""
         } else {
