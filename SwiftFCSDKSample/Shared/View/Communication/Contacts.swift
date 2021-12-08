@@ -27,6 +27,7 @@ struct Contacts: View {
     @EnvironmentObject var monitor: NetworkMonitor
     @EnvironmentObject var contact: ContactService
     @EnvironmentObject var callKitManager: CallKitManager
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationView {
@@ -55,6 +56,7 @@ struct Contacts: View {
                 }
                 .navigationTitle("Contacts")
             }
+            .background(colorScheme == .dark ? .black : Color(uiColor: .systemGray2))
                 if !self.authenticationService.connectedToSocket {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -68,11 +70,13 @@ struct Contacts: View {
                         self.contact.addSheet = true
                     } label: {
                         Image(systemName: "plus")
+                            .foregroundColor(.blue)
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         PushDetail(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$showCommunication), image: "phone.fill.arrow.up.right")
+                            .foregroundColor(.blue)
                     }
                 }
             })
@@ -82,9 +86,13 @@ struct Contacts: View {
         })
         .fullScreenCover(isPresented: self.$showCommunication, content: {
             Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
+                .environmentObject(authenticationService)
+                .environmentObject(callKitManager)
+                .environmentObject(fcsdkCallService)
         })
         .sheet(isPresented: self.$contact.addSheet, content: {
-            AddContact().environmentObject(self.contact)
+            AddContact()
+                .environmentObject(self.contact)
         })
         .onChange(of: self.fcsdkCallService.presentCommunication) { newValue in
             self.showCommunication = newValue

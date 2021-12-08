@@ -25,7 +25,7 @@ struct Console: View {
     
     var body: some View {
         GeometryReader { geometry in
-            VStack {
+            VStack(spacing: 0) {
                 HStack(alignment: .top) {
                     Form {
                         Section(header: Text("Data")) {
@@ -38,8 +38,6 @@ struct Console: View {
                             } label: {
                                 Text("Publish")
                             }
-                            
-                            
                             Button {
                                 Task {
                                     await self.deleteData()
@@ -61,18 +59,24 @@ struct Console: View {
                     }
                     Spacer()
                         .frame(width: geometry.size.width / 2, alignment: .topLeading)
-                }.frame(height: geometry.size.height / 2)
+                }
+                .background(colorScheme == .dark ? Color(uiColor: .systemBackground) : Color(uiColor: .secondarySystemBackground))
+                .frame(height: geometry.size.height / 2)
                 Divider()
-                VStack(alignment: .leading) {
-                    Text("Console").foregroundColor(.gray)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Console")
+                        .foregroundColor(.gray)
+                        .background(Color.black)
                         .padding()
                     AutoSizingTextView(text: self.$console, height: self.$messageHeight, placeholder: self.$placeholder)
                         .padding()
-                        .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
-                        .background(colorScheme == .dark ? Color.black : Color.white)
+                        .foregroundColor(Color.white)
+                        .background(Color.black)
+//                        .background(colorScheme == .dark ? Color.black : Color.white)
                         .font(.body)
                 }
-            } .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
+                .background(Color.black)
+            }
         }
         .onAppear {
             Task {

@@ -112,12 +112,13 @@ struct ContentView: View {
                                         Spacer()
                                     })
                                 }
+                                                    .padding(.top, 12)
+                                                    .padding(.bottom, 12)
                             }
                         }
+                        
                     }
-                    
-                    .padding(.top, 12)
-                    .padding(.bottom, 12)
+                    .background(Color(uiColor: .systemGray6))
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
                     .edgesIgnoringSafeArea(.all)
                     .sheet(isPresented: self.$showSubscriptionsSheet) {

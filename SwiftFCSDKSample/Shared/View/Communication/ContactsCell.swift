@@ -11,6 +11,7 @@ struct ContactsCell: View {
     
     @State var contact: ContactModel
     @State private var isChecked: Bool = false
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack {
@@ -28,9 +29,11 @@ struct ContactsCell: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(contact.username)
                     .fontWeight(.bold)
+                    .foregroundColor(.white)
                 Text(contact.number)
                     .fontWeight(.light)
                     .padding(.leading, 10)
+                    .foregroundColor(.white)
             }
         }
     }

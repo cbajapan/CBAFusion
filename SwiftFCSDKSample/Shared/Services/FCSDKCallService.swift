@@ -72,7 +72,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.fcsdkCall?.call = outboundCall
         await MainActor.run {
             self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-            //        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+//                    self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
             self.fcsdkCall?.call?.enableLocalAudio(true)
             self.fcsdkCall?.call?.enableLocalVideo(true)
         }
@@ -89,7 +89,7 @@ class FCSDKCallService: NSObject, ObservableObject {
             self.hasConnected = true
             self.connectDate = Date()
             self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-            //        self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+//                    self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
             guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
             guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
             try? uc.phone.setPreviewView(view)

@@ -28,6 +28,8 @@ struct AutoSizingTextView : UIViewRepresentable {
         view.isScrollEnabled = true
         view.text = self.placeholder
         view.font = .systemFont(ofSize: 14, weight: .regular)
+        view.backgroundColor = .black
+        view.textColor = .white
         view.delegate = context.coordinator
         return view
     }

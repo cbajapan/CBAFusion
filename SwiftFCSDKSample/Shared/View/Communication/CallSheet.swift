@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CallSheet: View {
     
-    //    @Binding var showSheet: Bool = false
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var isOutgoing: Bool

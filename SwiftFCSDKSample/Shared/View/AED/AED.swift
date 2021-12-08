@@ -27,7 +27,7 @@ struct AED: View{
         GeometryReader { geometry in
             NavigationView  {
                 Form {
-                    Section(header: Text("Connected Topics")) {
+                    Section(header: Text("Connected Topics").foregroundColor(colorScheme == .dark ? .gray : .white)) {
                         List {
                             ForEach(self.aedService.topicList, id: \.self) { topic in
                                 AEDTopic(topic: topic, console: self.$console)
@@ -50,9 +50,9 @@ struct AED: View{
                             }
                         }
                     }
-                    Section(header: Text("Topic")) {
-                        TextField("Topic Name", text: $topicName)
-                        TextField("Expiry", text: $expiry)
+                    Section(header: Text("Topic").foregroundColor(colorScheme == .dark ? .gray : .white)) {
+                        TextField("Topic Name", text: $topicName).foregroundColor(.white)
+                        TextField("Expiry", text: $expiry).foregroundColor(.white)
                             .keyboardType(.numberPad)
                     }
                     if UIDevice.current.userInterfaceIdiom == .phone {
@@ -74,8 +74,8 @@ struct AED: View{
                         } label: {
                             Text("Publish")
                         }
-                        
-                        
+
+
                         Button {
                             Task {
                                 await self.deleteData()
@@ -84,7 +84,7 @@ struct AED: View{
                             Text("Delete")
                         }
                     }
-                    
+
                     Section(header: Text("Message")) {
                         TextField("Your message", text: $messageText)
                         Button {
@@ -95,9 +95,8 @@ struct AED: View{
                             Text("Send")
                         }
                     }
-                    }
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        Section(header: Text("Console")) {
+                        Section(header: Text("Console")
+                                    .background(Color.black)) {
                             AutoSizingTextView(text: self.$console, height: self.$messageHeight, placeholder: self.$placeholder)
                                 .frame(width: geometry.size.width - 80, height: self.messageHeight < 350 ? self.messageHeight : 350)
                                 .font(.body)
@@ -106,7 +105,7 @@ struct AED: View{
                                 .background(colorScheme == .dark ? Color.black : Color.white)
                                 .listRowBackground(colorScheme == .dark ? Color.black : Color.white)
                         }
-
+                        .background(Color.black)
                     } else {
                         NavigationLink(destination: Console(topicName: self.$topicName, expiry: self.$expiry)) {
                             Text("Connect")
@@ -114,6 +113,7 @@ struct AED: View{
                         }
                     }
                 }
+                .background(colorScheme == .dark ? .black : Color(uiColor: .systemGray2))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar(content: {
                     ToolbarItem(placement: .principal, content: {
@@ -128,7 +128,8 @@ struct AED: View{
                     self.authenticationService.showErrorAlert = false
                 }
             })
-        }.onTapGesture {
+        }
+        .onTapGesture(count: 2) {
             hideKeyboard()
         }
     }

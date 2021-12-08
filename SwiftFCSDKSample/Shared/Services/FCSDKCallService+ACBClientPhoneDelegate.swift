@@ -11,21 +11,7 @@ import FCSDKiOS
 import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
-    
-    
-    func configureAudioSession() {
-        // See https://forums.developer.apple.com/thread/64544
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(AVAudioSession.Category.playAndRecord, mode: .default)
-            try session.setActive(true)
-            try session.setMode(AVAudioSession.Mode.voiceChat)
-            try session.setPreferredSampleRate(44100.0)
-            try session.setPreferredIOBufferDuration(0.005)
-        } catch {
-            print(error)
-        }
-    }
+
     
     //Receive calls with ACBClientSDK
     func phoneDidReceive(_ phone: ACBClientPhone?, call: ACBClientCall?) {

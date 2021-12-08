@@ -14,7 +14,6 @@
 		090F31652710577B00F1D247 /* NSUserActivity+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31642710577B00F1D247 /* NSUserActivity+Extension.swift */; };
 		090F31672710579500F1D247 /* StartCallConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F31662710579500F1D247 /* StartCallConvertible.swift */; };
 		090F3169271057B700F1D247 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090F3168271057B700F1D247 /* URL+Extension.swift */; };
-		091F6B4327426CD5001F6F11 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 091F6B4227426CD5001F6F11 /* FCSDKiOS */; };
 		0929FFCA2754D05C002DF9B3 /* AEDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0929FFC92754D05C002DF9B3 /* AEDService.swift */; };
 		094C313B26E03658007C6A35 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313A26E03658007C6A35 /* Contacts.swift */; };
 		094C313E26E03729007C6A35 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C313D26E03729007C6A35 /* ContactsCell.swift */; };
@@ -33,7 +32,7 @@
 		099F54B126E878AD005500BF /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */; };
 		099F54B326E88239005500BF /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B226E88239005500BF /* CallKitManager.swift */; };
 		099F54B526E88AAB005500BF /* CallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099F54B426E88AAB005500BF /* CallSheet.swift */; };
-		09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09AD366F274E61DE000C4355 /* FCSDKiOS */; };
+		09A2FE9F275E2F2200B6D873 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09A2FE9E275E2F2200B6D873 /* FCSDKiOS */; };
 		09B4A0A126DDAD0700B73ADA /* Communication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A026DDAD0700B73ADA /* Communication.swift */; };
 		09B4A0A326DDAD1200B73ADA /* AED.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A226DDAD1200B73ADA /* AED.swift */; };
 		09B4A0A726DDAD3400B73ADA /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B4A0A626DDAD3400B73ADA /* Authentication.swift */; };
@@ -128,6 +127,7 @@
 		099F54B026E878AD005500BF /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
 		099F54B226E88239005500BF /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
 		099F54B426E88AAB005500BF /* CallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallSheet.swift; sourceTree = "<group>"; };
+		09A2FE9D275E2F1400B6D873 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		09B4A0A026DDAD0700B73ADA /* Communication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Communication.swift; sourceTree = "<group>"; };
 		09B4A0A226DDAD1200B73ADA /* AED.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AED.swift; sourceTree = "<group>"; };
 		09B4A0A626DDAD3400B73ADA /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
@@ -154,7 +154,6 @@
 		09E3CE9C26DE52AC00249DD8 /* LoginResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginResponse.swift; sourceTree = "<group>"; };
 		09E3CE9E26DE52BF00249DD8 /* LoginRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequest.swift; sourceTree = "<group>"; };
 		09E3CEA026DEF2C200249DD8 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		09EDD843274B2FD400C70038 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		09EDF6AE26DF3F4100B34664 /* Communication+ViewControllerRepresenable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Communication+ViewControllerRepresenable.swift"; sourceTree = "<group>"; };
 		09EDF6B126DF404700B34664 /* CommunicationViewConroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationViewConroller.swift; sourceTree = "<group>"; };
 		09EDF6B826DF83F400B34664 /* AutoResizingTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoResizingTextView.swift; sourceTree = "<group>"; };
@@ -167,7 +166,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09AD3670274E61DE000C4355 /* FCSDKiOS in Frameworks */,
+				09A2FE9F275E2F2200B6D873 /* FCSDKiOS in Frameworks */,
 				09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -176,7 +175,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				091F6B4327426CD5001F6F11 /* FCSDKiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,7 +234,7 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
-				09EDD843274B2FD400C70038 /* swift-fcsdk */,
+				09A2FE9D275E2F1400B6D873 /* swift-fcsdk */,
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				094EE33926DCE5AA008C1637 /* SwiftFCSDKSample */,
@@ -509,7 +507,7 @@
 			name = SwiftFCSDKSample;
 			packageProductDependencies = (
 				09E0E0032743C7A900505F86 /* FluentSQLiteDriver */,
-				09AD366F274E61DE000C4355 /* FCSDKiOS */,
+				09A2FE9E275E2F2200B6D873 /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* SwiftFCSDKSample.app */;
@@ -530,7 +528,6 @@
 			);
 			name = SwiftFCSDKSampleTests;
 			packageProductDependencies = (
-				091F6B4227426CD5001F6F11 /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSampleTests;
 			productReference = 094EE31126DCE212008C1637 /* SwiftFCSDKSampleTests.xctest */;
@@ -1076,11 +1073,7 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		091F6B4227426CD5001F6F11 /* FCSDKiOS */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FCSDKiOS;
-		};
-		09AD366F274E61DE000C4355 /* FCSDKiOS */ = {
+		09A2FE9E275E2F2200B6D873 /* FCSDKiOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FCSDKiOS;
 		};
