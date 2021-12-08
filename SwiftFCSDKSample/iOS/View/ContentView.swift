@@ -8,12 +8,6 @@
 import SwiftUI
 import NIO
 
-extension AnyTransition {
-    static var moveAndFade: AnyTransition {
-        AnyTransition.slide
-    }
-}
-
 struct ContentView: View {
     
     @EnvironmentObject private var authenticationService: AuthenticationService
@@ -36,8 +30,6 @@ struct ContentView: View {
                         } else {
                             if self.animateCommunication {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                                    .animation(.easeInOut(duration: 1), value: 1)
-                                    .transition(.moveAndFade)
                             }
                         }
                     } else if currentTabIndex == 1 {
@@ -46,11 +38,10 @@ struct ContentView: View {
                         } else {
                             if self.animateAED {
                                 Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                                    .animation(.easeInOut(duration: 1), value: 1)
-                                    .transition(.moveAndFade)
                             }
                         }
                     } else {
+                        Spacer()
                         EmptyView()
                     }
                     Divider()
@@ -112,8 +103,8 @@ struct ContentView: View {
                                         Spacer()
                                     })
                                 }
-                                                    .padding(.top, 12)
-                                                    .padding(.bottom, 12)
+                                .padding(.top, 12)
+                                .padding(.bottom, 12)
                             }
                         }
                         

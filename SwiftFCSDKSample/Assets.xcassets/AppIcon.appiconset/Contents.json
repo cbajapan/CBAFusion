@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Icon-Spotlight-40.png",
+      "filename" : "Icon-Spotlight-41.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
@@ -67,7 +67,7 @@
       "size" : "60x60"
     },
     {
-      "filename" : "icon-20.png",
+      "filename" : "20.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "20x20"
@@ -91,7 +91,7 @@
       "size" : "29x29"
     },
     {
-      "filename" : "Icon-Spotlight-41.png",
+      "filename" : "Icon-Spotlight-40.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "40x40"
@@ -121,7 +121,7 @@
       "size" : "83.5x83.5"
     },
     {
-      "filename" : "CBA1024x1024.png",
+      "filename" : "1024.png",
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
