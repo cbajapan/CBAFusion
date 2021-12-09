@@ -1,0 +1,53 @@
+//
+//  CallSheet.swift
+//  CBAFusion
+//
+//  Created by Cole M on 9/8/21.
+//
+
+import SwiftUI
+
+struct CallSheet: View {
+    
+    @Binding var destination: String
+    @Binding var hasVideo: Bool
+    @Binding var isOutgoing: Bool
+    @Binding var showCommunication: Bool
+    @Environment(\.presentationMode) private var presentationMode
+    @EnvironmentObject var authenticationService: AuthenticationService
+    @EnvironmentObject var callKitManager: CallKitManager
+    @EnvironmentObject var fcsdkCallService: FCSDKCallService
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack {
+                    HStack(alignment: .bottom) {
+                        Text("End Point:")
+                        TextField("Destination...", text: self.$destination)
+                    }
+                    Toggle("Want Video?", isOn: self.$hasVideo)
+                }
+                .padding()
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .navigationBarTitle("Let's Talk")
+        .navigationBarItems(leading:
+                                Button(action: {
+            self.presentationMode.wrappedValue.dismiss()
+        }, label: {
+            Text("Cancel")
+                .foregroundColor(Color.red)
+        }
+                                      ), trailing:
+                                Button(action: {
+            self.isOutgoing = true
+            self.showCommunication = true
+            self.presentationMode.wrappedValue.dismiss()
+        }, label: {
+            Text("Connect")
+                .foregroundColor(Color.blue)
+        }))
+    }
+}

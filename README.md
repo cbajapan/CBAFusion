@@ -1,4 +1,4 @@
-# SwiftFCSDKSample
+# CBAFusion
 
 ## This example is a beta version. It only contains partial functionality and only some features. 
 
