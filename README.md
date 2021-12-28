@@ -1,5 +1,5 @@
 # CBAFusion
-![CBALogo](CBAFusion/Assets.xcassets/cbaLogo.imageset/Asset 5.png)
+[CBALogo](cbaLogo.png)
 ## This example is a release candidate. 
 
 
