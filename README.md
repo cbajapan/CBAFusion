@@ -1,5 +1,5 @@
 # CBAFusion
-[CBALogo](cbaLogo.png)
+![CBALogo](cbaLogo.png)
 ## This example is a release candidate. 
 
 
