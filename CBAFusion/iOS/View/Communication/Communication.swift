@@ -54,6 +54,11 @@ struct Communication: View {
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     
+    @AppStorage("RateOption") var rate = ""
+    @AppStorage("ResolutionOption") var res = ""
+    @AppStorage("AudioOption") var audio = ""
+
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -65,7 +70,6 @@ struct Communication: View {
                     muteVideo: self.$muteVideo,
                     muteAudio: self.$muteAudio,
                     hold: self.$hold,
-                    acbuc: self.$authenticationServices.acbuc,
                     isOutgoing: self.$isOutgoing,
                     fcsdkCall: self.$fcsdkCallService.fcsdkCall,
                     closeClickID: self.$closeClickedID,
@@ -121,6 +125,7 @@ struct Communication: View {
                     }
                     Spacer()
                     HStack(alignment: .center) {
+                        if self.fcsdkCallService.hasConnected || self.isOutgoing {
                         Spacer()
                         //                        Button {
                         //                            self.pip.toggle()
@@ -238,6 +243,7 @@ struct Communication: View {
                             }
                         }
                         Spacer()
+                        }
                     }
                 }
             }
@@ -248,17 +254,16 @@ struct Communication: View {
         .onAppear {
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
+            self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.rate) ?? .fro20)
+            self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.res) ?? .auto)
+            self.fcsdkCallService.selectAudio(audio: AudioOptions(rawValue: self.audio) ?? .speaker)
         }
         .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
             if newValue {
                 self.presentationMode.wrappedValue.dismiss()
-            }
-        }
-        .onChange(of: self.fcsdkCallService.hasEnded, perform: { newValue in
-            if newValue == true {
                 self.closeClickedID = UUID()
             }
-        })
+        }
         .onDisappear(perform: {
             self.fcsdkCallService.presentCommunication = false
             self.fcsdkCallService.hasEnded = false
@@ -266,7 +271,7 @@ struct Communication: View {
             self.callKitManager.calls.removeAll()
         })
         .sheet(isPresented: self.$showSettings, content: {
-            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: 0)
+            SettingsSheet()
         })
         .sheet(isPresented: self.$fcsdkCallService.showDTMFSheet) {
             if self.fcsdkCallService.showDTMFSheet {

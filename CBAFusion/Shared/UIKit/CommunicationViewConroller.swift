@@ -11,27 +11,29 @@ import FCSDKiOS
 import AVKit
 
 
-enum CallState {
-    case setup
-    case hasStartedConnecting
-    case isRinging
-    case hasConnected
-    case isOutgoing
-    case hasEnded
-    case cameraFront
-    case cameraBack
-    case hold
-    case resume
-    case muteAudio
-    case resumeAudio
-    case muteVideo
-    case resumeVideo
-    
-    
-}
+
 
 
 class CommunicationViewController: AVPictureInPictureVideoCallViewController {
+    
+    enum CallState {
+        case setup
+        case hasStartedConnecting
+        case isRinging
+        case hasConnected
+        case isOutgoing
+        case hasEnded
+        case cameraFront
+        case cameraBack
+        case hold
+        case resume
+        case muteAudio
+        case resumeAudio
+        case muteVideo
+        case resumeVideo
+        
+        
+    }
     
     weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
@@ -54,6 +56,9 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     var hasVideo: Bool
     var isOutgoing: Bool
     var authenticationService: AuthenticationService?
+    let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
+    var blurEffectView: UIVisualEffectView?
+    
     
     init(
         callKitManager: CallKitManager,
@@ -82,22 +87,21 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         super.viewDidLoad()
         preferredContentSize = CGSize(width: 1080, height: 1920)
         Task {
-            await self.configureVideo()
-            if self.isOutgoing {
-                await self.initiateCall()
+            if self.authenticationService?.connectedToSocket != nil {
+                await self.configureVideo()
+                if self.isOutgoing {
+                    await self.initiateCall()
+                } else {
+                    await self.fcsdkCallDelegate?.passViewsToService(preview: self.previewView, remoteView: self.remoteView)
+                }
             } else {
-                await self.fcsdkCallDelegate?.passViewsToService(preview: self.previewView, remoteView: self.remoteView)
+                print("Not Connected to Server")
             }
-            
-            guard let rate = FrameRateOptions(rawValue: UserDefaults.standard.string(forKey: "RateOption") ?? "") else { return }
-            guard let res = ResolutionOptions(rawValue: UserDefaults.standard.string(forKey: "ResolutionOption") ?? "") else { return }
-            guard let audio = AudioOptions(rawValue: UserDefaults.standard.string(forKey: "AudioOption") ?? "") else { return }
-            self.authenticationService?.selectFramerate(rate: rate)
-            self.authenticationService?.selectResolution(res: res)
-            self.authenticationService?.selectAudio(audio: audio)
         }
         self.gestures()
     }
+    
+    
     
     @MainActor
     func currentState(state: CallState) async {
@@ -144,8 +148,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         await self.callKitManager.initializeCall(fcsdkCall)
     }
     
-    func endCall() async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
+    func endCall() async throws {
+        guard let currentCall = self.callKitManager.calls.last else { throw OurErrors.noCallKitCall }
         await self.callKitManager.finishEnd(call: currentCall)
     }
     
@@ -183,7 +187,9 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.stackView.addArrangedSubview(self.numberLabel)
         self.stackView.addArrangedSubview(self.nameLabel)
         self.stackView.axis = .vertical
-        self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, paddingTop: 50, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
+        self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, topPadding: 50, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
+        }
     }
     
     @MainActor
@@ -210,15 +216,15 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
         //        self.remoteView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        if UIApplication.shared.applicationState != .background {
+        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
             //We can change width and height as we wish
-            self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+            self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
             
             if UIDevice.current.userInterfaceIdiom == .phone {
-                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 110, paddingRight: 20, width: 150, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 150, height: 200)
                 
             } else {
-                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 110, paddingRight: 20, width: 250, height: 200)
+                self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 250, height: 200)
             }
             
             //Not needed for video display just some custom UI Stuff
@@ -247,13 +253,26 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     func onHoldView() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.hold()
-        await breakDownView()
     }
-    
+
     func removeOnHold() async {
         guard let currentCall = self.callKitManager.calls.last else { return }
         currentCall.call?.resume()
-        await setupUI()
+    }
+    
+    func blurView() async {
+        await MainActor.run {
+           self.blurEffectView = UIVisualEffectView(effect: self.blurEffect)
+           self.blurEffectView?.frame = self.view.bounds
+           self.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+           self.view.addSubview(self.blurEffectView!)
+        }
+    }
+    
+    func removeBlurView() async {
+        await MainActor.run {
+            self.blurEffectView?.removeFromSuperview()
+        }
     }
     
     @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) {
@@ -294,8 +313,6 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     func configureResolutionOptions() throws {
         _ = self.acbuc.phone.recommendedCaptureSettings()
     }
-    
-    
     
     
     func configureFramerateOptions() throws {

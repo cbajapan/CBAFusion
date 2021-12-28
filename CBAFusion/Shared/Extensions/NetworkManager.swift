@@ -31,8 +31,8 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         headerValue: String = ""
     ) async throws -> (Data, URLResponse) {
         
-        let url = URL(string: urlString)
-        var request = URLRequest(url: url!)
+        guard let url = URL(string: urlString) else { throw OurErrors.nilURL }
+        var request = URLRequest(url: url)
         request.httpMethod = httpMethod
         
         if httpMethod == "POST" || httpMethod == "PUT" {
@@ -61,10 +61,10 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         httpBody: Data? = nil,
         headerField: String = "",
         headerValue: String = ""
-    ) async throws {
+    ) async throws -> URLResponse {
         
-        let url = URL(string: urlString)
-        var request = URLRequest(url: url!)
+        guard let url = URL(string: urlString) else { throw OurErrors.nilURL }
+        var request = URLRequest(url: url)
         request.httpMethod = httpMethod
         
         if httpMethod == "POST" || httpMethod == "PUT" {
@@ -90,6 +90,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
 #if DEBUG
         print("Response_______", response)
 #endif
+        return response
     }
     
     

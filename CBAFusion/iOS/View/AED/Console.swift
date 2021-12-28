@@ -72,7 +72,6 @@ struct Console: View {
                         .padding()
                         .foregroundColor(Color.white)
                         .background(Color.black)
-//                        .background(colorScheme == .dark ? Color.black : Color.white)
                         .font(.body)
                 }
                 .background(Color.black)
@@ -84,7 +83,6 @@ struct Console: View {
             }
         }
         .onChange(of: self.aedService.consoleMessage) { newValue in
-            print(newValue, "New Value")
             self.console += "\n\(newValue)"
         }
     }

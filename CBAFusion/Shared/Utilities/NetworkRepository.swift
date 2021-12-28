@@ -19,14 +19,10 @@ class NetworkRepository: NSObject {
         return try await NetworkManager.shared.asyncCodableNetworkWrapper(type: LoginResponse.self, urlString: url, httpMethod: "POST", httpBody: body)
     }
     
-    func asyncLogout(logoutReq: Login, sessionid: String) async {
+    func asyncLogout(logoutReq: Login, sessionid: String) async throws -> URLResponse {
         let scheme = logoutReq.secureSwitch ? "https" : "http"
         let url = "\(scheme)://\(logoutReq.server):\(logoutReq.port)/csdk-sample/SDK/login/id/\(sessionid)"
-        do {
-            try await NetworkManager.shared.asyncNetworkWrapper(urlString: url, httpMethod: "DELETE")
-        } catch {
-            print(error)
-        }
+           return try await NetworkManager.shared.asyncNetworkWrapper(urlString: url, httpMethod: "DELETE")
     }
     
     enum Errors: Swift.Error {

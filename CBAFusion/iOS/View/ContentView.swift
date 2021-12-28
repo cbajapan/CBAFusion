@@ -15,9 +15,6 @@ struct ContentView: View {
     @EnvironmentObject private var contactService: ContactService
     @EnvironmentObject private var monitor: NetworkMonitor
     @Environment(\.colorScheme) var colorScheme
-    @State var selectedParentIndex: Int = 0
-    @State var showSubscriptionsSheet = false
-    @State var currentTabIndex = 0
     @State var animateCommunication = false
     @State var animateAED = false
     
@@ -26,25 +23,18 @@ struct ContentView: View {
             ZStack {
                 Spacer()
                 VStack(spacing: 0) {
-                    if currentTabIndex == 0 {
-                        if self.authenticationService.sessionID != "" {
-                            Contacts()
-                        } else {
-                            if self.animateCommunication {
-                                Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                            }
-                        }
-                    } else if currentTabIndex == 1 {
-                        if self.authenticationService.sessionID != "" {
+                    if self.authenticationService.sessionID != "" {
+                        if self.authenticationService.currentTabIndex == 1 {
                             AED()
                         } else {
-                            if self.animateAED {
-                                Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
-                            }
+                            Contacts()
                         }
                     } else {
-                        Spacer()
-                        EmptyView()
+                        if self.animateCommunication {
+                            Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
+                        } else {
+                            Welcome(animateCommunication: self.$animateCommunication, animateAED: self.$animateAED)
+                        }
                     }
                     Divider()
                     ZStack{
@@ -54,52 +44,52 @@ struct ContentView: View {
                                     Button(action: {
                                         if num == 0 {
                                             print("Num == \(num)")
-                                            self.selectedParentIndex = num
-                                            self.currentTabIndex = num
+                                            self.authenticationService.selectedParentIndex = num
+                                            self.authenticationService.currentTabIndex = num
                                             self.animateCommunication = true
                                             self.animateAED = false
                                         } else if num == 1 {
                                             print("Num == \(num)")
-                                            self.selectedParentIndex = num
-                                            self.currentTabIndex = num
+                                            self.authenticationService.selectedParentIndex = num
+                                            self.authenticationService.currentTabIndex = num
                                             self.animateCommunication = false
                                             self.animateAED = true
                                         } else if num == 2 {
                                             print("Num == \(num)")
-                                            self.showSubscriptionsSheet.toggle()
+                                            self.authenticationService.showSettingsSheet = true
                                         }
-                                        print("currentTabIndex == \(currentTabIndex)")
+                                        print("currentTabIndex == \(self.authenticationService.currentTabIndex)")
                                     }, label: {
                                         Spacer()
                                         if num == 0 {
                                             VStack {
                                                 Image(systemName: "video.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
                                                 Text("Communication")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         } else if num == 1 {
                                             VStack {
                                                 Image(systemName: "plus.message.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: .center)
                                                 Text("AED")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         } else if num == 2 {
                                             VStack {
                                                 Image(systemName: "person.fill")
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                                     .font(.system(size: 30))
                                                     .frame(width: 30, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                                                Text(self.authenticationService.sessionID != "" ? "Session" : "Authenticate")
+                                                Text(self.authenticationService.sessionID != "" ? "Settings" : "Authenticate")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
+                                                    .foregroundColor(self.authenticationService.currentTabIndex == num ? .blue : colorScheme == .dark ? .white : .gray)
                                             }
                                         }
                                         Spacer()
@@ -114,18 +104,20 @@ struct ContentView: View {
                     .background(Color(uiColor: .systemGray6))
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
                     .edgesIgnoringSafeArea(.all)
-                    .sheet(isPresented: self.$showSubscriptionsSheet) {
+                    .sheet(isPresented: self.$authenticationService.showSettingsSheet) {
                         if self.authenticationService.sessionID != "" {
-                            SettingsSheet(currentTabIndex: self.$currentTabIndex, parentTabIndex: self.selectedParentIndex)
+                            SettingsSheet()
                                 .environmentObject(authenticationService)
                                 .environmentObject(fcsdkCallService)
                         } else {
-                            Authentication(currentTabIndex: self.$currentTabIndex, showSubscriptionsSheet: self.$showSubscriptionsSheet, parentTabIndex: self.selectedParentIndex)
+                            Authentication()
                                 .environmentObject(authenticationService)
                                 .environmentObject(monitor)
                         }
                     }
                     .onAppear {
+                        self.authenticationService.currentTabIndex = 0
+                        self.authenticationService.selectedParentIndex = 0
                         Task {
                             let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
                             let store = try await SQLiteStore.create(on: eventLoop)
@@ -133,12 +125,10 @@ struct ContentView: View {
                             try? await contactService.fetchContacts()
                         }
                         if self.authenticationService.sessionID != "" {
-                            
                         } else {
-                            self.currentTabIndex = 0
                             self.animateCommunication = true
                             self.animateAED = false
-                            self.showSubscriptionsSheet.toggle()
+                            self.authenticationService.showSettingsSheet = true
                         }
                     }
                 }.edgesIgnoringSafeArea(.bottom)

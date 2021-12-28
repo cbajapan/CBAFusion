@@ -18,7 +18,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var muteVideo: Bool
     @Binding var muteAudio: Bool
     @Binding var hold: Bool
-    @Binding var acbuc: ACBUC?
     @Binding var isOutgoing: Bool
     @Binding var fcsdkCall: FCSDKCall?
     @Binding var closeClickID: UUID?
@@ -30,23 +29,26 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var resumeAudioID: UUID?
     @Binding var muteVideoID: UUID?
     @Binding var resumeVideoID: UUID?
-    
+    @State var blurView: Bool = false
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
-    
     @AppStorage("AutoAnswer") var autoAnswer = false
+
+
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
+      
         let communicationViewController = CommunicationViewController(
             callKitManager: self.callKitManager,
             destination: self.destination,
             hasVideo: self.hasVideo,
-            acbuc: self.acbuc!,
+            acbuc: self.authenticationService.acbuc!,
             isOutgoing: self.isOutgoing
         )
         communicationViewController.fcsdkCallDelegate = context.coordinator
         return communicationViewController
+
     }
     
     
@@ -54,17 +56,21 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                                 uiViewController: CommunicationViewController,
                                 context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>
     ) {
+
         //        uiViewController.showPip(show: self.pip)
         uiViewController.authenticationService = self.authenticationService
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
-        uiViewController.acbuc = self.acbuc!
+        uiViewController.acbuc = self.authenticationService.acbuc!
         let call = self.fcsdkCallService
-        
+      
         if call.hasStartedConnecting {
             Task {
                 await uiViewController.currentState(state: .hasStartedConnecting)
+                if self.isOutgoing {
+                    await self.fcsdkCallService.playOutgoingRingtone()
+                }
             }
         }
         
@@ -76,6 +82,9 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         if call.hasConnected {
             Task {
+                if self.isOutgoing {
+                await self.fcsdkCallService.stopOutgoingRingtone()
+                }
                 await uiViewController.currentState(state: .hasConnected)
             }
         }
@@ -83,13 +92,22 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         if holdID != context.coordinator.previousHoldID {
             Task {
                 await uiViewController.currentState(state: .hold)
+                blurView = true
             }
             context.coordinator.previousHoldID = holdID
+        }
+        
+        if blurView {
+            Task {
+                await uiViewController.blurView()
+            }
         }
         
         if resumeID != context.coordinator.previousResumeID {
             Task {
                 await uiViewController.currentState(state: .resume)
+                await uiViewController.removeBlurView()
+                blurView = false
             }
             context.coordinator.previousResumeID = resumeID
         }
@@ -137,8 +155,19 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         if closeClickID != context.coordinator.previousCloseClickID {
             Task {
-                await uiViewController.endCall()
-                await uiViewController.currentState(state: .hasEnded)
+                if autoAnswer || self.callKitManager.calls.last == nil {
+                    await self.fcsdkCallService.endFCSDKCall()
+                    await setServiceHasEnded()
+                    await self.callKitManager.removeAllCalls()
+                    await uiViewController.currentState(state: .hasEnded)
+                } else {
+                    try await uiViewController.endCall()
+                    await setServiceHasEnded()
+                    await uiViewController.currentState(state: .hasEnded)
+                }
+                if self.isOutgoing {
+                await self.fcsdkCallService.stopOutgoingRingtone()
+                }
             }
             self.isOutgoing = false
             context.coordinator.previousCloseClickID = closeClickID
@@ -179,9 +208,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         
         func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
+
             await self.parent.fcsdkCall?.previewView = preview
             await self.parent.fcsdkCall?.remoteView = remoteView
-            
+
             if await self.parent.autoAnswer {
                 do {
                     if await self.parent.fcsdkCall?.call != nil {
@@ -193,10 +223,11 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             }
         }
     }
-    
+    @MainActor
     func setServiceHasEnded() async {
         if !self.fcsdkCallService.hasEnded {
             self.fcsdkCallService.hasEnded = true
+            self.fcsdkCallService.connectDate = nil
         }
     }
     
@@ -218,4 +249,6 @@ enum OurErrors: String, Swift.Error {
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
     case nilDelegate = "The FCSDKStore delegate is nil"
+    case noCallKitCall = "There is not a CallKit Call in the Manager"
+    case nilURL = "The URL is nil for network calls"
 }

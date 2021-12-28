@@ -9,6 +9,7 @@ import Foundation
 
 public final class ContactModel: Hashable {
     
+    public let listID = UUID()
     public let id: UUID
     public let username: String
     public let number: String

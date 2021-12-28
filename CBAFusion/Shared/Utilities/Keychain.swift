@@ -129,15 +129,15 @@ struct KeychainItem {
     
     static func savePassword(password: String) {
         do {
-            try KeychainItem(service: "com.cba-japan.CBAFusion", account: "cba-japan").saveItem(password)
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").saveItem(password)
         } catch {
-            debugPrint("Unable to save data to keychain. \(error)")
+            print("Unable to save data to keychain. \(error)")
         }
     }
     
     static var getPassword: String {
         do {
-            let password = try KeychainItem(service: "com.cba-japan.CBAFusion", account: "cba-japan").readItem()
+            let password = try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").readItem()
             return password
         } catch {
             return ""
@@ -146,23 +146,23 @@ struct KeychainItem {
     
     static func deletePassword() {
         do {
-            try KeychainItem(service:  "com.cba-japan.CBAFusion", account: "cba-japan").deleteItem()
+            try KeychainItem(service:  Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
         } catch {
-            debugPrint("Unable to delete password from keychain")
+            print("Unable to delete password from keychain")
         }
     }
     
     static func saveSessionID(sessionid: String) {
         do {
-            try KeychainItem(service: "com.cba-japan.CBAFusion", account: "cba-japan-session").saveItem(sessionid)
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").saveItem(sessionid)
         } catch {
-            debugPrint("Unable to save data to keychain. \(error)")
+            print("Unable to save data to keychain. \(error)")
         }
     }
     
     static var getSessionID: String {
         do {
-            let session = try KeychainItem(service: "com.cba-japan.CBAFusion", account: "cba-japan-session").readItem()
+            let session = try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").readItem()
             return session
         } catch {
             return ""
@@ -171,9 +171,20 @@ struct KeychainItem {
     
     static func deleteSessionID() {
         do {
-            try KeychainItem(service:  "com.cba-japan.CBAFusion", account: "cba-japan-session").deleteItem()
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").deleteItem()
         } catch {
-            debugPrint("Unable to delete password from keychain")
+            print("Unable to delete password from keychain")
+        }
+    }
+    
+    static func deleteKeychainItems() {
+        do {
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").deleteItem()
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session").deleteItem()
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan").deleteItem()
+            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
+        } catch {
+            print("Unable to delete sessionID from keychain")
         }
     }
     

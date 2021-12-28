@@ -23,7 +23,6 @@
 		0921A5602761791E0069F324 /* CommunicationViewController+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51A2761791E0069F324 /* CommunicationViewController+Delegate.swift */; };
 		0921A5612761791E0069F324 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51C2761791E0069F324 /* NetworkManager.swift */; };
 		0921A5622761791E0069F324 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51D2761791E0069F324 /* View+Extension.swift */; };
-		0921A5632761791E0069F324 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51F2761791E0069F324 /* PlayerView.swift */; };
 		0921A5642761791E0069F324 /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5202761791E0069F324 /* CommunicationViewControllerDelegate.swift */; };
 		0921A5652761791E0069F324 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5222761791E0069F324 /* AppSettings.swift */; };
 		0921A5662761791E0069F324 /* NetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5232761791E0069F324 /* NetworkRepository.swift */; };
@@ -33,14 +32,12 @@
 		0921A56A2761791E0069F324 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5292761791E0069F324 /* Login.swift */; };
 		0921A56B2761791E0069F324 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52A2761791E0069F324 /* ContactModel.swift */; };
 		0921A56C2761791E0069F324 /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52B2761791E0069F324 /* FCSDKCall.swift */; };
-		0921A56D2761791E0069F324 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52D2761791E0069F324 /* Session.swift */; };
 		0921A56E2761791E0069F324 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52E2761791E0069F324 /* Authentication.swift */; };
 		0921A56F2761791E0069F324 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52F2761791E0069F324 /* Welcome.swift */; };
 		0921A5702761791E0069F324 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5312761791E0069F324 /* Console.swift */; };
 		0921A5712761791E0069F324 /* AEDTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5322761791E0069F324 /* AEDTopic.swift */; };
 		0921A5722761791E0069F324 /* AED.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5332761791E0069F324 /* AED.swift */; };
 		0921A5732761791E0069F324 /* AddContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5352761791E0069F324 /* AddContact.swift */; };
-		0921A5742761791E0069F324 /* ContactsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5362761791E0069F324 /* ContactsCell.swift */; };
 		0921A5752761791E0069F324 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5372761791E0069F324 /* SettingsSheet.swift */; };
 		0921A5762761791E0069F324 /* DialPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5382761791E0069F324 /* DialPad.swift */; };
 		0921A5772761791E0069F324 /* DTMFSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5392761791E0069F324 /* DTMFSheet.swift */; };
@@ -63,8 +60,8 @@
 		0921A5C7276185D90069F324 /* CBAFusionUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5C6276185D80069F324 /* CBAFusionUITestsLaunchTests.swift */; };
 		0921A5D4276185E20069F324 /* CBAFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5D3276185E20069F324 /* CBAFusionTests.swift */; };
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
-		09A2FE9F275E2F2200B6D873 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09A2FE9E275E2F2200B6D873 /* FCSDKiOS */; };
-		09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 09E0E0032743C7A900505F86 /* FluentSQLiteDriver */; };
+		097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 097BBFD2277593670024EC48 /* FluentSQLiteDriver */; };
+		09868E8A277B18F200EF8721 /* FCSDK-iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09868E89277B18F200EF8721 /* FCSDK-iOS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,7 +112,6 @@
 		0921A51A2761791E0069F324 /* CommunicationViewController+Delegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+Delegate.swift"; sourceTree = "<group>"; };
 		0921A51C2761791E0069F324 /* NetworkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		0921A51D2761791E0069F324 /* View+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
-		0921A51F2761791E0069F324 /* PlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		0921A5202761791E0069F324 /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
 		0921A5222761791E0069F324 /* AppSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		0921A5232761791E0069F324 /* NetworkRepository.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkRepository.swift; sourceTree = "<group>"; };
@@ -125,14 +121,12 @@
 		0921A5292761791E0069F324 /* Login.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		0921A52A2761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
 		0921A52B2761791E0069F324 /* FCSDKCall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
-		0921A52D2761791E0069F324 /* Session.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
 		0921A52E2761791E0069F324 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		0921A52F2761791E0069F324 /* Welcome.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
 		0921A5312761791E0069F324 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		0921A5322761791E0069F324 /* AEDTopic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AEDTopic.swift; sourceTree = "<group>"; };
 		0921A5332761791E0069F324 /* AED.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AED.swift; sourceTree = "<group>"; };
 		0921A5352761791E0069F324 /* AddContact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddContact.swift; sourceTree = "<group>"; };
-		0921A5362761791E0069F324 /* ContactsCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsCell.swift; sourceTree = "<group>"; };
 		0921A5372761791E0069F324 /* SettingsSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		0921A5382761791E0069F324 /* DialPad.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DialPad.swift; sourceTree = "<group>"; };
 		0921A5392761791E0069F324 /* DTMFSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DTMFSheet.swift; sourceTree = "<group>"; };
@@ -159,8 +153,8 @@
 		0921A5D3276185E20069F324 /* CBAFusionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBAFusionTests.swift; sourceTree = "<group>"; };
 		0921A5DA27618C650069F324 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		094E5FC2276AE00C00F37985 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		094EE30126DCE211008C1637 /* CBAFusion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CBAFusion.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		09A2FE9D275E2F1400B6D873 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,8 +176,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09A2FE9F275E2F2200B6D873 /* FCSDKiOS in Frameworks */,
-				09E0E0042743C7A900505F86 /* FluentSQLiteDriver in Frameworks */,
+				09868E8A277B18F200EF8721 /* FCSDK-iOS in Frameworks */,
+				097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,19 +219,19 @@
 		0921A5052761791E0069F324 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				0921A5062761791E0069F324 /* DTO */,
-				0921A50A2761791E0069F324 /* Response */,
 				0921A50C2761791E0069F324 /* UIViewRepresentable */,
 				0921A50E2761791E0069F324 /* CallController */,
 				0921A5172761791E0069F324 /* UIKit */,
-				0921A51B2761791E0069F324 /* Extensions */,
 				0921A51E2761791E0069F324 /* PiP */,
-				0921A5212761791E0069F324 /* Utilities */,
 				0921A5262761791E0069F324 /* UIViewControllerRespresentable */,
+				0921A5062761791E0069F324 /* DTO */,
+				0921A50A2761791E0069F324 /* Response */,
+				0921A53D2761791E0069F324 /* Request */,
 				0921A5282761791E0069F324 /* Model */,
 				0921A52C2761791E0069F324 /* View */,
-				0921A53D2761791E0069F324 /* Request */,
 				0921A53F2761791E0069F324 /* Services */,
+				0921A51B2761791E0069F324 /* Extensions */,
+				0921A5212761791E0069F324 /* Utilities */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -289,8 +283,8 @@
 			isa = PBXGroup;
 			children = (
 				0921A5142761791E0069F324 /* CallKitManager.swift */,
-				0921A5152761791E0069F324 /* ProviderDelegate+Calls.swift */,
 				0921A5162761791E0069F324 /* ProviderDelegate.swift */,
+				0921A5152761791E0069F324 /* ProviderDelegate+Calls.swift */,
 			);
 			path = CallKit;
 			sourceTree = "<group>";
@@ -317,7 +311,6 @@
 		0921A51E2761791E0069F324 /* PiP */ = {
 			isa = PBXGroup;
 			children = (
-				0921A51F2761791E0069F324 /* PlayerView.swift */,
 				0921A5202761791E0069F324 /* CommunicationViewControllerDelegate.swift */,
 			);
 			path = PiP;
@@ -355,11 +348,6 @@
 		0921A52C2761791E0069F324 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				0921A52D2761791E0069F324 /* Session.swift */,
-				0921A52E2761791E0069F324 /* Authentication.swift */,
-				0921A52F2761791E0069F324 /* Welcome.swift */,
-				0921A5302761791E0069F324 /* AED */,
-				0921A5342761791E0069F324 /* Communication */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -378,7 +366,6 @@
 			isa = PBXGroup;
 			children = (
 				0921A5352761791E0069F324 /* AddContact.swift */,
-				0921A5362761791E0069F324 /* ContactsCell.swift */,
 				0921A5372761791E0069F324 /* SettingsSheet.swift */,
 				0921A5382761791E0069F324 /* DialPad.swift */,
 				0921A5392761791E0069F324 /* DTMFSheet.swift */,
@@ -402,10 +389,10 @@
 			children = (
 				0921A5402761791E0069F324 /* ContactService.swift */,
 				0921A5412761791E0069F324 /* AEDService.swift */,
+				0921A5452761791E0069F324 /* FCSDKCallService.swift */,
 				0921A5422761791E0069F324 /* FCSDKCallService+ACBClientCallDelegate.swift */,
 				0921A5432761791E0069F324 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
 				0921A5442761791E0069F324 /* AuthenticationService.swift */,
-				0921A5452761791E0069F324 /* FCSDKCallService.swift */,
 				0921A5462761791E0069F324 /* Store */,
 			);
 			path = Services;
@@ -439,6 +426,10 @@
 			isa = PBXGroup;
 			children = (
 				0921A54C2761791E0069F324 /* ContentView.swift */,
+				0921A52E2761791E0069F324 /* Authentication.swift */,
+				0921A52F2761791E0069F324 /* Welcome.swift */,
+				0921A5302761791E0069F324 /* AED */,
+				0921A5342761791E0069F324 /* Communication */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -463,7 +454,6 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
-				09A2FE9D275E2F1400B6D873 /* swift-fcsdk */,
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				0921A4FC2761791E0069F324 /* CBAFusion */,
@@ -487,6 +477,7 @@
 		09E3CE9826DE278800249DD8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				094E5FC2276AE00C00F37985 /* CallKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -545,8 +536,8 @@
 			);
 			name = CBAFusion;
 			packageProductDependencies = (
-				09E0E0032743C7A900505F86 /* FluentSQLiteDriver */,
-				09A2FE9E275E2F2200B6D873 /* FCSDKiOS */,
+				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
+				09868E89277B18F200EF8721 /* FCSDK-iOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
@@ -585,7 +576,8 @@
 			);
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
-				09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
+				097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
+				09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -669,7 +661,6 @@
 				0921A5572761791E0069F324 /* AutoResizingTextView.swift in Sources */,
 				0921A5792761791E0069F324 /* Communication.swift in Sources */,
 				0921A57C2761791E0069F324 /* ContactService.swift in Sources */,
-				0921A5742761791E0069F324 /* ContactsCell.swift in Sources */,
 				0921A57E2761791E0069F324 /* FCSDKCallService+ACBClientCallDelegate.swift in Sources */,
 				0921A56B2761791E0069F324 /* ContactModel.swift in Sources */,
 				0921A5662761791E0069F324 /* NetworkRepository.swift in Sources */,
@@ -678,7 +669,6 @@
 				0921A5642761791E0069F324 /* CommunicationViewControllerDelegate.swift in Sources */,
 				0921A5592761791E0069F324 /* StartCallConvertible.swift in Sources */,
 				0921A56F2761791E0069F324 /* Welcome.swift in Sources */,
-				0921A5632761791E0069F324 /* PlayerView.swift in Sources */,
 				0921A56A2761791E0069F324 /* Login.swift in Sources */,
 				0921A57D2761791E0069F324 /* AEDService.swift in Sources */,
 				0921A57F2761791E0069F324 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */,
@@ -687,7 +677,6 @@
 				0921A5672761791E0069F324 /* Keychain.swift in Sources */,
 				0921A5802761791E0069F324 /* AuthenticationService.swift in Sources */,
 				0921A5762761791E0069F324 /* DialPad.swift in Sources */,
-				0921A56D2761791E0069F324 /* Session.swift in Sources */,
 				0921A5752761791E0069F324 /* SettingsSheet.swift in Sources */,
 				0921A56E2761791E0069F324 /* Authentication.swift in Sources */,
 				0921A5862761791E0069F324 /* AppDelegate.swift in Sources */,
@@ -720,7 +709,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -745,7 +736,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -771,7 +764,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -797,7 +792,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -947,7 +944,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -962,7 +959,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -970,7 +967,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -990,7 +987,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -1005,7 +1002,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeLeft;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1013,7 +1010,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1066,25 +1063,34 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
+		097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/vapor/fluent-sqlite.git";
+			repositoryURL = "https://github.com/vapor/fluent-sqlite";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.0.0;
 			};
 		};
+		09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cbajapan/fcsdk-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = "4.0.0-rc.1.1";
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		09A2FE9E275E2F2200B6D873 /* FCSDKiOS */ = {
+		097BBFD2277593670024EC48 /* FluentSQLiteDriver */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = FCSDKiOS;
-		};
-		09E0E0032743C7A900505F86 /* FluentSQLiteDriver */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 09E0E0022743C7A900505F86 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
+			package = 097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
+		};
+		09868E89277B18F200EF8721 /* FCSDK-iOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */;
+			productName = "FCSDK-iOS";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

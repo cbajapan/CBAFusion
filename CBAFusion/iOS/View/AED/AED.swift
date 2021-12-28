@@ -27,7 +27,8 @@ struct AED: View{
         GeometryReader { geometry in
             NavigationView  {
                 Form {
-                    Section(header: Text("Connected Topics").foregroundColor(colorScheme == .dark ? .gray : .white)) {
+                    Section(header: Text("Connected Topics")
+                                .foregroundColor(colorScheme == .dark ? .gray : .black)) {
                         List {
                             ForEach(self.aedService.topicList, id: \.self) { topic in
                                 AEDTopic(topic: topic, console: self.$console)
@@ -50,9 +51,12 @@ struct AED: View{
                             }
                         }
                     }
-                    Section(header: Text("Topic").foregroundColor(colorScheme == .dark ? .gray : .white)) {
-                        TextField("Topic Name", text: $topicName).foregroundColor(.white)
-                        TextField("Expiry", text: $expiry).foregroundColor(.white)
+                    Section(header: Text("Topic")
+                                .foregroundColor(colorScheme == .dark ? .gray : .black)) {
+                        TextField("Topic Name", text: $topicName)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
+                        TextField("Expiry", text: $expiry)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                             .keyboardType(.numberPad)
                     }
                     if UIDevice.current.userInterfaceIdiom == .phone {
@@ -96,14 +100,14 @@ struct AED: View{
                         }
                     }
                         Section(header: Text("Console")
-                                    .background(Color.black)) {
+                                    .background(colorScheme == .dark ? Color.black : Color(uiColor: .secondarySystemBackground))) {
                             AutoSizingTextView(text: self.$console, height: self.$messageHeight, placeholder: self.$placeholder)
                                 .frame(width: geometry.size.width - 80, height: self.messageHeight < 350 ? self.messageHeight : 350)
                                 .font(.body)
                                 .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
                                 .background(colorScheme == .dark ? Color.black : Color.white)
                                 .background(colorScheme == .dark ? Color.black : Color.white)
-                                .listRowBackground(colorScheme == .dark ? Color.black : Color.white)
+                                .listRowBackground(colorScheme == .dark ? Color.black : Color(uiColor: .secondarySystemBackground))
                         }
                         .background(Color.black)
                     } else {

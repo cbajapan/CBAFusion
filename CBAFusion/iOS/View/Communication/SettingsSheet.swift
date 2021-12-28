@@ -38,14 +38,13 @@ struct SettingsSheet: View {
     @EnvironmentObject private var authenticationService: AuthenticationService
     @EnvironmentObject private var fcsdkCallService: FCSDKCallService
     @Environment(\.presentationMode) var presentationMode
-    @Binding var currentTabIndex: Int
-    var parentTabIndex: Int
     
     var body: some View {
         GeometryReader { geometry in
             NavigationView {
                 VStack(alignment: .leading, spacing: 5) {
                     Group {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
                         Text("Audio Options")
                             .fontWeight(.light)
                             .multilineTextAlignment(.leading)
@@ -55,15 +54,15 @@ struct SettingsSheet: View {
                             }
                         }
                         .onAppear {
-                            self.authenticationService.selectAudio(audio: self.selectedAudio)
+                            self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
                         }
                         .onChange(of: self.selectedAudio, perform: { item in
-                            self.authenticationService.selectAudio(audio: item)
+                            self.fcsdkCallService.selectAudio(audio: item)
                         })
                         .pickerStyle(SegmentedPickerStyle())
                         Divider()
                             .padding(.top)
-                        
+                        }
                         Text("Resolution Options")
                             .fontWeight(.light)
                             .multilineTextAlignment(.leading)
@@ -73,10 +72,10 @@ struct SettingsSheet: View {
                             }
                         }
                         .onAppear {
-                            self.authenticationService.selectResolution(res: self.selectedResolution)
+                            self.fcsdkCallService.selectResolution(res: self.selectedResolution)
                         }
                         .onChange(of: self.selectedResolution, perform: { item in
-                            self.authenticationService.selectResolution(res: item)
+                            self.fcsdkCallService.selectResolution(res: item)
                         })
                         .pickerStyle(SegmentedPickerStyle())
                         Divider()
@@ -91,10 +90,10 @@ struct SettingsSheet: View {
                             }
                         }
                         .onAppear {
-                            self.authenticationService.selectFramerate(rate: self.selectedFrameRate)
+                            self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
                         }
                         .onChange(of: self.selectedFrameRate, perform: { item in
-                            self.authenticationService.selectFramerate(rate: item)
+                            self.fcsdkCallService.selectFramerate(rate: item)
                         })
                         .pickerStyle(SegmentedPickerStyle())
                         Divider()
@@ -132,9 +131,6 @@ struct SettingsSheet: View {
                 .navigationBarTitle("Settings")
             }
         }
-        .onAppear {
-            self.currentTabIndex = self.parentTabIndex
-        }
     }
     func logout() async {
         await authenticationService.logout()
@@ -142,16 +138,6 @@ struct SettingsSheet: View {
     
     
     func autoAnswerLogic() {
-        if self.autoAnswer {
-            
-        } else {
-            
-        }
     }
 }
 
-struct SettingsSheet_Previews: PreviewProvider {
-    static var previews: some View {
-        SettingsSheet(currentTabIndex: .constant(0), parentTabIndex: 0)
-    }
-}

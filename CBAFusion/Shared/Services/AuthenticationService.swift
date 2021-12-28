@@ -15,7 +15,6 @@ class AuthenticationService: NSObject, ObservableObject {
         return LoginRequest(username: self.username, password: self.password)
     }
     
-    override init(){}
     @Published var username = UserDefaults.standard.string(forKey: "Username") ?? ""
     @Published var password = KeychainItem.getPassword
     @Published var server = UserDefaults.standard.string(forKey: "Server") ?? ""
@@ -23,16 +22,19 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
-#if !DEBUG
+//#if !DEBUG
     @Published var sessionID = KeychainItem.getSessionID
-#else
-    @Published var sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
-#endif
+//#else
+//    @Published var sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
+//#endif
     @Published var connectedToSocket = false
+    @Published var sessionExists = false
     @Published var acbuc: ACBUC?
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
-    var audioDeviceManager: ACBAudioDeviceManager?
+    @Published var showSettingsSheet = false
+    @Published var selectedParentIndex: Int = 0
+    @Published var currentTabIndex = 0
     
     
     /// Authenticate the User
@@ -66,15 +68,15 @@ class AuthenticationService: NSObject, ObservableObject {
             self.sessionID = payload.sessionid
             await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
             
-#if !DEBUG
+//#if !DEBUG
             if KeychainItem.getSessionID == "" {
                 KeychainItem.saveSessionID(sessionid: sessionID)
             }
-#else
-            if UserDefaults.standard.string(forKey: "SessionID") != "" {
-                UserDefaults.standard.set(sessionID, forKey: "SessionID")
-            }
-#endif
+//#else
+//            if UserDefaults.standard.string(forKey: "SessionID") != "" {
+//                UserDefaults.standard.set(sessionID, forKey: "SessionID")
+//            }
+//#endif
         } catch {
             await errorCaught(error: error)
             print(error.localizedDescription)
@@ -90,6 +92,7 @@ class AuthenticationService: NSObject, ObservableObject {
         switch httpResponse.statusCode {
         case 200...299:
             print("success")
+            self.showSettingsSheet = false
         case 401:
             await showAlert(response: httpResponse)
         case 402...500:
@@ -125,9 +128,7 @@ class AuthenticationService: NSObject, ObservableObject {
         self.acbuc?.useCookies = useCookies
         self.acbuc?.startSession()
         self.connectedToSocket = self.acbuc?.connection != nil
-        //We need to start the Audio Manager so we can use it
-        self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
-        audioDeviceManager?.start()
+        self.sessionExists = true
     }
     
     
@@ -144,56 +145,33 @@ class AuthenticationService: NSObject, ObservableObject {
             acceptUntrustedCertificates: acceptUntrustedCertificates
         )
         await stopSession()
-        await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
-        await setSessionID(id: sessionID)
+        do {
+            let response = try await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
+            await setSessionID(id: sessionID)
+            
+            await fireStatus(response: response)
+            self.sessionExists = false
+        } catch {
+            await errorCaught(error: error)
+            print(error.localizedDescription)
+        }
     }
     
     @MainActor func setSessionID(id: String) async {
         self.connectedToSocket = self.acbuc?.connection != nil
-#if !DEBUG
+//#if !DEBUG
         KeychainItem.deleteSessionID()
-#else
-        UserDefaults.standard.removeObject(forKey: "SessionID")
-        sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
-#endif
+        sessionID = KeychainItem.getSessionID
+//#else
+//        UserDefaults.standard.removeObject(forKey: "SessionID")
+//        sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
+//#endif
     }
     
     /// Stop the Session
     func stopSession() async {
         self.acbuc?.stopSession()
     }
-    
-    func selectAudio(audio: AudioOptions) {
-        switch audio {
-        case .ear:
-            self.audioDeviceManager?.setAudioDevice(device: .earpiece)
-        case .speaker:
-            self.audioDeviceManager?.setAudioDevice(device: .speakerphone)
-        }
-    }
-    
-    func selectResolution(res: ResolutionOptions) {
-        switch res {
-        case .auto:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.autoResolution;
-        case .res288p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
-        case .res480p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution640x480;
-        case .res720p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720;
-        }
-    }
-    
-    func selectFramerate(rate: FrameRateOptions) {
-        switch rate {
-        case .fro20:
-            self.acbuc?.phone.preferredCaptureFrameRate = 20
-        case .fro30:
-            self.acbuc?.phone.preferredCaptureFrameRate = 30
-        }
-    }
-    
 }
 
 

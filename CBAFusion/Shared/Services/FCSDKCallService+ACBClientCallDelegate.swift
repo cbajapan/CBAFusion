@@ -26,39 +26,35 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .ringing:
             Task {
                 await ringing()
-                await self.playRingtone()
             }
         case .mediaPending:
             break
         case .inCall:
             Task {
-                await self.stopRingtone()
+                if self.audioPlayer != nil {
+                    await stopOutgoingRingtone()
+                }
                 await self.inCall()
             }
         case .timedOut:
             Task {
                 await setErrorMessage(message: "Call timed out")
-                await self.stopRingtone()
             }
         case .busy:
             Task {
                 await setErrorMessage(message: "User is Busy")
-                await self.stopRingtone()
             }
         case .notFound:
             Task {
                 await setErrorMessage(message: "Could not find user")
-                await self.stopRingtone()
             }
         case .error:
             Task {
                 await setErrorMessage(message: "Unkown Error")
-                await self.stopRingtone()
             }
         case .ended:
             Task {
                 await self.endCall()
-                await self.stopRingtone()
             }
         @unknown default:
             break
@@ -100,18 +96,30 @@ extension FCSDKCallService: ACBClientCallDelegate {
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) throws {
-        self.sendErrorMessage = true
-        self.errorMessage = error?.localizedDescription ?? "didReceiveCallFailureWithError Error"
+        Task {
+            await MainActor.run {
+                self.sendErrorMessage = true
+                self.errorMessage = error?.localizedDescription ?? "didReceiveCallFailureWithError Error"
+            }
+        }
     }
     
     func call(_ call: ACBClientCall?, didReceiveDialFailureWithError error: Error?) {
-        self.sendErrorMessage = true
-        self.errorMessage = error?.localizedDescription ?? "didReceiveDialFailureWithError Error"
+        Task {
+            await MainActor.run {
+                self.sendErrorMessage = true
+                self.errorMessage = error?.localizedDescription ?? "didReceiveDialFailureWithError Error"
+            }
+        }
     }
     
     func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String?) {
-        self.sendErrorMessage = true
-        self.errorMessage = message ?? "didReceiveCallRecordingPermissionFailure Error"
+        Task {
+            await MainActor.run {
+                self.sendErrorMessage = true
+                self.errorMessage = message ?? "didReceiveCallRecordingPermissionFailure Error"
+            }
+        }
     }
     
     func call(_ call: ACBClientCall?, didReceiveSSRCsForAudio audioSSRCs: [AnyHashable]?, andVideo videoSSRCs: [AnyHashable]?) {

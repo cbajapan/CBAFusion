@@ -20,11 +20,7 @@ struct Authentication: View {
     @State private var loggingIn = false
     @EnvironmentObject var monitor: NetworkMonitor
     @EnvironmentObject private var authenticationService: AuthenticationService
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var currentTabIndex: Int
-    @Binding var showSubscriptionsSheet: Bool
-    
-    var parentTabIndex: Int
+    @EnvironmentObject private var fcsdkCallService: FCSDKCallService
     
     var body: some View {
         NavigationView  {
@@ -73,9 +69,6 @@ struct Authentication: View {
             }
             .navigationBarTitle("Authentication")
         }
-        .onAppear {
-            self.currentTabIndex = self.parentTabIndex
-        }
         .onDisappear(perform: {
             self.loggingIn = false
         })
@@ -89,14 +82,7 @@ struct Authentication: View {
     
     private func login() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-        if self.authenticationService.connectedToSocket {
-            self.presentationMode.wrappedValue.dismiss()
-        }
-    }
-}
-
-struct Authentication_Previews: PreviewProvider {
-    static var previews: some View {
-        Authentication(currentTabIndex: .constant(0), showSubscriptionsSheet: .constant(false), parentTabIndex: 0)
+        self.fcsdkCallService.acbuc = self.authenticationService.acbuc
+         self.fcsdkCallService.setPhoneDelegate()
     }
 }

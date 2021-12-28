@@ -34,6 +34,9 @@ struct AddContact: View {
                             await self.contact.addContact(nil, isEdit: false)
                         }
                         await self.contact.clearToDismiss()
+                        if self.contact.isEdit {
+                            self.contact.isEdit = false
+                        }
                         self.presentationMode.wrappedValue.dismiss()
                     }
                 }, label: {

@@ -10,50 +10,53 @@ import CallKit
 import AVFoundation
 import FCSDKiOS
 
+
 extension ProviderDelegate {
     
-    func reportIncomingCall(fcsdkCall: FCSDKCall) {
-        Task {
-            await callKitManager.removeAllCalls()
-            
-            let update = CXCallUpdate()
-            update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
-            update.hasVideo = fcsdkCall.hasVideo
-            update.supportsDTMF = true
-            update.supportsHolding = true
-            
-            do {
+    func reportIncomingCall(fcsdkCall: FCSDKCall, isAutoAnswer: Bool = false) async {
+        await MainActor.run {
+            if self.authenticationService.showSettingsSheet {
+                self.authenticationService.showSettingsSheet = false
+            }
+        }
+        do {
+            if !isAutoAnswer {
+                let update = CXCallUpdate()
+                update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
+                update.hasVideo = fcsdkCall.hasVideo
+                update.supportsDTMF = true
+                update.supportsHolding = false
                 try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
-                await self.fcsdkCallService.presentCommunicationSheet()
-                await self.callKitManager.addCall(call: fcsdkCall)
-            } catch {
-                if error.localizedDescription == "The operation couldn’t be completed. (com.apple.CallKit.error.incomingcall error 3.)" {
-                    await MainActor.run {
+            }
+            
+            await self.fcsdkCallService.presentCommunicationSheet()
+            await self.callKitManager.addCall(call: fcsdkCall)
+        } catch {
+            let errorCode = (error as NSError).code
+            
+            //This error code means do no disturb is on
+            if errorCode == 3 {
+                await MainActor.run {
+                    if !self.fcsdkCallService.doNotDisturb {
                         self.fcsdkCallService.doNotDisturb = true
                     }
                 }
-                print("There was an error in \(#function) - Error: \(error.localizedDescription)")
             }
+            print("There was an error in \(#function) - Error: \(error.localizedDescription)")
         }
     }
     
     
-    func providerDidReset(_ provider: CXProvider) {
-        print("Provider did reset")
-    }
-    
-    //Answer Call after we get notified that we have an incoming call in the push controller
+    //    Answer Call after we get notified that we have an incoming call
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("answer call action")
-        Task {
-            do {
+                Task {
+                await self.fcsdkCallService.startAudioSession()
                 try await self.fcsdkCallService.answerFCSDKCall()
-            } catch {
-                print("\(OurErrors.nilACBUC.rawValue)")
-            }
-            action.fulfill()
+                }
+                action.fulfill()
         }
-    }
+    
     
     
     
@@ -61,42 +64,50 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("start call action")
         Task {
-            await self.fcsdkCallService.presentCommunicationSheet()
             var acbCall: ACBClientCall?
             do {
+                let callUpdate = CXCallUpdate()
+                callUpdate.supportsDTMF = true
+                callUpdate.hasVideo = fcsdkCallService.hasVideo
+                callUpdate.supportsHolding = false
+                
                 self.outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall
                 guard let outgoingFCSDKCall = outgoingFCSDKCall else { return }
                 guard let preview = outgoingFCSDKCall.previewView else { return }
                 try await self.fcsdkCallService.initializeCall(previewView: preview)
                 acbCall = try await self.fcsdkCallService.startFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
-                
-                let callUpdate = CXCallUpdate()
-                callUpdate.supportsDTMF = true
-                callUpdate.hasVideo = fcsdkCallService.hasVideo
-                callUpdate.supportsHolding = true
                 provider.reportCall(with: outgoingFCSDKCall.uuid, updated: callUpdate)
                 
+                await self.fcsdkCallService.hasStartedConnectingDidChange(provider: provider,
+                                                                          id: outgoingFCSDKCall.uuid,
+                                                                          date: self.fcsdkCallService.connectingDate ?? Date())
+                await self.fcsdkCallService.hasConnectedDidChange(provider: provider,
+                                                                  id: outgoingFCSDKCall.uuid,
+                                                                  date: self.fcsdkCallService.connectDate ?? Date())
+                action.fulfill()
             } catch {
                 print("\(OurErrors.nilACBUC.rawValue)")
+                action.fail()
             }
-            
-            await self.fcsdkCallService.hasStartedConnectingDidChange(provider: provider, id: outgoingFCSDKCall?.uuid ?? UUID(), date: self.fcsdkCallService.connectingDate ?? Date())
-            await self.fcsdkCallService.hasConnectedDidChange(provider: provider, id: outgoingFCSDKCall?.uuid ?? UUID(), date:self.fcsdkCallService.connectDate ?? Date())
             
             guard let oc = outgoingFCSDKCall else { return }
             await self.callKitManager.addCall(call: oc)
-            action.fulfill()
         }
     }
+    
+    //    func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
+    //        
+    //    }
     
     
     //End Call
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         Task {
+            await self.fcsdkCallService.stopAudioSession()
             await asyncEnd()
-            action.fulfill()
         }
+        action.fulfill()
     }
     
     func asyncEnd() async {
@@ -117,4 +128,21 @@ extension ProviderDelegate {
     func providerDidBegin(_ provider: CXProvider) {
         print("Provider began")
     }
+    
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        print("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
+        print(audioSession.sampleRate)
+    }
+    
+    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+        print("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
+    }
+    
+    
+    // Here we can reset the provider to remove any stale callkit calls
+    func providerDidReset(_ provider: CXProvider) {
+        print("Provider did reset")
+    }
+    
+    
 }

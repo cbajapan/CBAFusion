@@ -30,15 +30,16 @@ class CallKitManager: NSObject, ObservableObject {
     func initializeCall(_ call: FCSDKCall) async {
         await self.makeCall(uuid: call.uuid, handle: call.handle, hasVideo: call.hasVideo)
     }
+    
     func makeCall(uuid: UUID, handle: String, hasVideo: Bool = false) async {
         let handle = CXHandle(type: .phoneNumber, value: handle)
         let startCallAction = CXStartCallAction(call: uuid, handle: handle)
         startCallAction.isVideo = hasVideo
+        
         let transaction = CXTransaction()
         transaction.addAction(startCallAction)
         await requestTransaction(transaction)
     }
-
 
     func finishEnd(call: FCSDKCall) async {
         let endCallAction = CXEndCallAction(call: call.uuid)
