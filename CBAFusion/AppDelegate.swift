@@ -24,7 +24,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         self.registerForPushNotifications()
         self.voipRegistration()
         let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
-        print("INIT \(hasLaunched)")
         if hasLaunched {
             print("Not going to delete sessionID")
         } else {
@@ -46,29 +45,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         return true
     }
     
-    private func application(_ application: UIApplication,
-                             continue userActivity: NSUserActivity,
-                             restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
-        guard let handle = userActivity.startCallHandle else {
-            print("Could not determine start call handle from user activity: \(userActivity)")
-            return false
-        }
-        
-        guard let video = userActivity.video else {
-            print("Could not determine video from user activity: \(userActivity)")
-            return false
-        }
-        Task {
-            await callKitManager.makeCall(uuid: UUID(), handle: handle, hasVideo: video)
-        }
-        return true
-    }
-    
-    
     //TODO: We are not using push kit yet for remote notifications
     // Register for VoIP notifications
     func voipRegistration() {
-        
         // Create a push registry object
         let mainQueue = DispatchQueue.main
         let voipRegistry: PKPushRegistry = PKPushRegistry(queue: mainQueue)
@@ -166,7 +145,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             call: nil
         )
         Task {
-            await displayIncomingCall(fcsdkCall: receivedCall, isAutoAnswer: UserDefaults.standard.bool(forKey: "AutoAnswer"))
+            await displayIncomingCall(fcsdkCall: receivedCall)
             await self.callKitManager.addCall(call: receivedCall)
         }
     }
@@ -174,7 +153,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     // MARK: - PKPushRegistryDelegate Helper
     
     /// Display the incoming call to the user.
-    func displayIncomingCall(fcsdkCall: FCSDKCall, isAutoAnswer: Bool) async {
-        await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall, isAutoAnswer: isAutoAnswer)
+    func displayIncomingCall(fcsdkCall: FCSDKCall) async {
+        await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
     }
 }

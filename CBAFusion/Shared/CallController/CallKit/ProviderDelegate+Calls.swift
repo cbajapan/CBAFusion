@@ -13,21 +13,19 @@ import FCSDKiOS
 
 extension ProviderDelegate {
     
-    func reportIncomingCall(fcsdkCall: FCSDKCall, isAutoAnswer: Bool = false) async {
+    func reportIncomingCall(fcsdkCall: FCSDKCall) async {
         await MainActor.run {
             if self.authenticationService.showSettingsSheet {
                 self.authenticationService.showSettingsSheet = false
             }
         }
         do {
-            if !isAutoAnswer {
                 let update = CXCallUpdate()
                 update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
                 update.hasVideo = fcsdkCall.hasVideo
                 update.supportsDTMF = true
                 update.supportsHolding = false
                 try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
-            }
             
             await self.fcsdkCallService.presentCommunicationSheet()
             await self.callKitManager.addCall(call: fcsdkCall)

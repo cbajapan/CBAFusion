@@ -14,7 +14,9 @@ import CallKit
 class FCSDKCallService: NSObject, ObservableObject {
     
     var appDelegate: AppDelegate?
-    @Published var hasVideo: Bool = false
+    @Published var destination: String = ""
+    @Published var hasVideo: Bool = true
+    @Published var isOutgoing: Bool = false
     @Published var acbuc: ACBUC?
     @Published var fcsdkCall: FCSDKCall? = nil
     @Published var hasStartedConnecting: Bool = false

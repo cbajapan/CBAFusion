@@ -32,7 +32,6 @@ struct SettingsSheet: View {
     @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
-    @AppStorage("AutoAnswer") var autoAnswer = false
     
     
     @EnvironmentObject private var authenticationService: AuthenticationService
@@ -96,13 +95,6 @@ struct SettingsSheet: View {
                             self.fcsdkCallService.selectFramerate(rate: item)
                         })
                         .pickerStyle(SegmentedPickerStyle())
-                        Divider()
-                            .padding(.top)
-                        
-                        Toggle("Auto-Answer", isOn: $autoAnswer)
-                            .onChange(of: self.autoAnswer) { _ in
-                                self.autoAnswerLogic()
-                            }
                     }
                     Divider()
                     Spacer()
@@ -134,10 +126,6 @@ struct SettingsSheet: View {
     }
     func logout() async {
         await authenticationService.logout()
-    }
-    
-    
-    func autoAnswerLogic() {
     }
 }
 

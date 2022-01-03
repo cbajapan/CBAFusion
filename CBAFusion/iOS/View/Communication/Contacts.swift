@@ -18,9 +18,6 @@ struct PushDetail<Destination : View>: View {
 
 struct Contacts: View {
     
-    @State var destination: String = ""
-    @State var hasVideo: Bool = true
-    @State var isOutgoing: Bool = false
     @State var notLoggedIn: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
@@ -62,9 +59,9 @@ struct Contacts: View {
                                self.authenticationService.connectedToSocket,
                                self.authenticationService.sessionExists {
                                 self.fcsdkCallService.presentCommunication = true
-                                self.destination = contact.number
-                                self.hasVideo = true
-                                self.isOutgoing = true
+                                self.fcsdkCallService.destination = contact.number
+                                self.fcsdkCallService.hasVideo = true
+                                self.fcsdkCallService.isOutgoing = true
                             } else {
                                 notLoggedIn = true
                             }
@@ -106,7 +103,7 @@ struct Contacts: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        PushDetail(destination: CallSheet(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
+                        PushDetail(destination: CallSheet(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
                             .foregroundColor(.blue)
                     }
                 }
@@ -116,7 +113,7 @@ struct Contacts: View {
             Button("OK", role: .cancel) { }
         })
         .fullScreenCover(isPresented: self.$fcsdkCallService.presentCommunication, content: {
-            Communication(destination: self.$destination, hasVideo: self.$hasVideo, isOutgoing: self.$isOutgoing)
+            Communication(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing)
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)

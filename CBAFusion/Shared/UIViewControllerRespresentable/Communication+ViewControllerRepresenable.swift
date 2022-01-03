@@ -33,7 +33,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
-    @AppStorage("AutoAnswer") var autoAnswer = false
 
 
     
@@ -155,16 +154,9 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         if closeClickID != context.coordinator.previousCloseClickID {
             Task {
-                if autoAnswer || self.callKitManager.calls.last == nil {
-                    await self.fcsdkCallService.endFCSDKCall()
-                    await setServiceHasEnded()
-                    await self.callKitManager.removeAllCalls()
-                    await uiViewController.currentState(state: .hasEnded)
-                } else {
                     try await uiViewController.endCall()
                     await setServiceHasEnded()
                     await uiViewController.currentState(state: .hasEnded)
-                }
                 if self.isOutgoing {
                 await self.fcsdkCallService.stopOutgoingRingtone()
                 }
@@ -212,7 +204,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             await self.parent.fcsdkCall?.previewView = preview
             await self.parent.fcsdkCall?.remoteView = remoteView
 
-            if await self.parent.autoAnswer {
                 do {
                     if await self.parent.fcsdkCall?.call != nil {
                         try await self.parent.fcsdkCallService.answerFCSDKCall()
@@ -220,7 +211,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 } catch {
                     print("OUR ERROR: \(OurErrors.nilACBUC.rawValue) - Specifically: \(error) ")
                 }
-            }
         }
     }
     @MainActor

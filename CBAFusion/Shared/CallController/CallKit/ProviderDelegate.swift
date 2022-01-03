@@ -36,7 +36,7 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
         let config = CXProviderConfiguration()
         config.supportsVideo = true
         config.maximumCallsPerCallGroup = 1
-        config.supportedHandleTypes = [.phoneNumber]
+        config.supportedHandleTypes = [.generic, .phoneNumber]
         //We want to default to the systems ringtone
 //        config.ringtoneSound = "ringring.wav"
         config.iconTemplateImageData = #imageLiteral(resourceName: "cbaLogo").pngData()

@@ -27,7 +27,6 @@ struct CallSheet: View {
                         Text("End Point:")
                         TextField("Destination...", text: self.$destination)
                     }
-//                    Toggle("Want Video?", isOn: self.$hasVideo)
                 }
                 .padding()
             }
@@ -36,10 +35,14 @@ struct CallSheet: View {
         .navigationBarTitle("Let's Talk")
         .navigationBarItems(leading:
                                 Button(action: {
+            if UIDevice.current.userInterfaceIdiom == .phone {
             self.presentationMode.wrappedValue.dismiss()
+            }
         }, label: {
+            if UIDevice.current.userInterfaceIdiom == .phone {
             Text("Cancel")
                 .foregroundColor(Color.red)
+            }
         }
                                       ), trailing:
                                 Button(action: {

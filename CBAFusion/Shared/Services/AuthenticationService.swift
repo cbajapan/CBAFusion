@@ -22,11 +22,7 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
-//#if !DEBUG
     @Published var sessionID = KeychainItem.getSessionID
-//#else
-//    @Published var sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
-//#endif
     @Published var connectedToSocket = false
     @Published var sessionExists = false
     @Published var acbuc: ACBUC?
@@ -67,16 +63,10 @@ class AuthenticationService: NSObject, ObservableObject {
             
             self.sessionID = payload.sessionid
             await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-            
-//#if !DEBUG
+        
             if KeychainItem.getSessionID == "" {
                 KeychainItem.saveSessionID(sessionid: sessionID)
             }
-//#else
-//            if UserDefaults.standard.string(forKey: "SessionID") != "" {
-//                UserDefaults.standard.set(sessionID, forKey: "SessionID")
-//            }
-//#endif
         } catch {
             await errorCaught(error: error)
             print(error.localizedDescription)
@@ -159,13 +149,8 @@ class AuthenticationService: NSObject, ObservableObject {
     
     @MainActor func setSessionID(id: String) async {
         self.connectedToSocket = self.acbuc?.connection != nil
-//#if !DEBUG
         KeychainItem.deleteSessionID()
         sessionID = KeychainItem.getSessionID
-//#else
-//        UserDefaults.standard.removeObject(forKey: "SessionID")
-//        sessionID = UserDefaults.standard.string(forKey: "SessionID") ?? ""
-//#endif
     }
     
     /// Stop the Session

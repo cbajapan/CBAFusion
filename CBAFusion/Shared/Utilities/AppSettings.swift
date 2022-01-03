@@ -12,7 +12,6 @@ import FCSDKiOS
 enum MediaValue: String {
     case keyAudioDirection = "acb.audio.direction"
     case keyVideoDirection = "acb.video.direction"
-    case keyAutoAnswer = "acb.auto.answer"
 }
 
 
@@ -23,7 +22,6 @@ struct AppSettings {
     static func registerDefaults() {
         UserDefaults.standard.set(ACBMediaDirection.sendAndReceive.rawValue, forKey: MediaValue.keyAudioDirection.rawValue)
         UserDefaults.standard.set(ACBMediaDirection.sendAndReceive.rawValue, forKey: MediaValue.keyVideoDirection.rawValue)
-        UserDefaults.standard.set(false, forKey: MediaValue.keyAutoAnswer.rawValue)
     }
     
     

@@ -8,8 +8,8 @@
 import SwiftUI
 import UIKit
 import AVKit
-//import NIO
 import FCSDKiOS
+import Intents
 
 @main
 struct CBAFusionApp: App {
@@ -23,8 +23,9 @@ struct CBAFusionApp: App {
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contact = ContactService()
     @StateObject private var aedService = AEDService()
-    @State var prorviderDelegate: ProviderDelegate?
+    @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
+    @State var callIntent = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
     
@@ -56,6 +57,20 @@ struct CBAFusionApp: App {
                     fcsdkCallService.appDelegate = delegate
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
+                    workWithFocus()
+                }
+                .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
+                    callIntent = true
+                    guard let handle = activity.startCallHandle else {
+                        print("Could not determine start call handle from user activity: \(activity)")
+                        return
+                    }
+                    Task {
+                        self.fcsdkCallService.destination = handle
+                        self.fcsdkCallService.isOutgoing = true
+                        self.fcsdkCallService.hasVideo = true
+                        await reAuthFlowWithCallIntent()
+                    }
                 }
         }
         .onChange(of: self.authenticationService.acbuc, perform: { newValue in
@@ -76,6 +91,7 @@ struct CBAFusionApp: App {
                     }
                     
                     // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
+                    if !callIntent {
                     if self.authenticationService.acbuc == nil && !self.authenticationService.sessionID.isEmpty,
                        servername != "" && username != "" {
                         await reAuthFlow()
@@ -85,13 +101,13 @@ struct CBAFusionApp: App {
                         await reAuthFlow()
                     }
                     print("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
+                    }
                 }
             case .background:
                 print("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                 Task {
                 await self.fcsdkCallService.startAudioSession()
                 }
-                
             case .inactive:
                 print("ScenePhase: inactive")
             @unknown default:
@@ -104,5 +120,25 @@ struct CBAFusionApp: App {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
         self.fcsdkCallService.setPhoneDelegate()
+    }
+    
+    func reAuthFlowWithCallIntent() async {
+        await reAuthFlow()
+        await fcsdkCallService.presentCommunicationSheet()
+        callIntent = false
+    }
+    
+    func workWithFocus() {
+        /// Retrieve the current authorization status: INFocusStatusAuthorizationStatus
+        print("INFocusStatusAuthorizationStatus: ", INFocusStatusCenter.default.authorizationStatus)
+
+        /// Request authorization to check Focus Status
+        INFocusStatusCenter.default.requestAuthorization { status in
+            /// Provides a INFocusStatusAuthorizationStatus
+        print("Focus is: \(status)")
+        }
+
+        /// Check if Focus is enabled. INFocusStatusAuthorizationStatus must be .authorized
+        print("isFocused: ", INFocusStatusCenter.default.focusStatus.isFocused)
     }
 }

@@ -34,13 +34,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                     self.fcsdkCall = receivedCall
                     self.fcsdkCall?.call?.delegate = call?.delegate
                 }
-                
-                if UserDefaults.standard.bool(forKey: "AutoAnswer") {
-                    await self.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall, isAutoAnswer: true)
-                } else {
-                    await self.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall, isAutoAnswer: false)
-                    
-                }
+                    await self.appDelegate?.displayIncomingCall(fcsdkCall: receivedCall)
             }
         } else {
             print("We currently don't support responding to multiple calls")

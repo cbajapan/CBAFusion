@@ -10,7 +10,7 @@ import Foundation
 extension URL: StartCallConvertible {
 
     private struct Constants {
-        static let URLScheme = "1002"
+        static let URLScheme = "cbaFusion"
     }
 
     var startCallHandle: String? {

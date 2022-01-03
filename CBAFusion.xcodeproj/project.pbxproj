@@ -60,8 +60,11 @@
 		0921A5C7276185D90069F324 /* CBAFusionUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5C6276185D80069F324 /* CBAFusionUITestsLaunchTests.swift */; };
 		0921A5D4276185E20069F324 /* CBAFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5D3276185E20069F324 /* CBAFusionTests.swift */; };
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
+		095A1EA3278268A5002D5805 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 095A1EA2278268A5002D5805 /* FCSDKiOS */; };
+		095A1ED327829891002D5805 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095A1EAC2782968E002D5805 /* Intents.framework */; };
+		095A1ED627829891002D5805 /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095A1ED527829891002D5805 /* IntentHandler.swift */; };
+		095A1EDA27829891002D5805 /* IntentsExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 095A1ED227829891002D5805 /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 097BBFD2277593670024EC48 /* FluentSQLiteDriver */; };
-		09868E8A277B18F200EF8721 /* FCSDK-iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09868E89277B18F200EF8721 /* FCSDK-iOS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,9 +82,27 @@
 			remoteGlobalIDString = 094EE30026DCE211008C1637;
 			remoteInfo = CBAFusion;
 		};
+		095A1ED827829891002D5805 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 094EE2F926DCE211008C1637 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 095A1ED127829891002D5805;
+			remoteInfo = IntentsExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		095A1ECC2782968E002D5805 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				095A1EDA27829891002D5805 /* IntentsExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		095C4B3C272158D200A0BCEB /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -155,6 +176,17 @@
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		094E5FC2276AE00C00F37985 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		094EE30126DCE211008C1637 /* CBAFusion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CBAFusion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		095A1EA1278266D9002D5805 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
+		095A1EAC2782968E002D5805 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
+		095A1EAF2782968E002D5805 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		095A1EB12782968E002D5805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		095A1EB72782968E002D5805 /* IntentsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IntentsUI.framework; path = System/Library/Frameworks/IntentsUI.framework; sourceTree = SDKROOT; };
+		095A1EBA2782968E002D5805 /* IntentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentViewController.swift; sourceTree = "<group>"; };
+		095A1EBD2782968E002D5805 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		095A1EBF2782968E002D5805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		095A1ED227829891002D5805 /* IntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		095A1ED527829891002D5805 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		095A1ED727829891002D5805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,8 +208,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09868E8A277B18F200EF8721 /* FCSDK-iOS in Frameworks */,
+				095A1EA3278268A5002D5805 /* FCSDKiOS in Frameworks */,
 				097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		095A1ECF27829891002D5805 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				095A1ED327829891002D5805 /* Intents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -454,11 +494,15 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
+				095A1EA1278266D9002D5805 /* swift-fcsdk */,
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				0921A4FC2761791E0069F324 /* CBAFusion */,
 				0921A5C3276185D80069F324 /* CBAFusionUITests */,
 				0921A5D2276185E20069F324 /* CBAFusionTests */,
+				095A1EAE2782968E002D5805 /* IntentExtension */,
+				095A1EB92782968E002D5805 /* IntentExtensionUI */,
+				095A1ED427829891002D5805 /* IntentsExtension */,
 				094EE30226DCE211008C1637 /* Products */,
 				09E3CE9826DE278800249DD8 /* Frameworks */,
 			);
@@ -470,14 +514,45 @@
 				094EE30126DCE211008C1637 /* CBAFusion.app */,
 				0921A5C2276185D80069F324 /* CBAFusionUITests.xctest */,
 				0921A5D1276185E20069F324 /* CBAFusionTests.xctest */,
+				095A1ED227829891002D5805 /* IntentsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		095A1EAE2782968E002D5805 /* IntentExtension */ = {
+			isa = PBXGroup;
+			children = (
+				095A1EAF2782968E002D5805 /* IntentHandler.swift */,
+				095A1EB12782968E002D5805 /* Info.plist */,
+			);
+			path = IntentExtension;
+			sourceTree = "<group>";
+		};
+		095A1EB92782968E002D5805 /* IntentExtensionUI */ = {
+			isa = PBXGroup;
+			children = (
+				095A1EBA2782968E002D5805 /* IntentViewController.swift */,
+				095A1EBC2782968E002D5805 /* MainInterface.storyboard */,
+				095A1EBF2782968E002D5805 /* Info.plist */,
+			);
+			path = IntentExtensionUI;
+			sourceTree = "<group>";
+		};
+		095A1ED427829891002D5805 /* IntentsExtension */ = {
+			isa = PBXGroup;
+			children = (
+				095A1ED527829891002D5805 /* IntentHandler.swift */,
+				095A1ED727829891002D5805 /* Info.plist */,
+			);
+			path = IntentsExtension;
 			sourceTree = "<group>";
 		};
 		09E3CE9826DE278800249DD8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				094E5FC2276AE00C00F37985 /* CallKit.framework */,
+				095A1EAC2782968E002D5805 /* Intents.framework */,
+				095A1EB72782968E002D5805 /* IntentsUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -529,19 +604,38 @@
 				094EE2FE26DCE211008C1637 /* Frameworks */,
 				094EE2FF26DCE211008C1637 /* Resources */,
 				095C4B3C272158D200A0BCEB /* Embed Frameworks */,
+				095A1ECC2782968E002D5805 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				095A1ED927829891002D5805 /* PBXTargetDependency */,
+			);
+			name = CBAFusion;
+			packageProductDependencies = (
+				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
+				095A1EA2278268A5002D5805 /* FCSDKiOS */,
+			);
+			productName = SwiftFCSDKSample;
+			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
+			productType = "com.apple.product-type.application";
+		};
+		095A1ED127829891002D5805 /* IntentsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 095A1EDB27829891002D5805 /* Build configuration list for PBXNativeTarget "IntentsExtension" */;
+			buildPhases = (
+				095A1ECE27829891002D5805 /* Sources */,
+				095A1ECF27829891002D5805 /* Frameworks */,
+				095A1ED027829891002D5805 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = CBAFusion;
-			packageProductDependencies = (
-				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
-				09868E89277B18F200EF8721 /* FCSDK-iOS */,
-			);
-			productName = SwiftFCSDKSample;
-			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
-			productType = "com.apple.product-type.application";
+			name = IntentsExtension;
+			productName = IntentsExtension;
+			productReference = 095A1ED227829891002D5805 /* IntentsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -550,7 +644,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1310;
+				LastSwiftUpdateCheck = 1320;
 				LastUpgradeCheck = 1300;
 				TargetAttributes = {
 					0921A5C1276185D80069F324 = {
@@ -563,6 +657,9 @@
 					};
 					094EE30026DCE211008C1637 = {
 						CreatedOnToolsVersion = 13.0;
+					};
+					095A1ED127829891002D5805 = {
+						CreatedOnToolsVersion = 13.2;
 					};
 				};
 			};
@@ -577,7 +674,6 @@
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
 				097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
-				09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -586,6 +682,7 @@
 				094EE30026DCE211008C1637 /* CBAFusion */,
 				0921A5C1276185D80069F324 /* CBAFusionUITests */,
 				0921A5D0276185E20069F324 /* CBAFusionTests */,
+				095A1ED127829891002D5805 /* IntentsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -613,6 +710,13 @@
 				0921A5832761791E0069F324 /* Preview Assets.xcassets in Resources */,
 				0921A5522761791E0069F324 /* Assets.xcassets in Resources */,
 				0908679E26E75AAE00A83602 /* ringring.wav in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		095A1ED027829891002D5805 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -689,6 +793,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		095A1ECE27829891002D5805 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				095A1ED627829891002D5805 /* IntentHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -702,7 +814,23 @@
 			target = 094EE30026DCE211008C1637 /* CBAFusion */;
 			targetProxy = 0921A5D5276185E20069F324 /* PBXContainerItemProxy */;
 		};
+		095A1ED927829891002D5805 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 095A1ED127829891002D5805 /* IntentsExtension */;
+			targetProxy = 095A1ED827829891002D5805 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		095A1EBC2782968E002D5805 /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				095A1EBD2782968E002D5805 /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		0921A5CB276185D90069F324 /* Debug */ = {
@@ -868,7 +996,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -925,7 +1053,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -938,6 +1066,7 @@
 		094EE32426DCE212008C1637 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CBAFusion/CBAFusion.entitlements;
@@ -954,6 +1083,7 @@
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
+				INFOPLIST_KEY_NSFocusStatusUsageDescription = "Used to determine if we need to re-enabled calling feature if focus is tured off";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -962,7 +1092,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -981,6 +1111,7 @@
 		094EE32526DCE212008C1637 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CBAFusion/CBAFusion.entitlements;
@@ -997,6 +1128,7 @@
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Video Confernecing";
+				INFOPLIST_KEY_NSFocusStatusUsageDescription = "Used to determine if we need to re-enabled calling feature if focus is tured off";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VoIP Calls";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1005,7 +1137,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1015,6 +1147,62 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		095A1EDC27829891002D5805 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntentsExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		095A1EDD27829891002D5805 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntentsExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1060,6 +1248,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		095A1EDB27829891002D5805 /* Build configuration list for PBXNativeTarget "IntentsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				095A1EDC27829891002D5805 /* Debug */,
+				095A1EDD27829891002D5805 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1071,26 +1268,17 @@
 				minimumVersion = 4.0.0;
 			};
 		};
-		09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/cbajapan/fcsdk-ios.git";
-			requirement = {
-				kind = exactVersion;
-				version = "4.0.0-rc.1.1";
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		095A1EA2278268A5002D5805 /* FCSDKiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FCSDKiOS;
+		};
 		097BBFD2277593670024EC48 /* FluentSQLiteDriver */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
-		};
-		09868E89277B18F200EF8721 /* FCSDK-iOS */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 09868E88277B18F200EF8721 /* XCRemoteSwiftPackageReference "fcsdk-ios" */;
-			productName = "FCSDK-iOS";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
