@@ -8,6 +8,8 @@
 import UIKit
 import SwiftUI
 import FCSDKiOS
+import Logging
+import AVFoundation
 
 struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
@@ -19,7 +21,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var muteAudio: Bool
     @Binding var hold: Bool
     @Binding var isOutgoing: Bool
-    @Binding var fcsdkCall: FCSDKCall?
+    @Binding var currentCall: FCSDKCall?
     @Binding var closeClickID: UUID?
     @Binding var cameraFrontID: UUID?
     @Binding var cameraBackID: UUID?
@@ -33,13 +35,15 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
-
-
+    @EnvironmentObject var contactService: ContactService
+    var logger: Logger?
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
       
         let communicationViewController = CommunicationViewController(
             callKitManager: self.callKitManager,
+            fcsdkCallService: self.fcsdkCallService,
+            contactService: self.contactService,
             destination: self.destination,
             hasVideo: self.hasVideo,
             acbuc: self.authenticationService.acbuc!,
@@ -55,7 +59,8 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                                 uiViewController: CommunicationViewController,
                                 context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>
     ) {
-
+//        guard let c =  self.fcsdkCallService.currentCall?.remoteView else {return}
+//        uiViewController.remoteView = c
         //        uiViewController.showPip(show: self.pip)
         uiViewController.authenticationService = self.authenticationService
         uiViewController.destination = self.destination
@@ -84,7 +89,11 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 if self.isOutgoing {
                 await self.fcsdkCallService.stopOutgoingRingtone()
                 }
+                guard let remoteView = self.currentCall?.remoteView else { return }
+                await uiViewController.updateRemoteViewForBuffer(view: remoteView)
                 await uiViewController.currentState(state: .hasConnected)
+              let l = self.currentCall?.remoteView?.layer as? AVSampleBufferDisplayLayer
+                print("THE STATUS", l?.status.rawValue as Any)
             }
         }
         
@@ -154,14 +163,17 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         if closeClickID != context.coordinator.previousCloseClickID {
             Task {
+                do {
                     try await uiViewController.endCall()
+                } catch {
+                     self.logger?.error("\(error)")
+                }
                     await setServiceHasEnded()
                     await uiViewController.currentState(state: .hasEnded)
                 if self.isOutgoing {
                 await self.fcsdkCallService.stopOutgoingRingtone()
                 }
             }
-            self.isOutgoing = false
             context.coordinator.previousCloseClickID = closeClickID
         }
         
@@ -195,24 +207,15 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         @MainActor
         func passCallToService(_ call: FCSDKCall) async {
-            self.parent.fcsdkCall = call
+            self.parent.currentCall = call
         }
         
-        
-        func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async {
-
-            await self.parent.fcsdkCall?.previewView = preview
-            await self.parent.fcsdkCall?.remoteView = remoteView
-
-                do {
-                    if await self.parent.fcsdkCall?.call != nil {
-                        try await self.parent.fcsdkCallService.answerFCSDKCall()
-                    }
-                } catch {
-                    print("OUR ERROR: \(OurErrors.nilACBUC.rawValue) - Specifically: \(error) ")
-                }
+        func passViewsToService(preview: UIView, remoteView: UIView) async {
+            await self.parent.currentCall?.previewView = preview
+            await self.parent.currentCall?.remoteView = remoteView
         }
     }
+    
     @MainActor
     func setServiceHasEnded() async {
         if !self.fcsdkCallService.hasEnded {
@@ -229,7 +232,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
 
 protocol FCSDKCallDelegate: AnyObject {
     func passCallToService(_ call: FCSDKCall) async
-    func passViewsToService(preview: SamplePreviewVideoCallView, remoteView: SampleBufferVideoCallView) async
+    func passViewsToService(preview: UIView, remoteView: UIView) async
 }
 
 enum OurErrors: String, Swift.Error {
@@ -240,5 +243,7 @@ enum OurErrors: String, Swift.Error {
     case nilFrameRate = "Cannot get frame rate because it is nil"
     case nilDelegate = "The FCSDKStore delegate is nil"
     case noCallKitCall = "There is not a CallKit Call in the Manager"
+    case noContactID = "There is no a ContactID"
     case nilURL = "The URL is nil for network calls"
+    case noActiveCalls = "There are not any Active Calls"
 }

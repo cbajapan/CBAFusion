@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FCSDKiOS
+import AVKit
 
 struct Communication: View {
     
@@ -37,7 +38,6 @@ struct Communication: View {
     @State private var formattedCallDuration: Text?
     @Binding var destination: String
     @Binding var hasVideo: Bool
-    @Binding var isOutgoing: Bool
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {
@@ -53,6 +53,7 @@ struct Communication: View {
     @EnvironmentObject var authenticationServices: AuthenticationService
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
+    @EnvironmentObject var contactService: ContactService
     
     @AppStorage("RateOption") var rate = ""
     @AppStorage("ResolutionOption") var res = ""
@@ -70,8 +71,8 @@ struct Communication: View {
                     muteVideo: self.$muteVideo,
                     muteAudio: self.$muteAudio,
                     hold: self.$hold,
-                    isOutgoing: self.$isOutgoing,
-                    fcsdkCall: self.$fcsdkCallService.fcsdkCall,
+                    isOutgoing: self.$fcsdkCallService.isOutgoing,
+                    currentCall: self.$fcsdkCallService.currentCall,
                     closeClickID: self.$closeClickedID,
                     cameraFrontID: self.$cameraFrontID,
                     cameraBackID: self.$cameraBackID,
@@ -108,7 +109,7 @@ struct Communication: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
+                            Text(self.fcsdkCallService.currentCall?.call?.remoteDisplayName ?? "")
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
                             Button {
@@ -125,7 +126,7 @@ struct Communication: View {
                     }
                     Spacer()
                     HStack(alignment: .center) {
-                        if self.fcsdkCallService.hasConnected || self.isOutgoing {
+                        if self.fcsdkCallService.hasConnected || self.fcsdkCallService.isOutgoing {
                         Spacer()
                         //                        Button {
                         //                            self.pip.toggle()
@@ -260,15 +261,19 @@ struct Communication: View {
         }
         .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
             if newValue {
-                self.presentationMode.wrappedValue.dismiss()
+                self.fcsdkCallService.presentCommunication = false
+                //TODO: - Being fired more than once, we need to set only if outgoing fire on has ended but if we do subsequent calls fail because well it doesnt know if we are outgoing
+//                if !self.fcsdkCallService.isOutgoing {
                 self.closeClickedID = UUID()
+//                }
             }
         }
         .onDisappear(perform: {
-            self.fcsdkCallService.presentCommunication = false
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false
-            self.callKitManager.calls.removeAll()
+            Task {
+                try await self.contactService.fetchCalls()
+            }
         })
         .sheet(isPresented: self.$showSettings, content: {
             SettingsSheet()

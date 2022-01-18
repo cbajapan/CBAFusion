@@ -43,22 +43,18 @@ struct ContentView: View {
                                 HStack {
                                     Button(action: {
                                         if num == 0 {
-                                            print("Num == \(num)")
                                             self.authenticationService.selectedParentIndex = num
                                             self.authenticationService.currentTabIndex = num
                                             self.animateCommunication = true
                                             self.animateAED = false
                                         } else if num == 1 {
-                                            print("Num == \(num)")
                                             self.authenticationService.selectedParentIndex = num
                                             self.authenticationService.currentTabIndex = num
                                             self.animateCommunication = false
                                             self.animateAED = true
                                         } else if num == 2 {
-                                            print("Num == \(num)")
                                             self.authenticationService.showSettingsSheet = true
                                         }
-                                        print("currentTabIndex == \(self.authenticationService.currentTabIndex)")
                                     }, label: {
                                         Spacer()
                                         if num == 0 {
@@ -122,7 +118,14 @@ struct ContentView: View {
                             let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
                             let store = try await SQLiteStore.create(on: eventLoop)
                             contactService.delegate = store
-                            try? await contactService.fetchContacts()
+                            try await contactService.fetchContacts()
+                            // We want to make sure all calls are inactive on Appear
+                                  for contact in self.contactService.contacts ?? [] {
+                                      for call in contact.calls ?? [] {
+                                          call.activeCall = false
+                                          await self.contactService.editCall(call: call)
+                                      }
+                                  }
                         }
                         if self.authenticationService.sessionID != "" {
                         } else {

@@ -11,7 +11,7 @@ struct CallSheet: View {
     
     @Binding var destination: String
     @Binding var hasVideo: Bool
-    @Binding var isOutgoing: Bool
+//    @Binding var isOutgoing: Bool
     @Binding var showCommunication: Bool
     @State var notLoggedIn: Bool = false
     @Environment(\.presentationMode) private var presentationMode
@@ -47,7 +47,7 @@ struct CallSheet: View {
                                       ), trailing:
                                 Button(action: {
             if authenticationService.acbuc != nil {
-                self.isOutgoing = true
+                self.fcsdkCallService.isOutgoing = true
                 self.showCommunication = true
                 self.presentationMode.wrappedValue.dismiss()
             } else {

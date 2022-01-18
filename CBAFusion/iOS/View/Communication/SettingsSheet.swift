@@ -35,12 +35,23 @@ struct SettingsSheet: View {
     
     
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var contactService: ContactService
     @EnvironmentObject private var fcsdkCallService: FCSDKCallService
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         GeometryReader { geometry in
             NavigationView {
+                ZStack {
+                    
+                    if self.contactService.showProgress || self.authenticationService.showProgress {
+                     ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: colorScheme == .dark ? .white : .black))
+                         .scaleEffect(1.5)
+                    }
+                 
+                    
                 VStack(alignment: .leading, spacing: 5) {
                     Group {
                         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -98,12 +109,19 @@ struct SettingsSheet: View {
                     }
                     Divider()
                     Spacer()
+                    Button("Clear Call History", action: {
+                        Task {
+                        await self.fcsdkCallService.contactService?.deleteCalls()
+                        }
+                    })
+                    Divider()
                     HStack {
                         VStack(alignment: .leading) {
                             Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
-                            Text("App Version: \(Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
+                            Text("App Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
                         }
                         Spacer()
+                        if self.fcsdkCallService.currentCall?.call == nil {
                         Button {
                             Task {
                                 await self.logout()
@@ -116,11 +134,17 @@ struct SettingsSheet: View {
                                     .bold()
                             }
                         }
+                        }
                         Spacer()
                     }
                 }
+                }
                 .padding()
                 .navigationBarTitle("Settings")
+            }
+        }
+        .alert("There was an error deleting Call History", isPresented: self.$contactService.showError) {
+            Button("OK", role: .cancel) {
             }
         }
     }

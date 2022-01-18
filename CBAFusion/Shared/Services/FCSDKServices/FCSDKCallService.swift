@@ -10,15 +10,18 @@ import AVFoundation
 import SwiftUI
 import FCSDKiOS
 import CallKit
+import Logging
 
 class FCSDKCallService: NSObject, ObservableObject {
     
     var appDelegate: AppDelegate?
+    var contactService: ContactService?
+    var logger: Logger
     @Published var destination: String = ""
     @Published var hasVideo: Bool = true
     @Published var isOutgoing: Bool = false
     @Published var acbuc: ACBUC?
-    @Published var fcsdkCall: FCSDKCall? = nil
+    @Published var currentCall: FCSDKCall? = nil
     @Published var hasStartedConnecting: Bool = false
     @Published var isRinging: Bool = false
     @Published var hasConnected: Bool = false
@@ -33,8 +36,11 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var errorMessage: String = "Unknown Error"
     @Published var audioDeviceManager: ACBAudioDeviceManager?
     
+    override init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - FCSDKCall Service - ")
+    }
     deinit {
-        self.fcsdkCall?.call?.delegate = nil
+        self.currentCall?.call?.delegate = nil
     }
     
     
@@ -43,34 +49,33 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     
-    func initializeCall(previewView: SamplePreviewVideoCallView) async throws {
-        await MainActor.run {
-            self.hasStartedConnecting = true
-            self.connectingDate = Date()
-        }
-        guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
-        uc.phone.delegate = self
-        uc.phone.previewView = previewView
-    }
-    
-    
     func startFCSDKCall() async throws -> ACBClientCall? {
-        guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
+        guard let uc = self.currentCall?.acbuc else { throw OurErrors.nilACBUC }
         let outboundCall = uc.phone.createCall(
-            toAddress: self.fcsdkCall?.handle,
+            toAddress: self.currentCall?.handle ?? "",
             withAudio: AppSettings.perferredAudioDirection(),
             video: AppSettings.perferredVideoDirection(),
             delegate: self
         )
-        
-        self.fcsdkCall?.call = outboundCall
-        self.fcsdkCall?.call?.enableLocalAudio(true)
-        self.fcsdkCall?.call?.enableLocalVideo(true)
+        self.currentCall?.call = outboundCall
+        self.currentCall?.call?.enableLocalAudio(true)
+        self.currentCall?.call?.enableLocalVideo(true)
         await MainActor.run {
-            self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-            //            self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
+            //We Pass the view up to the SDK when using metalKit View
+//            self.currentCall?.call?.remoteView = self.currentCall?.remoteView
         }
-        return self.fcsdkCall?.call
+        return self.currentCall?.call
+    }
+    
+    func initializeCall(previewView: UIView) async throws {
+        await MainActor.run {
+            self.hasStartedConnecting = true
+            self.connectingDate = Date()
+        }
+        guard let uc = self.currentCall?.acbuc else { throw OurErrors.nilACBUC }
+        uc.phone.delegate = self
+        //We Pass the view up to the SDK
+        uc.phone.previewView = previewView
     }
     
     @MainActor
@@ -82,23 +87,28 @@ class FCSDKCallService: NSObject, ObservableObject {
         await MainActor.run {
             self.hasConnected = true
             self.connectDate = Date()
+            self.presentCommunication = true
         }
-        self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.remoteView
-        //            self.fcsdkCall?.call?.remoteBufferView = self.fcsdkCall?.remoteView
-        guard let view = self.fcsdkCall?.previewView else { throw OurErrors.nilPreviewView }
+        
+        //We Pass the view up to the SDK
+//        self.currentCall?.call?.remoteView = self.currentCall?.remoteView
+
+        guard let view = self.currentCall?.previewView else { throw OurErrors.nilPreviewView }
         guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
+        //We Pass the view up to the SDK
         uc.phone.previewView = view
-        do {
-            try self.fcsdkCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
-        } catch {
-            print("There was an error answering call Error: \(error)")
-        }
+        try? self.currentCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
     }
     
+    func endACBClientCall() async throws {
+        guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
+        self.currentCall?.call?.end(currentCall.call)
+    }
     
-    func endFCSDKCall() async {
-        self.fcsdkCall?.call?.end()
-        self.fcsdkCall?.call = nil
+    func endFCSDKCall() async throws {
+        guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
+        self.currentCall?.call?.end(currentCall.call)
+        await self.removeCall(call: currentCall)
     }
     
     func hasStartedConnectingDidChange(provider: CXProvider, id: UUID, date: Date) async {
@@ -152,16 +162,16 @@ extension FCSDKCallService {
     func selectAudio(audio: AudioOptions) {
         switch audio {
         case .ear:
-            self.audioDeviceManager?.setAudioDevice(device: .earpiece)
+            self.audioDeviceManager?.setAudioDevice(.earpiece)
         case .speaker:
-            self.audioDeviceManager?.setAudioDevice(device: .speakerphone)
+            self.audioDeviceManager?.setAudioDevice(.speakerphone)
         }
     }
     
     func selectResolution(res: ResolutionOptions) {
         switch res {
         case .auto:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.autoResolution;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolutionAuto;
         case .res288p:
             self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
         case .res480p:
@@ -179,4 +189,30 @@ extension FCSDKCallService {
             self.acbuc?.phone.preferredCaptureFrameRate = 30
         }
     }
+}
+
+// Call Model Methods
+extension FCSDKCallService {
+    
+    @MainActor
+    func addCall(call: FCSDKCall) async {
+        do {
+            try await self.contactService?.addCall(call, isEdit: false)
+        } catch {
+             self.logger.error("\(error)")
+        }
+    }
+    
+    @MainActor
+    func removeCall(call: FCSDKCall) async {
+        call.activeCall = false
+        await self.contactService?.editCall(call: call)
+        self.currentCall = nil
+    }
+    
+    @MainActor
+    func removeAllCalls() async {
+        await self.contactService?.deleteCalls()
+    }
+    
 }

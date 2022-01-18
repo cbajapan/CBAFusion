@@ -9,10 +9,7 @@ import Foundation
 import UIKit
 import FCSDKiOS
 import AVKit
-
-
-
-
+import Logging
 
 class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     
@@ -31,8 +28,6 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         case resumeAudio
         case muteVideo
         case resumeVideo
-        
-        
     }
     
     weak var delegate: CommunicationViewControllerDelegate?
@@ -44,9 +39,12 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }()
     let numberLabel = UILabel()
     let nameLabel = UILabel()
-    var remoteView = SampleBufferVideoCallView()
-    var previewView = SamplePreviewVideoCallView()
+    var remoteView = UIView()
+    var previewView = UIView()
     var callKitManager: CallKitManager
+    var fcsdkCallService: FCSDKCallService
+    var contactService: ContactService
+    var authenticationService: AuthenticationService?
     var acbuc: ACBUC
     var fcsdkCall: FCSDKCall?
     var audioAllowed: Bool = false
@@ -55,19 +53,23 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     var destination: String
     var hasVideo: Bool
     var isOutgoing: Bool
-    var authenticationService: AuthenticationService?
     let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
     var blurEffectView: UIVisualEffectView?
-    
+    var logger: Logger
     
     init(
         callKitManager: CallKitManager,
+        fcsdkCallService: FCSDKCallService,
+        contactService: ContactService,
         destination: String,
         hasVideo: Bool,
         acbuc: ACBUC,
         isOutgoing: Bool
     ) {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CommunicationViewController - ")
         self.callKitManager = callKitManager
+        self.fcsdkCallService = fcsdkCallService
+        self.contactService = contactService
         self.destination = destination
         self.hasVideo = hasVideo
         self.acbuc = acbuc
@@ -80,7 +82,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }
     
     deinit{
-        print("Deinit VC")
+        self.logger.info("Deinit VC")
     }
     
     override func viewDidLoad() {
@@ -90,18 +92,28 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
             if self.authenticationService?.connectedToSocket != nil {
                 await self.configureVideo()
                 if self.isOutgoing {
-                    await self.initiateCall()
+                    do {
+                        try await self.initiateCall()
+                    } catch {
+                         self.logger.error("\(error)")
+                    }
                 } else {
                     await self.fcsdkCallDelegate?.passViewsToService(preview: self.previewView, remoteView: self.remoteView)
                 }
             } else {
-                print("Not Connected to Server")
+                self.logger.info("Not Connected to Server")
             }
         }
+
         self.gestures()
     }
     
-    
+    @MainActor
+    func updateRemoteViewForBuffer(view: UIView) async {
+        self.remoteView.removeFromSuperview()
+        self.remoteView = view
+        print("Remote View", self.remoteView)
+    }
     
     @MainActor
     func currentState(state: CallState) async {
@@ -119,21 +131,45 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         case .isOutgoing:
             break
         case .hold:
-            await self.onHoldView()
+            do {
+                try await self.onHoldView()
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .resume:
-            await self.removeOnHold()
+            do {
+                try await self.removeOnHold()
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .hasEnded:
             await self.breakDownView()
             await self.removeConnectingUI()
             await self.currentState(state: .setup)
         case .muteVideo:
-            await self.muteVideo(isMute: true)
+            do {
+                try await self.muteVideo(isMute: true)
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .resumeVideo:
-            await self.muteVideo(isMute: false)
+            do {
+                try await self.muteVideo(isMute: false)
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .muteAudio:
-            await self.muteAudio(isMute: true)
+            do {
+                try await self.muteAudio(isMute: true)
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .resumeAudio:
-            await self.muteAudio(isMute: false)
+            do {
+                try await self.muteAudio(isMute: false)
+            } catch {
+                 self.logger.error("\(error)")
+            }
         case .cameraFront:
             await self.tapLocalView(show: true)
         case .cameraBack:
@@ -142,34 +178,69 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     }
     
     
-    func initiateCall() async {
-        let fcsdkCall = FCSDKCall(handle: self.destination, hasVideo: true, previewView: self.previewView, remoteView: self.remoteView, uuid: UUID(), acbuc: self.acbuc)
+    func initiateCall() async throws {
+        if let contact = self.contactService.contacts?.first(where: { $0.number == self.destination } )  {
+            await createCallObject(contact: contact)
+        } else {
+            let contact = ContactModel(
+                id: UUID(),
+                username: self.destination,
+                number: self.destination,
+                calls: nil,
+                blocked: false)
+            
+            do {
+                try await self.contactService.delegate?.createContact(contact)
+            } catch {
+                 self.logger.error("\(error)")
+            }
+            
+            await createCallObject(contact: contact)
+        }
+    }
+    
+    func createCallObject(contact: ContactModel) async {
+        let fcsdkCall = FCSDKCall(
+            id: UUID(),
+            handle: self.destination,
+            hasVideo: self.hasVideo,
+            previewView: self.previewView,
+            remoteView: self.remoteView,
+            acbuc: self.acbuc,
+            call: nil,
+            activeCall: true,
+            outbound: true,
+            missed: false,
+            rejected: false,
+            contact: contact.id,
+            createdAt: Date(),
+            updatedAt: nil,
+            deletedAt: nil)
+        
         await self.fcsdkCallDelegate?.passCallToService(fcsdkCall)
         await self.callKitManager.initializeCall(fcsdkCall)
     }
-    
+
     func endCall() async throws {
-        guard let currentCall = self.callKitManager.calls.last else { throw OurErrors.noCallKitCall }
-        await self.callKitManager.finishEnd(call: currentCall)
+        guard let activeCall = try await self.contactService.fetchActiveCall() else { throw OurErrors.noActiveCalls }
+        await self.callKitManager.finishEnd(call: activeCall)
     }
-    
+//We cannot mute because the call is nil we need make sure the call is on the fcsdkCall
     @MainActor
-    func muteVideo(isMute: Bool) async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
+    func muteVideo(isMute: Bool) async throws {
         if isMute {
-            currentCall.call?.enableLocalVideo(false)
+            self.fcsdkCallService.currentCall?.call?.enableLocalVideo(false)
         } else {
-            currentCall.call?.enableLocalVideo(true)
+            self.fcsdkCallService.currentCall?.call?.enableLocalVideo(true)
         }
     }
     
     @MainActor
-    func muteAudio(isMute: Bool) async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
+    func muteAudio(isMute: Bool) async throws {
         if isMute {
-            currentCall.call?.enableLocalAudio(false)
+            self.fcsdkCallService.currentCall?.call?.enableLocalAudio(false)
         } else {
-            currentCall.call?.enableLocalAudio(true)
+            self.fcsdkCallService.currentCall?.call?.enableLocalAudio(true)
         }
     }
     
@@ -187,8 +258,8 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.stackView.addArrangedSubview(self.numberLabel)
         self.stackView.addArrangedSubview(self.nameLabel)
         self.stackView.axis = .vertical
-        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
-        self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, topPadding: 50, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
+        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.status == .inCall {
+            self.stackView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: nil, trailing: self.view.trailingAnchor, topPadding: 50, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
         }
     }
     
@@ -216,10 +287,9 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
         //        self.remoteView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
+        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.status == .inCall {
             //We can change width and height as we wish
             self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
-            
             if UIDevice.current.userInterfaceIdiom == .phone {
                 self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 150, height: 200)
                 
@@ -228,11 +298,11 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
             }
             
             //Not needed for video display just some custom UI Stuff
-            self.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
-            // This will fill the frame, which could distort the video
-            self.previewView.samplePreviewDisplayLayer?.frame = self.previewView.bounds
-            self.previewView.samplePreviewDisplayLayer?.masksToBounds = true
-            self.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
+//            self.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
+//            // This will fill the frame, which could distort the video
+//            self.previewView.samplePreviewDisplayLayer?.frame = self.previewView.bounds
+//            self.previewView.samplePreviewDisplayLayer?.masksToBounds = true
+//            self.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
         }
     }
     
@@ -249,23 +319,20 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         self.previewView.removeFromSuperview()
     }
     
-    
-    func onHoldView() async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
-        currentCall.call?.hold()
+    func onHoldView() async throws {
+        self.fcsdkCallService.currentCall?.call?.hold()
     }
-
-    func removeOnHold() async {
-        guard let currentCall = self.callKitManager.calls.last else { return }
-        currentCall.call?.resume()
+    
+    func removeOnHold() async throws {
+        self.fcsdkCallService.currentCall?.call?.resume()
     }
     
     func blurView() async {
         await MainActor.run {
-           self.blurEffectView = UIVisualEffectView(effect: self.blurEffect)
-           self.blurEffectView?.frame = self.view.bounds
-           self.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-           self.view.addSubview(self.blurEffectView!)
+            self.blurEffectView = UIVisualEffectView(effect: self.blurEffect)
+            self.blurEffectView?.frame = self.view.bounds
+            self.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            self.view.addSubview(self.blurEffectView!)
         }
     }
     

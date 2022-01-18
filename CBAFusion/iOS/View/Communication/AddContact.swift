@@ -9,33 +9,33 @@ import SwiftUI
 
 struct AddContact: View {
     
-    @EnvironmentObject var contact: ContactService
+    @EnvironmentObject var contactService: ContactService
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         NavigationView  {
             Form {
-                Section(header: Text(self.contact.isEdit ? "Edit Contact" : "Add Contact")) {
+                Section(header: Text(self.contactService.isEdit ? "Edit Contact" : "Add Contact")) {
                     VStack(alignment: .leading) {
                         Text("Contact")
                             .bold()
-                        TextField("Enter Contact name...", text: $contact.username)
+                        TextField("Enter Contact name...", text: $contactService.username)
                         Divider()
                         Text("Phone Number")
                             .bold()
-                        TextField("Enter Phone Number...", text: $contact.number)
+                        TextField("Enter Phone Number...", text: $contactService.number)
                     }
                 }
                 Button(action: {
                     Task {
-                        if self.contact.isEdit {
-                            await self.contact.addContact(self.contact.contactToEdit, isEdit: true)
+                        if self.contactService.isEdit {
+                            await self.contactService.addContact(self.contactService.contactToEdit, isEdit: true)
                         } else {
-                            await self.contact.addContact(nil, isEdit: false)
+                            await self.contactService.addContact(nil, isEdit: false)
                         }
-                        await self.contact.clearToDismiss()
-                        if self.contact.isEdit {
-                            self.contact.isEdit = false
+                        await self.contactService.clearToDismiss()
+                        if self.contactService.isEdit {
+                            self.contactService.isEdit = false
                         }
                         self.presentationMode.wrappedValue.dismiss()
                     }
@@ -43,10 +43,10 @@ struct AddContact: View {
                     Text("Save")
                 })
             }
-            .alert("Please fill in the Contact information", isPresented: self.$contact.alert, actions: {
+            .alert("Please fill in the Contact information", isPresented: self.$contactService.alert, actions: {
                 Button("OK", role: .cancel) { }
             })
-            .navigationBarTitle(self.contact.isEdit ? "Edit Contact" : "Add Contact")
+            .navigationBarTitle(self.contactService.isEdit ? "Edit Contact" : "Add Contact")
         }
     }
 }

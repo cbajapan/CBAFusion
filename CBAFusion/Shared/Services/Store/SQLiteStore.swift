@@ -9,10 +9,11 @@ import FluentSQLiteDriver
 import Foundation
 import FluentKit
 import SwiftUI
-
-
+import FCSDKiOS
+import Logging
 
 class SQLiteStore: FCSDKStore {
+    
     
     let databases: Databases
     let database: Database
@@ -28,7 +29,7 @@ class SQLiteStore: FCSDKStore {
     }
     
     static func destroy() {
-        try? FileManager.default.removeItem(atPath:makeSQLiteURL())
+        try? FileManager.default.removeItem(atPath: makeSQLiteURL())
     }
     
     func destroy() {
@@ -52,10 +53,11 @@ class SQLiteStore: FCSDKStore {
         )
         
         databases.use(.sqlite(configuration), as: .sqlite)
-        let logger = Logger(label: "sqlite")
+        let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
         
         let migrations = Migrations()
         migrations.add(CreateContactMigration())
+        migrations.add(CreateCallsMigration())
         
         let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoop)
         return migrator.setupIfNeeded().flatMap {
@@ -71,9 +73,27 @@ class SQLiteStore: FCSDKStore {
         }
     }
     
-    func fetchContacts() async throws -> [ContactModel] {
-        try await _ContactModel.query(on: database).all().flatMapEachThrowing {
-            try $0.makeContact()
+    func fetchContacts() async throws -> [ContactModel]? {
+        try await _ContactModel.query(on: database)
+            .with(\.$calls)
+            .all()
+            .flatMapEachThrowing {
+                let c = $0.calls.map { call in
+                    FCSDKCall(
+                        id: call.id!,
+                        handle: call.handle,
+                        hasVideo: call.hasVideo,
+                        activeCall: call.activeCall,
+                        outbound: call.outbound,
+                        missed: call.missed,
+                        rejected: call.rejected,
+                        contact: call.$contact.id,
+                        createdAt: call.createdAt,
+                        updatedAt: call.updatedAt,
+                        deletedAt: call.deletedAt)
+                }
+                return ContactModel(id: $0.id!, username: $0.username,
+                                    number: $0.number, calls: c, blocked: $0.blocked)
         }.get()
     }
     
@@ -87,6 +107,49 @@ class SQLiteStore: FCSDKStore {
     
     func removeContact(_ contact: ContactModel) async throws {
         try await _ContactModel(contact: contact, new: false).delete(on: database).get()
+    }
+    
+    func fetchCalls() async throws -> [FCSDKCall]? {
+        try await _CallsModel.query(on: database)
+            .with(\.$contact)
+            .all()
+            .flatMapEachThrowing {
+            try $0.makeCall()
+        }.get()
+    }
+    
+    
+    func fetchActiveCalls() async throws -> [FCSDKCall]? {
+        try await _CallsModel.query(on: database)
+            .filter(\.$activeCall == true)
+            .with(\.$contact)
+            .all()
+            .flatMapEachThrowing {
+                try $0.makeCall()
+        }.get()
+    }
+
+    func createCall(_ contactID: UUID?, call: _CallsModel) async throws {
+        let contacts = try await _ContactModel.query(on: database).all()
+        let contact = contacts.first(where: { $0.id == contactID } )
+        try await contact?.$calls.create(call, on: database).get()
+    }
+    
+    func updateCall(_ contactID: UUID, call: FCSDKCall) async throws {
+        try await _CallsModel(call: call, contactID: contactID, new: false).update(on: database).get()
+    }
+    
+    func removeCall(_ contactID: UUID, call: FCSDKCall) async throws {
+        try await _CallsModel(call: call, contactID: contactID, new: false).delete(on: database).get()
+    }
+    
+    func removeCalls() async throws -> Bool {
+        do {
+        try await _CallsModel.query(on: self.database).delete()
+            return true
+        } catch {
+            return false
+        }
     }
     
     deinit {
@@ -107,6 +170,10 @@ struct CreateContactMigration: Migration {
             .id()
             .field("username", .string, .required)
             .field("number", .string, .required)
+            .field("blocked", .bool, .required)
+            .field("created_at", .datetime)
+            .field("updated_at", .datetime)
+            .field("deleted_at", .datetime)
             .create()
     }
     
@@ -115,13 +182,36 @@ struct CreateContactMigration: Migration {
     }
 }
 
+struct CreateCallsMigration: Migration {
+    func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(_CallsModel.schema)
+            .id()
+            .field("handle", .string, .required)
+            .field("hasVideo", .bool, .required)
+            .field("activeCall", .bool, .required)
+            .field("outbound", .bool, .required)
+            .field("missed", .bool, .required)
+            .field("rejected", .bool, .required)
+            .field("created_at", .datetime)
+            .field("updated_at", .datetime)
+            .field("deleted_at", .datetime)
+            .field("contact_id", .uuid, .required, .references("contacts", "id"))
+            .create()
+    }
+    
+    func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema(_CallsModel.schema).delete()
+    }
+}
+
+
 fileprivate func makeSQLiteURL() -> String {
     guard var url = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first else {
         fatalError()
     }
     
     url = url.appendingPathComponent("db")
-    
+    Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ").info("DATABASE \(url)")
     if FileManager.default.fileExists(atPath: url.path) {
         var excludedFromBackup = URLResourceValues()
         excludedFromBackup.isExcludedFromBackup = true

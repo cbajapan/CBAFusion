@@ -18,11 +18,10 @@ struct PushDetail<Destination : View>: View {
 
 struct Contacts: View {
     
-    @State var notLoggedIn: Bool = false
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var monitor: NetworkMonitor
-    @EnvironmentObject var contact: ContactService
+    @EnvironmentObject var contactService: ContactService
     @EnvironmentObject var callKitManager: CallKitManager
     @Environment(\.colorScheme) var colorScheme
     
@@ -30,41 +29,32 @@ struct Contacts: View {
         NavigationView {
             ZStack {
                 List {
-                    ForEach(self.contact.contacts ?? [], id: \.id) { contact in
-                        HStack {
-                            ZStack{
-                                if #available(iOS 15.0, *) {
-                                    Circle()
-                                        .fill(Color.cyan)
-                                        .frame(width: 30, height: 30, alignment: .leading)
-                                } else {
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 30, height: 30, alignment: .leading)
+                    ForEach(self.contactService.contacts ?? [], id: \.id) { contact in
+                       
+                        NavigationLink(destination: ContactCard(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing, contact: contact)) {
+                            HStack {
+                                ZStack{
+                                    if #available(iOS 15.0, *) {
+                                        Circle()
+                                            .fill(Color.cyan)
+                                            .frame(width: 30, height: 30, alignment: .leading)
+                                    } else {
+                                        Circle()
+                                            .fill(Color.blue)
+                                            .frame(width: 30, height: 30, alignment: .leading)
+                                    }
+                                }
+                                VStack(alignment: .leading, spacing: 0) {
+                                    Text(contact.username)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                                    Text(contact.number)
+                                        .fontWeight(.light)
+                                        .padding(.leading, 10)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
                                 }
                             }
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text(contact.username)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(colorScheme == .dark ? .white : .black)
-                                Text(contact.number)
-                                    .fontWeight(.light)
-                                    .padding(.leading, 10)
-                                    .foregroundColor(colorScheme == .dark ? .white : .black)
-                            }
-                        }
-                        
-                        .onTapGesture {
-                            if authenticationService.acbuc != nil,
-                               self.authenticationService.connectedToSocket,
-                               self.authenticationService.sessionExists {
-                                self.fcsdkCallService.presentCommunication = true
-                                self.fcsdkCallService.destination = contact.number
-                                self.fcsdkCallService.hasVideo = true
-                                self.fcsdkCallService.isOutgoing = true
-                            } else {
-                                notLoggedIn = true
-                            }
+
                         }
                         .swipeActions(edge: .trailing) {
                             Button("Delete") {
@@ -94,7 +84,7 @@ struct Contacts: View {
                     Button {
                         if self.authenticationService.connectedToSocket,
                            self.authenticationService.sessionExists {
-                            self.contact.addSheet = true
+                            self.contactService.addSheet = true
                         }
                     } label: {
                         Image(systemName: "plus")
@@ -103,7 +93,7 @@ struct Contacts: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        PushDetail(destination: CallSheet(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
+                        PushDetail(destination: CallSheet(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
                             .foregroundColor(.blue)
                     }
                 }
@@ -113,39 +103,26 @@ struct Contacts: View {
             Button("OK", role: .cancel) { }
         })
         .fullScreenCover(isPresented: self.$fcsdkCallService.presentCommunication, content: {
-            Communication(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing)
+            Communication(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo)
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
         })
-        .sheet(isPresented: self.$contact.addSheet, content: {
+        .sheet(isPresented: self.$contactService.addSheet, content: {
             AddContact()
-                .environmentObject(self.contact)
+                .environmentObject(self.contactService)
         })
-        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
-            Button("OK", role: .cancel) {
-                processNotLoggedIn()
-            }
-        })
-    }
-    
-    func processNotLoggedIn() {
-        Task {
-            await self.authenticationService.logout()
-            KeychainItem.deleteSessionID()
-            self.authenticationService.sessionID = KeychainItem.getSessionID
-        }
     }
     
     func editContact(_ contact: ContactModel) {
         Task {
-            await self.contact.editContact(contact: contact, isEdit: true)
+            await self.contactService.editContact(contact: contact, isEdit: true)
         }
     }
     
     func removeContact(_ contact: ContactModel) {
         Task {
-            await self.contact.deleteContact(contact: contact)
+            await self.contactService.deleteContact(contact: contact)
         }
     }
 }

@@ -10,6 +10,7 @@ import CallKit
 import UIKit
 import AVFoundation
 import FCSDKiOS
+import Logging
 
 final class ProviderDelegate: NSObject, CXProviderDelegate {
     
@@ -17,13 +18,14 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
     internal let callKitManager: CallKitManager
     internal let authenticationService: AuthenticationService
     internal let fcsdkCallService: FCSDKCallService
-    internal var outgoingFCSDKCall: FCSDKCall?
+    var logger: Logger
     
     init(
         callKitManager: CallKitManager,
         authenticationService: AuthenticationService,
         fcsdkCallService: FCSDKCallService
     ) {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
         self.callKitManager = callKitManager
         self.authenticationService = authenticationService
         self.fcsdkCallService = fcsdkCallService

@@ -9,26 +9,25 @@ import Foundation
 import CallKit
 import FCSDKiOS
 import AVFAudio
+import Logging
 
 enum CallKitErrors: Swift.Error {
     case failedRequestTransaction(String)
 }
 
-
-
 class CallKitManager: NSObject, ObservableObject {
     
     let callController = CXCallController()
-    var calls = [FCSDKCall]()
-    
+    var logger: Logger
     
     override init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
         super.init()
     }
 
     
     func initializeCall(_ call: FCSDKCall) async {
-        await self.makeCall(uuid: call.uuid, handle: call.handle, hasVideo: call.hasVideo)
+        await self.makeCall(uuid: call.id, handle: call.handle, hasVideo: call.hasVideo)
     }
     
     func makeCall(uuid: UUID, handle: String, hasVideo: Bool = false) async {
@@ -42,14 +41,14 @@ class CallKitManager: NSObject, ObservableObject {
     }
 
     func finishEnd(call: FCSDKCall) async {
-        let endCallAction = CXEndCallAction(call: call.uuid)
+        let endCallAction = CXEndCallAction(call: call.id)
         let transaction = CXTransaction()
         transaction.addAction(endCallAction)
         await requestTransaction(transaction)
     }
     
     func setCallOnHold(call: FCSDKCall, onHold: Bool) async {
-        let hold = CXSetHeldCallAction(call: call.uuid, onHold: onHold)
+        let hold = CXSetHeldCallAction(call: call.id, onHold: onHold)
         let transaction = CXTransaction()
         transaction.addAction(hold)
          await requestTransaction(transaction)
@@ -68,24 +67,7 @@ class CallKitManager: NSObject, ObservableObject {
         do {
             try await callController.request(transaction)
         } catch {
-            print("Error requesting transaction:", error)
+            self.logger.error("Error requesting transaction: \(error)")
         }
-    }
-    
-    func callWithUUID(uuid: UUID) async -> FCSDKCall? {
-        guard let index = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
-        return calls[index]
-    }
-    func addCall(call: FCSDKCall) async {
-        calls.append(call)
-    }
-    
-    func removeCall(call: FCSDKCall) async {
-        guard let index = calls.firstIndex(where: { $0 === call }) else { return }
-        calls.remove(at: index)
-    }
-    
-    func removeAllCalls() async {
-        calls.removeAll()
     }
 }

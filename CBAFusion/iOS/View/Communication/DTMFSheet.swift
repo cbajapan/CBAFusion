@@ -35,10 +35,9 @@ struct DTMFSheet: View {
         }
         .onChange(of: key) { newValue in
             if key != "" {
-                print(newValue)
                 Task {
-                    if self.fcsdkCallService.fcsdkCall?.call != nil {
-                        await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.uuid, digit: newValue)
+                    if self.fcsdkCallService.currentCall?.call != nil {
+                        await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.currentCall!.id, digit: newValue)
                         storedKey += key
                         key = ""
                     }

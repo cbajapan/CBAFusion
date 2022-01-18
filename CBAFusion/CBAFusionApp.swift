@@ -10,6 +10,8 @@ import UIKit
 import AVKit
 import FCSDKiOS
 import Intents
+import Logging
+
 
 @main
 struct CBAFusionApp: App {
@@ -21,20 +23,22 @@ struct CBAFusionApp: App {
     @StateObject private var fcsdkCallService = FCSDKCallService()
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
-    @StateObject private var contact = ContactService()
+    @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
     @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     @State var callIntent = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
+    var logger: Logger
     
     init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Main App- ")
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.playback, mode: .moviePlayback)
         } catch {
-            print("Failed to set audioSession category to playback")
+            self.logger.info("Failed to set audioSession category to playback")
         }
     }
     
@@ -51,10 +55,11 @@ struct CBAFusionApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
-                .environmentObject(contact)
+                .environmentObject(contactService)
                 .environmentObject(aedService)
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
+                    fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
                     workWithFocus()
@@ -62,7 +67,7 @@ struct CBAFusionApp: App {
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
                     callIntent = true
                     guard let handle = activity.startCallHandle else {
-                        print("Could not determine start call handle from user activity: \(activity)")
+                        self.logger.error("Could not determine start call handle from user activity: \(activity)")
                         return
                     }
                     Task {
@@ -83,7 +88,7 @@ struct CBAFusionApp: App {
         .onChange(of: scenePhase) { (phase) in
             switch phase {
             case .active:
-                print("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                 Task {
                     await self.requestMicrophoneAndCameraPermissionFromAppSettings()
                     if self.authenticationService.acbuc?.connection == false {
@@ -100,18 +105,18 @@ struct CBAFusionApp: App {
                               self.authenticationService.acbuc?.connection == false {
                         await reAuthFlow()
                     }
-                    print("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
+                        self.logger.info("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
                     }
                 }
             case .background:
-                print("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                 Task {
                 await self.fcsdkCallService.startAudioSession()
                 }
             case .inactive:
-                print("ScenePhase: inactive")
+                self.logger.info("ScenePhase: inactive")
             @unknown default:
-                print("ScenePhase: unexpected state")
+                self.logger.info("ScenePhase: unexpected state")
             }
         }
     }
@@ -130,15 +135,15 @@ struct CBAFusionApp: App {
     
     func workWithFocus() {
         /// Retrieve the current authorization status: INFocusStatusAuthorizationStatus
-        print("INFocusStatusAuthorizationStatus: ", INFocusStatusCenter.default.authorizationStatus)
+//        self.logger.info("INFocusStatusAuthorizationStatus: ", INFocusStatusCenter.default.authorizationStatus)
 
         /// Request authorization to check Focus Status
         INFocusStatusCenter.default.requestAuthorization { status in
             /// Provides a INFocusStatusAuthorizationStatus
-        print("Focus is: \(status)")
+        self.logger.info("Focus is: \(status)")
         }
 
         /// Check if Focus is enabled. INFocusStatusAuthorizationStatus must be .authorized
-        print("isFocused: ", INFocusStatusCenter.default.focusStatus.isFocused)
+//        self.logger.info("isFocused: ", INFocusStatusCenter.default.focusStatus.isFocused)
     }
 }

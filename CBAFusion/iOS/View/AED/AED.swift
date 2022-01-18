@@ -148,7 +148,6 @@ struct AED: View{
             if topic.connected {
                 topic.disconnect(withDeleteFlag: delete)
                 self.aedService.topicList.removeAll(where: { $0 == topic })
-                print(self.aedService.topicList)
                 await MainActor.run {
                     let msg = "Topic \(topic.name) disconnected."
                     self.aedService.consoleMessage = msg
@@ -175,7 +174,7 @@ struct AED: View{
     func connectToTopic() async {
         if !self.topicName.isEmpty{
             let expiry = Int(self.expiry) ?? 0
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed?.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
+            self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
             self.topicName = ""
             self.expiry = ""
         } else {

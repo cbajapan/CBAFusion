@@ -8,8 +8,14 @@
 import Foundation
 import SwiftUI
 import FCSDKiOS
+import Logging
 
 class AuthenticationService: NSObject, ObservableObject {
+    var logger: Logger
+    
+    override init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
+    }
     
     func requestLoginObject() -> LoginRequest {
         return LoginRequest(username: self.username, password: self.password)
@@ -31,7 +37,7 @@ class AuthenticationService: NSObject, ObservableObject {
     @Published var showSettingsSheet = false
     @Published var selectedParentIndex: Int = 0
     @Published var currentTabIndex = 0
-    
+    @Published var showProgress: Bool = false
     
     /// Authenticate the User
     @MainActor
@@ -45,7 +51,6 @@ class AuthenticationService: NSObject, ObservableObject {
             useCookies: useCookies,
             acceptUntrustedCertificates: acceptUntrustedCertificates
         )
-        
         
         UserDefaults.standard.set(username, forKey: "Username")
         KeychainItem.savePassword(password: password)
@@ -69,7 +74,7 @@ class AuthenticationService: NSObject, ObservableObject {
             }
         } catch {
             await errorCaught(error: error)
-            print(error.localizedDescription)
+            self.logger.error("\(error.localizedDescription)")
         }
     }
     
@@ -81,7 +86,8 @@ class AuthenticationService: NSObject, ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse else {return}
         switch httpResponse.statusCode {
         case 200...299:
-            print("success")
+            self.logger.info("success")
+            self.showProgress = false
             self.showSettingsSheet = false
         case 401:
             await showAlert(response: httpResponse)
@@ -124,7 +130,10 @@ class AuthenticationService: NSObject, ObservableObject {
     
     /// Logout and stop the session
     func logout() async {
-        print("Logging out of server: \(server) with: \(username)")
+        self.logger.info("Logging out of server: \(server) with: \(username)")
+        await MainActor.run {
+        self.showProgress = true
+        }
         let loginCredentials = Login(
             username: username,
             password: password,
@@ -143,7 +152,8 @@ class AuthenticationService: NSObject, ObservableObject {
             self.sessionExists = false
         } catch {
             await errorCaught(error: error)
-            print(error.localizedDescription)
+            self.logger.error("\(error.localizedDescription)")
+            self.showProgress = false
         }
     }
     
@@ -162,20 +172,20 @@ class AuthenticationService: NSObject, ObservableObject {
 
 extension AuthenticationService: ACBUCDelegate {
     
-    func ucDidStartSession(_ uc: ACBUC?) {
-        print("Started Session \(String(describing: uc))")
+    func ucDidStartSession(_ uc: ACBUC) {
+        self.logger.info("Started Session \(String(describing: uc))")
     }
     
-    func ucDidFail(toStartSession uc: ACBUC?) {
-        print("Failed to start Session \(String(describing: uc))")
+    func ucDidFail(toStartSession uc: ACBUC) {
+        self.logger.info("Failed to start Session \(String(describing: uc))")
     }
     
-    func ucDidReceiveSystemFailure(_ uc: ACBUC?) {
-        print("Received system failure \(String(describing: uc))")
+    func ucDidReceiveSystemFailure(_ uc: ACBUC) {
+        self.logger.info("Received system failure \(String(describing: uc))")
     }
     
-    func ucDidLoseConnection(_ uc: ACBUC?) {
-        print("Did lose connection \(String(describing: uc))")
+    func ucDidLoseConnection(_ uc: ACBUC) {
+        self.logger.info("Did lose connection \(String(describing: uc))")
     }
     
 }

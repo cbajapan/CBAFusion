@@ -12,11 +12,12 @@ import UIKit
 
 extension FCSDKCallService: ACBClientCallDelegate {
     
+    
     @MainActor private func endCall() async {
         self.hasEnded = true
     }
     
-    func call(_ call: ACBClientCall?, didChange status: ACBClientCallStatus) {
+    func call(_ call: ACBClientCall, didChange status: ACBClientCallStatus) {
         switch status {
         case .setup:
             break
@@ -35,6 +36,9 @@ extension FCSDKCallService: ACBClientCallDelegate {
                 if self.audioPlayer != nil {
                     await stopOutgoingRingtone()
                 }
+                //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
+                ///This method is used to set the remoteView with a BufferView
+                self.currentCall?.remoteView = await self.currentCall?.call?.remoteBufferView()
                 await self.inCall()
             }
         case .timedOut:
@@ -62,33 +66,37 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    @MainActor func alerting() async {
+    @MainActor
+    func alerting() async {
         self.hasStartedConnecting = true
     }
     
-    @MainActor func inCall() async {
+    @MainActor
+    func inCall() async {
         self.isRinging = false
         self.hasConnected = true
         self.connectDate = Date()
     }
     
-    @MainActor func ringing() async {
+    @MainActor
+    func ringing() async {
         self.hasStartedConnecting = false
         self.connectingDate = Date()
         self.isRinging = true
     }
     
-    @MainActor func setErrorMessage(message: String) async {
+    @MainActor
+    func setErrorMessage(message: String) async {
         self.sendErrorMessage = true
         self.errorMessage = message
     }
     
-    func call(_ call: ACBClientCall?, didReceiveSessionInterruption message: String?) {
+    func call(_ call: ACBClientCall, didReceiveSessionInterruption message: String) {
         if message == "Session interrupted" {
-            if  self.fcsdkCall?.call != nil {
-                if  self.fcsdkCall?.call?.currentState == ACBClientCallStatus.inCall.rawValue {
+            if  self.currentCall?.call != nil {
+                if  self.currentCall?.call?.status == .inCall {
                     if !self.isOnHold {
-                        call?.hold()
+                        call.hold()
                         self.isOnHold = true
                     }
                 }
@@ -96,45 +104,46 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveCallFailureWithError error: Error?) throws {
+    func call(_ call: ACBClientCall, didReceiveCallFailureWithError error: Error) {
         Task {
             await MainActor.run {
                 self.sendErrorMessage = true
-                self.errorMessage = error?.localizedDescription ?? "didReceiveCallFailureWithError Error"
+                self.errorMessage = error.localizedDescription
             }
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveDialFailureWithError error: Error?) {
+    
+    
+    func call(_ call: ACBClientCall, didReceiveDialFailureWithError error: Error) {
         Task {
             await MainActor.run {
                 self.sendErrorMessage = true
-                self.errorMessage = error?.localizedDescription ?? "didReceiveDialFailureWithError Error"
+                self.errorMessage = error.localizedDescription
             }
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String?) {
+    func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String) {
         Task {
             await MainActor.run {
                 self.sendErrorMessage = true
-                self.errorMessage = message ?? "didReceiveCallRecordingPermissionFailure Error"
+                self.errorMessage = message
             }
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveSSRCsForAudio audioSSRCs: [AnyHashable]?, andVideo videoSSRCs: [AnyHashable]?) {
+    func call(_ call: ACBClientCall, didReceiveSSRCsForAudio audioSSRCs: [AnyHashable]?, andVideo videoSSRCs: [AnyHashable]?) {
         guard let audio = audioSSRCs else {return}
         guard let video = videoSSRCs else {return}
-        print("Received SSRC information for AUDIO \(audio) and VIDEO \(video)")
+        self.logger.info("Received SSRC information for AUDIO \(audio) and VIDEO \(video)")
     }
     
-    func call(_ call: ACBClientCall?, didReportInboundQualityChange inboundQuality: Int) {
-        //TODO: - Reflect in UI
-        print("Call Quality: \(inboundQuality)")
+    internal func call(_ call: ACBClientCall, didReportInboundQualityChange inboundQuality: Int) {
+        self.logger.info("Call Quality: \(inboundQuality)")
     }
     
-    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall?) {
+    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall) {
     }
     
     

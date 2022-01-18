@@ -7,12 +7,19 @@
 
 import Foundation
 import FCSDKiOS
+import Logging
 
 class AEDService : NSObject, ObservableObject, ACBTopicDelegate {
     
     @Published var currentTopic: ACBTopic?
     @Published var topicList: [ACBTopic] = []
     @Published var consoleMessage: String = ""
+    var logger: Logger
+    
+    
+    override init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - AEDService - ")
+    }
     
     func topic(_ topic: ACBTopic, didConnectWithData data: AedData) {
         Task {
@@ -38,7 +45,7 @@ class AEDService : NSObject, ObservableObject, ACBTopicDelegate {
         guard let topicData = data.topicData else { return }
         
         for data in topicData{
-            print("Key:'\(data.key ?? "")' Value:'\(data.value ?? "")'")
+            self.logger.info("Key:'\(data.key ?? "")' Value:'\(data.value ?? "")'")
         }
     }
     

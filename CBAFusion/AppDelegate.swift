@@ -10,13 +10,14 @@ import PushKit
 import CallKit
 import UIKit
 import FCSDKiOS
+import Logging
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     let pushRegistry = PKPushRegistry(queue: .main)
     let callKitManager = CallKitManager()
     var providerDelegate: ProviderDelegate?
     let window = UIWindow(frame: UIScreen.main.bounds)
-    
+    var logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - App Delegate - ")
     // MARK: - UIApplicationDelegate
     
     func application(_ application: UIApplication,
@@ -25,9 +26,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         self.voipRegistration()
         let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
         if hasLaunched {
-            print("Not going to delete sessionID")
+            self.logger.info("Not going to delete sessionID")
         } else {
-            print("We are going to delete sessionID")
+            self.logger.info("We are going to delete sessionID")
             KeychainItem.deleteKeychainItems()
             UserDefaults.standard.set(true, forKey: "hasLaunched")
         }
@@ -36,7 +37,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         guard let handle = url.startCallHandle else {
-            print("Could not determine start call handle from URL: \(url)")
+            self.logger.error("Could not determine start call handle from URL: \(url)")
             return false
         }
         Task {
@@ -44,6 +45,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         }
         return true
     }
+    
     
     //TODO: We are not using push kit yet for remote notifications
     // Register for VoIP notifications
@@ -92,15 +94,23 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         
         let userInfo = response.notification.request.content.userInfo
-        print("didReceive ======", userInfo)
+        self.logger.info("didReceive ====== \(userInfo)")
+        switch response.actionIdentifier {
+        case "action1":
+            self.logger.info("Action First Tapped")
+        case "action2":
+            self.logger.info("Action Second Tapped")
+        default:
+            break
+        }
         completionHandler()
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         
         let userInfo = notification.request.content.userInfo
-        print("willPresent ======", userInfo)
-        completionHandler([.list, .sound, .badge])
+        self.logger.info("willPresent ====== \(userInfo)")
+        completionHandler([.banner, .sound, .badge])
     }
 }
 
@@ -110,13 +120,13 @@ extension AppDelegate: PKPushRegistryDelegate {
     
     //     Handle updated push credentials
     func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
-        print(credentials.token)
+        //        self.logger.info(credentials.token)
         let deviceToken = credentials.token.map { String(format: "%02x", $0) }.joined()
-        print("pushRegistry -> deviceToken :\(deviceToken)")
+        self.logger.info("pushRegistry -> deviceToken :\(deviceToken)")
     }
     
     func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        print("pushRegistry:didInvalidatePushTokenForType:")
+        self.logger.info("pushRegistry:didInvalidatePushTokenForType: \(type)")
     }
     
     // Handle incoming pushes
@@ -136,17 +146,16 @@ extension AppDelegate: PKPushRegistryDelegate {
             return
         }
         let receivedCall = FCSDKCall(
+            id: uuid,
             handle: handle,
             hasVideo: hasVideo,
             previewView: nil,
             remoteView: nil,
-            uuid: uuid,
             acbuc: nil,
             call: nil
         )
         Task {
             await displayIncomingCall(fcsdkCall: receivedCall)
-            await self.callKitManager.addCall(call: receivedCall)
         }
     }
     

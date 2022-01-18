@@ -20,15 +20,15 @@ extension ProviderDelegate {
             }
         }
         do {
-                let update = CXCallUpdate()
-                update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
-                update.hasVideo = fcsdkCall.hasVideo
-                update.supportsDTMF = true
-                update.supportsHolding = false
-                try await provider?.reportNewIncomingCall(with: fcsdkCall.uuid, update: update)
-            
-            await self.fcsdkCallService.presentCommunicationSheet()
-            await self.callKitManager.addCall(call: fcsdkCall)
+            let update = CXCallUpdate()
+            update.remoteHandle = CXHandle(type: .phoneNumber, value: fcsdkCall.handle)
+            update.hasVideo = fcsdkCall.hasVideo
+            update.supportsDTMF = true
+            update.supportsHolding = false
+            try await provider?.reportNewIncomingCall(with: fcsdkCall.id, update: update)
+            await MainActor.run {
+                self.fcsdkCallService.presentCommunication = true
+            }
         } catch {
             let errorCode = (error as NSError).code
             
@@ -39,28 +39,28 @@ extension ProviderDelegate {
                         self.fcsdkCallService.doNotDisturb = true
                     }
                 }
+                fcsdkCall.activeCall = false
+                await self.fcsdkCallService.contactService?.editCall(call: fcsdkCall)
             }
-            print("There was an error in \(#function) - Error: \(error.localizedDescription)")
+            self.logger.error("There was an error in \(#function) - Error: \(error.localizedDescription)")
         }
     }
     
     
     //    Answer Call after we get notified that we have an incoming call
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        print("answer call action")
-                Task {
-                await self.fcsdkCallService.startAudioSession()
-                try await self.fcsdkCallService.answerFCSDKCall()
-                }
-                action.fulfill()
+        self.logger.info("Answer call action")
+        Task {
+            await self.fcsdkCallService.startAudioSession()
+            try await self.fcsdkCallService.answerFCSDKCall()
         }
-    
-    
+        action.fulfill()
+    }
     
     
     //Start Call
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        print("start call action")
+        self.logger.info("Start call action")
         Task {
             var acbCall: ACBClientCall?
             do {
@@ -69,77 +69,88 @@ extension ProviderDelegate {
                 callUpdate.hasVideo = fcsdkCallService.hasVideo
                 callUpdate.supportsHolding = false
                 
-                self.outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall
-                guard let outgoingFCSDKCall = outgoingFCSDKCall else { return }
+                guard let outgoingFCSDKCall = self.fcsdkCallService.currentCall else { return }
                 guard let preview = outgoingFCSDKCall.previewView else { return }
                 try await self.fcsdkCallService.initializeCall(previewView: preview)
                 acbCall = try await self.fcsdkCallService.startFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
-                provider.reportCall(with: outgoingFCSDKCall.uuid, updated: callUpdate)
+
+                provider.reportCall(with: outgoingFCSDKCall.id, updated: callUpdate)
                 
                 await self.fcsdkCallService.hasStartedConnectingDidChange(provider: provider,
-                                                                          id: outgoingFCSDKCall.uuid,
+                                                                          id: outgoingFCSDKCall.id,
                                                                           date: self.fcsdkCallService.connectingDate ?? Date())
                 await self.fcsdkCallService.hasConnectedDidChange(provider: provider,
-                                                                  id: outgoingFCSDKCall.uuid,
+                                                                  id: outgoingFCSDKCall.id,
                                                                   date: self.fcsdkCallService.connectDate ?? Date())
+                await self.fcsdkCallService.addCall(call: outgoingFCSDKCall)
                 action.fulfill()
             } catch {
-                print("\(OurErrors.nilACBUC.rawValue)")
+                self.logger.error("\(error)")
                 action.fail()
             }
-            
-            guard let oc = outgoingFCSDKCall else { return }
-            await self.callKitManager.addCall(call: oc)
         }
     }
-    
-    //    func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
-    //        
-    //    }
     
     
     //End Call
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         Task {
-            await self.fcsdkCallService.stopAudioSession()
-            await asyncEnd()
+            let call = try await self.fcsdkCallService.contactService?.fetchActiveCall()
+            if self.fcsdkCallService.currentCall != nil, call?.activeCall == false {
+                guard let call = self.fcsdkCallService.currentCall else { return }
+                call.missed = false
+                call.outbound = false
+                call.activeCall = false
+                call.rejected = true
+                await self.fcsdkCallService.contactService?.editCall(call: call)
+                do {
+                    try await self.fcsdkCallService.endACBClientCall()
+                } catch {
+                    self.logger.error("\(error)")
+                }
+            } else {
+                await asyncEnd()
+            }
+            action.fulfill()
         }
-        action.fulfill()
     }
     
     func asyncEnd() async {
-        // Retrieve the FCSDKCall instance corresponding to the action's call UUID
-        await self.fcsdkCallService.endFCSDKCall()
-        await callKitManager.removeAllCalls()
+        await self.fcsdkCallService.stopAudioSession()
+        do {
+            try await self.fcsdkCallService.endFCSDKCall()
+        } catch {
+            self.logger.error("\(error)")
+        }
     }
     
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        print("Provider - CXPlayDTMFCallAction")
+        self.logger.info("Provider - CXPlayDTMFCallAction")
         let dtmfDigits:String = action.digits
-        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
+        self.fcsdkCallService.currentCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
         action.fulfill()
     }
     
     //Provider Began
     func providerDidBegin(_ provider: CXProvider) {
-        print("Provider began")
+        self.logger.info("Provider began")
     }
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        print("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
-        print(audioSession.sampleRate)
+        self.logger.info("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
+        self.logger.info("\(audioSession.sampleRate)")
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        print("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
+        self.logger.info("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
     }
     
     
     // Here we can reset the provider to remove any stale callkit calls
     func providerDidReset(_ provider: CXProvider) {
-        print("Provider did reset")
+        self.logger.info("Provider did reset")
     }
     
     

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 
 struct KeychainItem {
     // MARK: Types
@@ -131,7 +132,7 @@ struct KeychainItem {
         do {
             try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").saveItem(password)
         } catch {
-            print("Unable to save data to keychain. \(error)")
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to save data to keychain. \(error)")
         }
     }
     
@@ -148,7 +149,7 @@ struct KeychainItem {
         do {
             try KeychainItem(service:  Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
         } catch {
-            print("Unable to delete password from keychain")
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete password from keychain")
         }
     }
     
@@ -156,7 +157,7 @@ struct KeychainItem {
         do {
             try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").saveItem(sessionid)
         } catch {
-            print("Unable to save data to keychain. \(error)")
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to save data to keychain. \(error)")
         }
     }
     
@@ -173,7 +174,7 @@ struct KeychainItem {
         do {
             try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").deleteItem()
         } catch {
-            print("Unable to delete password from keychain")
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete password from keychain")
         }
     }
     
@@ -184,7 +185,7 @@ struct KeychainItem {
             try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan").deleteItem()
             try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
         } catch {
-            print("Unable to delete sessionID from keychain")
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete sessionID from keychain")
         }
     }
     

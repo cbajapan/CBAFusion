@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
 		0921A5522761791E0069F324 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5042761791E0069F324 /* Assets.xcassets */; };
-		0921A5552761791E0069F324 /* ContactModelDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5092761791E0069F324 /* ContactModelDTO.swift */; };
+		0921A5552761791E0069F324 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5092761791E0069F324 /* ContactModel.swift */; };
 		0921A5562761791E0069F324 /* LoginResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A50B2761791E0069F324 /* LoginResponse.swift */; };
 		0921A5572761791E0069F324 /* AutoResizingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A50D2761791E0069F324 /* AutoResizingTextView.swift */; };
 		0921A5582761791E0069F324 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5102761791E0069F324 /* URL+Extension.swift */; };
@@ -30,8 +30,7 @@
 		0921A5682761791E0069F324 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5252761791E0069F324 /* NetworkMonitor.swift */; };
 		0921A5692761791E0069F324 /* Communication+ViewControllerRepresenable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5272761791E0069F324 /* Communication+ViewControllerRepresenable.swift */; };
 		0921A56A2761791E0069F324 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5292761791E0069F324 /* Login.swift */; };
-		0921A56B2761791E0069F324 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52A2761791E0069F324 /* ContactModel.swift */; };
-		0921A56C2761791E0069F324 /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52B2761791E0069F324 /* FCSDKCall.swift */; };
+		0921A56B2761791E0069F324 /* _ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52A2761791E0069F324 /* _ContactModel.swift */; };
 		0921A56E2761791E0069F324 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52E2761791E0069F324 /* Authentication.swift */; };
 		0921A56F2761791E0069F324 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A52F2761791E0069F324 /* Welcome.swift */; };
 		0921A5702761791E0069F324 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5312761791E0069F324 /* Console.swift */; };
@@ -60,11 +59,18 @@
 		0921A5C7276185D90069F324 /* CBAFusionUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5C6276185D80069F324 /* CBAFusionUITestsLaunchTests.swift */; };
 		0921A5D4276185E20069F324 /* CBAFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5D3276185E20069F324 /* CBAFusionTests.swift */; };
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
+		094C606D278BB50600617691 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C606C278BB50600617691 /* DateFormatter.swift */; };
 		095A1EA3278268A5002D5805 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 095A1EA2278268A5002D5805 /* FCSDKiOS */; };
 		095A1ED327829891002D5805 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095A1EAC2782968E002D5805 /* Intents.framework */; };
 		095A1ED627829891002D5805 /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095A1ED527829891002D5805 /* IntentHandler.swift */; };
 		095A1EDA27829891002D5805 /* IntentsExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 095A1ED227829891002D5805 /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09681B432791508800DB6A69 /* FCSDKCall.swift */; };
 		097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 097BBFD2277593670024EC48 /* FluentSQLiteDriver */; };
+		09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886B27850AC7007FE276 /* LocalNotification.swift */; };
+		09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886D27851BBB007FE276 /* ContactCard.swift */; };
+		09E6D78A278C2A2100948065 /* _CallsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E6D789278C2A2100948065 /* _CallsModel.swift */; };
+		09E6D78E278E5CB100948065 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 09E6D78D278E5CB100948065 /* Logging */; };
+		09E6D790278E5E7C00948065 /* Contants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E6D78F278E5E7C00948065 /* Contants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,7 +125,7 @@
 		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
 		0921A4FD2761791E0069F324 /* CBAFusion.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CBAFusion.entitlements; sourceTree = "<group>"; };
 		0921A5042761791E0069F324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		0921A5092761791E0069F324 /* ContactModelDTO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModelDTO.swift; sourceTree = "<group>"; };
+		0921A5092761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
 		0921A50B2761791E0069F324 /* LoginResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginResponse.swift; sourceTree = "<group>"; };
 		0921A50D2761791E0069F324 /* AutoResizingTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoResizingTextView.swift; sourceTree = "<group>"; };
 		0921A5102761791E0069F324 /* URL+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
@@ -140,8 +146,7 @@
 		0921A5252761791E0069F324 /* NetworkMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		0921A5272761791E0069F324 /* Communication+ViewControllerRepresenable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Communication+ViewControllerRepresenable.swift"; sourceTree = "<group>"; };
 		0921A5292761791E0069F324 /* Login.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
-		0921A52A2761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
-		0921A52B2761791E0069F324 /* FCSDKCall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
+		0921A52A2761791E0069F324 /* _ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _ContactModel.swift; sourceTree = "<group>"; };
 		0921A52E2761791E0069F324 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		0921A52F2761791E0069F324 /* Welcome.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
 		0921A5312761791E0069F324 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
@@ -174,6 +179,7 @@
 		0921A5D3276185E20069F324 /* CBAFusionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBAFusionTests.swift; sourceTree = "<group>"; };
 		0921A5DA27618C650069F324 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		094C606C278BB50600617691 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		094E5FC2276AE00C00F37985 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		094EE30126DCE211008C1637 /* CBAFusion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CBAFusion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		095A1EA1278266D9002D5805 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
@@ -187,6 +193,11 @@
 		095A1ED227829891002D5805 /* IntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		095A1ED527829891002D5805 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		095A1ED727829891002D5805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		09681B432791508800DB6A69 /* FCSDKCall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FCSDKCall.swift; sourceTree = "<group>"; };
+		09B0886B27850AC7007FE276 /* LocalNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotification.swift; sourceTree = "<group>"; };
+		09B0886D27851BBB007FE276 /* ContactCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCard.swift; sourceTree = "<group>"; };
+		09E6D789278C2A2100948065 /* _CallsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _CallsModel.swift; sourceTree = "<group>"; };
+		09E6D78F278E5E7C00948065 /* Contants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,6 +219,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09E6D78E278E5CB100948065 /* Logging in Frameworks */,
 				095A1EA3278268A5002D5805 /* FCSDKiOS in Frameworks */,
 				097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */,
 			);
@@ -259,15 +271,11 @@
 		0921A5052761791E0069F324 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				0921A50C2761791E0069F324 /* UIViewRepresentable */,
 				0921A50E2761791E0069F324 /* CallController */,
-				0921A5172761791E0069F324 /* UIKit */,
-				0921A51E2761791E0069F324 /* PiP */,
-				0921A5262761791E0069F324 /* UIViewControllerRespresentable */,
-				0921A5062761791E0069F324 /* DTO */,
+				0921A5062761791E0069F324 /* Model */,
 				0921A50A2761791E0069F324 /* Response */,
 				0921A53D2761791E0069F324 /* Request */,
-				0921A5282761791E0069F324 /* Model */,
+				0921A5282761791E0069F324 /* Entities */,
 				0921A52C2761791E0069F324 /* View */,
 				0921A53F2761791E0069F324 /* Services */,
 				0921A51B2761791E0069F324 /* Extensions */,
@@ -276,12 +284,14 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		0921A5062761791E0069F324 /* DTO */ = {
+		0921A5062761791E0069F324 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				0921A5092761791E0069F324 /* ContactModelDTO.swift */,
+				09681B432791508800DB6A69 /* FCSDKCall.swift */,
+				0921A5292761791E0069F324 /* Login.swift */,
+				0921A5092761791E0069F324 /* ContactModel.swift */,
 			);
-			path = DTO;
+			path = Model;
 			sourceTree = "<group>";
 		};
 		0921A50A2761791E0069F324 /* Response */ = {
@@ -344,6 +354,7 @@
 			children = (
 				0921A51C2761791E0069F324 /* NetworkManager.swift */,
 				0921A51D2761791E0069F324 /* View+Extension.swift */,
+				094C606C278BB50600617691 /* DateFormatter.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -363,6 +374,8 @@
 				0921A5232761791E0069F324 /* NetworkRepository.swift */,
 				0921A5242761791E0069F324 /* Keychain.swift */,
 				0921A5252761791E0069F324 /* NetworkMonitor.swift */,
+				09B0886B27850AC7007FE276 /* LocalNotification.swift */,
+				09E6D78F278E5E7C00948065 /* Contants.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -375,14 +388,13 @@
 			path = UIViewControllerRespresentable;
 			sourceTree = "<group>";
 		};
-		0921A5282761791E0069F324 /* Model */ = {
+		0921A5282761791E0069F324 /* Entities */ = {
 			isa = PBXGroup;
 			children = (
-				0921A5292761791E0069F324 /* Login.swift */,
-				0921A52A2761791E0069F324 /* ContactModel.swift */,
-				0921A52B2761791E0069F324 /* FCSDKCall.swift */,
+				0921A52A2761791E0069F324 /* _ContactModel.swift */,
+				09E6D789278C2A2100948065 /* _CallsModel.swift */,
 			);
-			path = Model;
+			path = Entities;
 			sourceTree = "<group>";
 		};
 		0921A52C2761791E0069F324 /* View */ = {
@@ -412,6 +424,7 @@
 				0921A53A2761791E0069F324 /* Contacts.swift */,
 				0921A53B2761791E0069F324 /* Communication.swift */,
 				0921A53C2761791E0069F324 /* CallSheet.swift */,
+				09B0886D27851BBB007FE276 /* ContactCard.swift */,
 			);
 			path = Communication;
 			sourceTree = "<group>";
@@ -427,11 +440,9 @@
 		0921A53F2761791E0069F324 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				09E6D78B278D754F00948065 /* FCSDKServices */,
 				0921A5402761791E0069F324 /* ContactService.swift */,
 				0921A5412761791E0069F324 /* AEDService.swift */,
-				0921A5452761791E0069F324 /* FCSDKCallService.swift */,
-				0921A5422761791E0069F324 /* FCSDKCallService+ACBClientCallDelegate.swift */,
-				0921A5432761791E0069F324 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
 				0921A5442761791E0069F324 /* AuthenticationService.swift */,
 				0921A5462761791E0069F324 /* Store */,
 			);
@@ -457,6 +468,10 @@
 		0921A54A2761791E0069F324 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				0921A51E2761791E0069F324 /* PiP */,
+				0921A5262761791E0069F324 /* UIViewControllerRespresentable */,
+				0921A50C2761791E0069F324 /* UIViewRepresentable */,
+				0921A5172761791E0069F324 /* UIKit */,
 				0921A54B2761791E0069F324 /* View */,
 			);
 			path = iOS;
@@ -557,6 +572,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		09E6D78B278D754F00948065 /* FCSDKServices */ = {
+			isa = PBXGroup;
+			children = (
+				0921A5452761791E0069F324 /* FCSDKCallService.swift */,
+				0921A5422761791E0069F324 /* FCSDKCallService+ACBClientCallDelegate.swift */,
+				0921A5432761791E0069F324 /* FCSDKCallService+ACBClientPhoneDelegate.swift */,
+			);
+			path = FCSDKServices;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -615,6 +640,7 @@
 			packageProductDependencies = (
 				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
 				095A1EA2278268A5002D5805 /* FCSDKiOS */,
+				09E6D78D278E5CB100948065 /* Logging */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
@@ -674,6 +700,7 @@
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
 				097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
+				09E6D78C278E5CB100948065 /* XCRemoteSwiftPackageReference "swift-log" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -744,20 +771,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				094C606D278BB50600617691 /* DateFormatter.swift in Sources */,
 				0921A5682761791E0069F324 /* NetworkMonitor.swift in Sources */,
 				0921A5812761791E0069F324 /* FCSDKCallService.swift in Sources */,
-				0921A5552761791E0069F324 /* ContactModelDTO.swift in Sources */,
+				09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */,
+				0921A5552761791E0069F324 /* ContactModel.swift in Sources */,
 				0921A5652761791E0069F324 /* AppSettings.swift in Sources */,
 				0921A5772761791E0069F324 /* DTMFSheet.swift in Sources */,
 				0921A55C2761791E0069F324 /* ProviderDelegate+Calls.swift in Sources */,
 				0921A5582761791E0069F324 /* URL+Extension.swift in Sources */,
-				0921A56C2761791E0069F324 /* FCSDKCall.swift in Sources */,
+				09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */,
+				09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */,
 				0921A5612761791E0069F324 /* NetworkManager.swift in Sources */,
+				09E6D78A278C2A2100948065 /* _CallsModel.swift in Sources */,
 				0921A5562761791E0069F324 /* LoginResponse.swift in Sources */,
 				0921A55D2761791E0069F324 /* ProviderDelegate.swift in Sources */,
 				0921A57A2761791E0069F324 /* CallSheet.swift in Sources */,
 				0921A55F2761791E0069F324 /* CommunicationViewConroller.swift in Sources */,
 				0921A5842761791E0069F324 /* ContentView.swift in Sources */,
+				09E6D790278E5E7C00948065 /* Contants.swift in Sources */,
 				0921A5602761791E0069F324 /* CommunicationViewController+Delegate.swift in Sources */,
 				0921A5732761791E0069F324 /* AddContact.swift in Sources */,
 				0921A5822761791E0069F324 /* SQLiteStore.swift in Sources */,
@@ -766,7 +798,7 @@
 				0921A5792761791E0069F324 /* Communication.swift in Sources */,
 				0921A57C2761791E0069F324 /* ContactService.swift in Sources */,
 				0921A57E2761791E0069F324 /* FCSDKCallService+ACBClientCallDelegate.swift in Sources */,
-				0921A56B2761791E0069F324 /* ContactModel.swift in Sources */,
+				0921A56B2761791E0069F324 /* _ContactModel.swift in Sources */,
 				0921A5662761791E0069F324 /* NetworkRepository.swift in Sources */,
 				0921A55B2761791E0069F324 /* CallKitManager.swift in Sources */,
 				0921A55A2761791E0069F324 /* NSUserActivity+Extension.swift in Sources */,
@@ -996,7 +1028,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1053,7 +1085,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -1092,7 +1124,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1137,12 +1169,13 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1161,7 +1194,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
@@ -1173,6 +1206,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.CBAFusion.IntentsExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1189,7 +1223,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6SMQB2LH3S;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
@@ -1201,6 +1235,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.CBAFusion.IntentsExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1268,6 +1303,14 @@
 				minimumVersion = 4.0.0;
 			};
 		};
+		09E6D78C278E5CB100948065 /* XCRemoteSwiftPackageReference "swift-log" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-log.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1279,6 +1322,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
+		};
+		09E6D78D278E5CB100948065 /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09E6D78C278E5CB100948065 /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

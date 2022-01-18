@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import UIKit
+import Logging
 
 class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     
@@ -21,6 +22,11 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
     
     static let shared = NetworkManager()
     let configuration = URLSessionConfiguration.default
+    var logger: Logger
+    
+    override init() {
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Network Manager - ")
+    }
     
     func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
@@ -48,7 +54,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
         let (data, response) = try await session.data(for: request)
         
-        //If we have some json issue print out the string to see the problem
+        //If we have some json issue self.logger.info out the string to see the problem
 #if DEBUG
         data.printJSON()
 #endif
@@ -88,7 +94,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
         }
 #if DEBUG
-        print("Response_______", response)
+        self.logger.info("Response_______ \(response)")
 #endif
         return response
     }
@@ -113,7 +119,7 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
 extension Data {
     func printJSON() {
         if let JSONString = String(data: self, encoding: String.Encoding.utf8) {
-            print(JSONString)
+            Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - DATA Extension - ").info("\(JSONString)")
         }
     }
 }
