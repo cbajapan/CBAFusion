@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
+		0910D8FA279E450900A3E288 /* Simulator.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0910D8F9279E450900A3E288 /* Simulator.mp4 */; };
 		0921A5522761791E0069F324 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5042761791E0069F324 /* Assets.xcassets */; };
 		0921A5552761791E0069F324 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5092761791E0069F324 /* ContactModel.swift */; };
 		0921A5562761791E0069F324 /* LoginResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A50B2761791E0069F324 /* LoginResponse.swift */; };
@@ -59,6 +60,7 @@
 		0921A5C7276185D90069F324 /* CBAFusionUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5C6276185D80069F324 /* CBAFusionUITestsLaunchTests.swift */; };
 		0921A5D4276185E20069F324 /* CBAFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5D3276185E20069F324 /* CBAFusionTests.swift */; };
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
+		093155252797855E00533324 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 093155242797855E00533324 /* FCSDKiOS */; };
 		094C606D278BB50600617691 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C606C278BB50600617691 /* DateFormatter.swift */; };
 		095A1ED327829891002D5805 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095A1EAC2782968E002D5805 /* Intents.framework */; };
 		095A1ED627829891002D5805 /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095A1ED527829891002D5805 /* IntentHandler.swift */; };
@@ -122,6 +124,7 @@
 
 /* Begin PBXFileReference section */
 		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
+		0910D8F9279E450900A3E288 /* Simulator.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = Simulator.mp4; sourceTree = "<group>"; };
 		0921A4FD2761791E0069F324 /* CBAFusion.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CBAFusion.entitlements; sourceTree = "<group>"; };
 		0921A5042761791E0069F324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0921A5092761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
@@ -177,6 +180,7 @@
 		0921A5D1276185E20069F324 /* CBAFusionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBAFusionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0921A5D3276185E20069F324 /* CBAFusionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBAFusionTests.swift; sourceTree = "<group>"; };
 		0921A5DA27618C650069F324 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		09315523279784CC00533324 /* swift-fcsdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-fcsdk"; path = "../Packages/swift-fcsdk"; sourceTree = "<group>"; };
 		094344B526F4B0ED001254FA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		094C606C278BB50600617691 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		094E5FC2276AE00C00F37985 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
@@ -213,6 +217,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				09E6D78E278E5CB100948065 /* Logging in Frameworks */,
+				093155252797855E00533324 /* FCSDKiOS in Frameworks */,
 				097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -501,6 +506,8 @@
 		094EE2F826DCE211008C1637 = {
 			isa = PBXGroup;
 			children = (
+				0910D8F9279E450900A3E288 /* Simulator.mp4 */,
+				09315523279784CC00533324 /* swift-fcsdk */,
 				094344B526F4B0ED001254FA /* README.md */,
 				0908679D26E75AAE00A83602 /* ringring.wav */,
 				0921A4FC2761791E0069F324 /* CBAFusion */,
@@ -610,6 +617,7 @@
 			packageProductDependencies = (
 				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
 				09E6D78D278E5CB100948065 /* Logging */,
+				093155242797855E00533324 /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
@@ -703,6 +711,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0921A5DB27618C650069F324 /* Settings.bundle in Resources */,
+				0910D8FA279E450900A3E288 /* Simulator.mp4 in Resources */,
 				0921A5832761791E0069F324 /* Preview Assets.xcassets in Resources */,
 				0921A5522761791E0069F324 /* Assets.xcassets in Resources */,
 				0908679E26E75AAE00A83602 /* ringring.wav in Resources */,
@@ -1152,7 +1161,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
@@ -1164,7 +1173,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.CBAFusion.IntentsExtension";
+				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1181,7 +1190,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6SMQB2LH3S;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = IntentsExtension;
@@ -1193,7 +1202,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cba-japan.CBAFusion.IntentsExtension";
+				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1272,6 +1281,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		093155242797855E00533324 /* FCSDKiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FCSDKiOS;
+		};
 		097BBFD2277593670024EC48 /* FluentSQLiteDriver */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;

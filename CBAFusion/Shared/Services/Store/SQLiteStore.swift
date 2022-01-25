@@ -98,7 +98,11 @@ class SQLiteStore: FCSDKStore {
     }
     
     func createContact(_ contact: ContactModel) async throws {
+        let contacts = try await fetchContacts()
+        let filteredContact = contacts?.filter({ $0.number == contact.number })
+        if contact.number != filteredContact?.last?.number {
         try await _ContactModel(contact: contact, new: true).create(on: database).get()
+        }
     }
     
     func updateContact(_ contact: ContactModel) async throws {
@@ -111,6 +115,16 @@ class SQLiteStore: FCSDKStore {
     
     func fetchCalls() async throws -> [FCSDKCall]? {
         try await _CallsModel.query(on: database)
+            .with(\.$contact)
+            .all()
+            .flatMapEachThrowing {
+            try $0.makeCall()
+        }.get()
+    }
+    
+    func fetchContactCalls(handle: String) async throws -> [FCSDKCall]? {
+        try await _CallsModel.query(on: database)
+            .filter(\.$handle == handle)
             .with(\.$contact)
             .all()
             .flatMapEachThrowing {
@@ -143,12 +157,13 @@ class SQLiteStore: FCSDKStore {
         try await _CallsModel(call: call, contactID: contactID, new: false).delete(on: database).get()
     }
     
-    func removeCalls() async throws -> Bool {
+    func removeCalls() async throws -> (Bool, [FCSDKCall]?) {
         do {
         try await _CallsModel.query(on: self.database).delete()
-            return true
+            let calls = try await self.fetchCalls()
+            return (true, calls)
         } catch {
-            return false
+            return (false, nil)
         }
     }
     

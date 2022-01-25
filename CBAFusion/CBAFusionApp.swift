@@ -25,6 +25,7 @@ struct CBAFusionApp: App {
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
+    @StateObject private var avPlayer = AVPlayer()
     @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     @State var callIntent = false
@@ -34,12 +35,6 @@ struct CBAFusionApp: App {
     
     init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Main App- ")
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setCategory(.playback, mode: .moviePlayback)
-        } catch {
-            self.logger.info("Failed to set audioSession category to playback")
-        }
     }
     
     func requestMicrophoneAndCameraPermissionFromAppSettings() async {
@@ -57,6 +52,7 @@ struct CBAFusionApp: App {
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contactService)
                 .environmentObject(aedService)
+                .environmentObject(avPlayer)
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     fcsdkCallService.contactService = contactService
@@ -78,13 +74,6 @@ struct CBAFusionApp: App {
                     }
                 }
         }
-        .onChange(of: self.authenticationService.acbuc, perform: { newValue in
-            if newValue != nil {
-                Task {
-                await self.fcsdkCallService.startAudioSession()
-                }
-            }
-        })
         .onChange(of: scenePhase) { (phase) in
             switch phase {
             case .active:
@@ -110,9 +99,6 @@ struct CBAFusionApp: App {
                 }
             case .background:
                 self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
-                Task {
-                await self.fcsdkCallService.startAudioSession()
-                }
             case .inactive:
                 self.logger.info("ScenePhase: inactive")
             @unknown default:

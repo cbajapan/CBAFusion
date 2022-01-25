@@ -7,14 +7,14 @@
 
 import Foundation
 
-
-protocol CommunicationViewControllerDelegate: AnyObject {
-    func communicationViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
-        _ communicationViewController: CommunicationViewController
-    ) -> Bool
-    
-    func communicationViewController(
-        _ communicationViewController: CommunicationViewController,
-        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
-    )
-}
+//
+//protocol CommunicationViewControllerDelegate: AnyObject {
+//    func communicationViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
+//        _ communicationViewController: CommunicationViewController
+//    ) -> Bool
+//    
+//    func communicationViewController(
+//        _ communicationViewController: CommunicationViewController,
+//        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
+//    )
+//}

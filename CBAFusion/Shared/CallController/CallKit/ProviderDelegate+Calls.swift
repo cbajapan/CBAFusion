@@ -51,7 +51,6 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
-            await self.fcsdkCallService.startAudioSession()
             try await self.fcsdkCallService.answerFCSDKCall()
         }
         action.fulfill()
@@ -117,7 +116,6 @@ extension ProviderDelegate {
     }
     
     func asyncEnd() async {
-        await self.fcsdkCallService.stopAudioSession()
         do {
             try await self.fcsdkCallService.endFCSDKCall()
         } catch {

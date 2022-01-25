@@ -33,12 +33,6 @@ extension FCSDKCallService: ACBClientCallDelegate {
             break
         case .inCall:
             Task {
-                if self.audioPlayer != nil {
-                    await stopOutgoingRingtone()
-                }
-                //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
-                ///This method is used to set the remoteView with a BufferView
-                self.currentCall?.remoteView = await self.currentCall?.call?.remoteBufferView()
                 await self.inCall()
             }
         case .timedOut:

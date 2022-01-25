@@ -19,10 +19,11 @@ protocol FCSDKStore: AnyObject {
     
     func fetchActiveCalls() async throws -> [FCSDKCall]?
     func fetchCalls() async throws -> [FCSDKCall]?
+    func fetchContactCalls(handle: String) async throws -> [FCSDKCall]?
     func createCall(_ contactID: UUID?, call: _CallsModel) async throws
     func updateCall(_ contactID: UUID, call: FCSDKCall) async throws
     func removeCall(_ contactID: UUID, call: FCSDKCall) async throws
-    func removeCalls() async throws -> Bool
+    func removeCalls() async throws -> (Bool, [FCSDKCall]?)
 }
 
 extension FCSDKStore {
@@ -36,7 +37,7 @@ extension FCSDKStore {
     func createCall(_ contactID: UUID?, call: _CallsModel) async throws {}
     func updateCall(_ contactID: UUID, call: FCSDKCall) async throws {}
     func removeCall(_ contactID: UUID, call: FCSDKCall) async throws {}
-    func removeCalls() async throws -> Bool { return false }
+    func removeCalls() async throws -> (Bool, [FCSDKCall]?) { return (false, nil) }
 }
 
 
@@ -124,9 +125,13 @@ class ContactService: ObservableObject {
     
     
     func addCall(_ fcsdkCall: FCSDKCall, isEdit: Bool) async throws {
-        guard let contact = self.contacts?.first(where: { $0.number == fcsdkCall.call?.remoteAddress } ) else { throw OurErrors.noContactID }
-            try? await addCallLogic(contact, fcsdkCall: fcsdkCall)
-            try? await self.fetchCalls()
+        let contact = self.contacts?.first(where: { $0.number == fcsdkCall.call?.remoteAddress } )
+        if contact == nil {
+            let createContact = ContactModel(id: UUID(), username: fcsdkCall.handle, number: fcsdkCall.handle, calls: nil, blocked: false)
+            try? await addContactLogic(createContact)
+        } else {
+            try? await addCallLogic(contact!, fcsdkCall: fcsdkCall)
+        }
     }
     
     func addCallLogic(_ contact: ContactModel, fcsdkCall: FCSDKCall) async throws {
@@ -157,6 +162,15 @@ class ContactService: ObservableObject {
         }
     }
     
+    @MainActor
+    func fetchContactCalls(_ destination: String) async throws {
+        do {
+            self.calls = try await delegate?.fetchContactCalls(handle: destination)
+        } catch {
+             self.logger.error("\(error)")
+        }
+    }
+    
     func fetchActiveCall() async throws -> FCSDKCall? {
         var call: FCSDKCall?
         do {
@@ -179,8 +193,10 @@ class ContactService: ObservableObject {
     func deleteCalls() async {
         self.showProgress = true
         let result = try? await self.delegate?.removeCalls()
+        try? await self.fetchContacts()
         await MainActor.run {
-            if result == true {
+            if result?.0 == true {
+                self.calls = result?.1
                 self.showProgress = false
             } else {
                 self.showProgress = false

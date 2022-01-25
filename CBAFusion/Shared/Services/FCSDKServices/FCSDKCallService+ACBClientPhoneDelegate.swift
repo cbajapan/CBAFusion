@@ -68,6 +68,10 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             }
             guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: currentCall)
+            fcsdkCall.missed = false
+            fcsdkCall.outbound = false
+            fcsdkCall.rejected = false
+            fcsdkCall.activeCall = true
             await self.addCall(call: fcsdkCall)
         } else {
             fcsdkCall.call?.end(fcsdkCall.call)

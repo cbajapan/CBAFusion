@@ -11,7 +11,7 @@ import FCSDKiOS
 import AVKit
 import Logging
 
-class CommunicationViewController: AVPictureInPictureVideoCallViewController {
+class CommunicationViewController: UIViewController {
     
     enum CallState {
         case setup
@@ -30,7 +30,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         case resumeVideo
     }
     
-    weak var delegate: CommunicationViewControllerDelegate?
+//    weak var delegate: CommunicationViewControllerDelegate?
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var stackView: UIStackView = {
         let stk = UIStackView()
@@ -40,6 +40,7 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     let numberLabel = UILabel()
     let nameLabel = UILabel()
     var remoteView = UIView()
+    var remoteBufferView: UIView?
     var previewView = UIView()
     var callKitManager: CallKitManager
     var fcsdkCallService: FCSDKCallService
@@ -112,7 +113,10 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
     func updateRemoteViewForBuffer(view: UIView) async {
         self.remoteView.removeFromSuperview()
         self.remoteView = view
-        print("Remote View", self.remoteView)
+        //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
+        ///This method is used to set the remoteView with a BufferView
+        guard let view = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
+        self.remoteView = view
     }
     
     @MainActor
@@ -287,32 +291,25 @@ class CommunicationViewController: AVPictureInPictureVideoCallViewController {
         //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
         //        self.remoteView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.status == .inCall {
+        if UIApplication.shared.applicationState != .background || self.fcsdkCall?.call?.status == .inCall  {
             //We can change width and height as we wish
             self.remoteView.anchors(top: self.view.topAnchor, leading: self.view.leadingAnchor, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
+            
             if UIDevice.current.userInterfaceIdiom == .phone {
                 self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 150, height: 200)
                 
             } else {
                 self.previewView.anchors(top: nil, leading: nil, bottom: self.view.bottomAnchor, trailing: self.view.trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 250, height: 200)
             }
-            
-            //Not needed for video display just some custom UI Stuff
-//            self.previewView.samplePreviewDisplayLayer?.videoGravity = .resizeAspectFill
-//            // This will fill the frame, which could distort the video
-//            self.previewView.samplePreviewDisplayLayer?.frame = self.previewView.bounds
-//            self.previewView.samplePreviewDisplayLayer?.masksToBounds = true
-//            self.previewView.samplePreviewDisplayLayer?.cornerRadius = 8
+        
+            /// We can access the `AVSampleBufferDisplayLayer` and adjust the layer size. We want to cast our layer  according if we are using the remoteBufferView.
+
+            let layer = self.remoteView.layer as? AVSampleBufferDisplayLayer
+            layer?.masksToBounds = true
+            layer?.videoGravity = .resizeAspectFill
         }
     }
-    
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        Task {
-            await anchors()
-        }
-    }
-    
+
     @MainActor
     func breakDownView() async {
         self.remoteView.removeFromSuperview()

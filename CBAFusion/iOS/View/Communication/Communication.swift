@@ -35,6 +35,10 @@ struct Communication: View {
     @State var resumeAudioID: UUID? = nil
     @State var muteVideoID: UUID? = nil
     @State var resumeVideoID: UUID? = nil
+    @State var pipClickedID: UUID? = nil
+    @State var hasStartedConnectingID: UUID? = nil
+    @State var ringingID: UUID? = nil
+    @State var hasConnectedID: UUID? = nil
     @State private var formattedCallDuration: Text?
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -50,15 +54,16 @@ struct Communication: View {
     }()
     
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var authenticationServices: AuthenticationService
+    @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
+    @EnvironmentObject var avPlayer: AVPlayer
     
     @AppStorage("RateOption") var rate = ""
     @AppStorage("ResolutionOption") var res = ""
     @AppStorage("AudioOption") var audio = ""
-
+    
     
     var body: some View {
         GeometryReader { geometry in
@@ -81,21 +86,49 @@ struct Communication: View {
                     muteAudioID: self.$muteAudioID,
                     resumeAudioID: self.$resumeAudioID,
                     muteVideoID: self.$muteVideoID,
-                    resumeVideoID: self.$resumeVideoID
+                    resumeVideoID: self.$resumeVideoID,
+                    pipClickedID: self.$pipClickedID,
+                    hasStartedConnectingID: self.$hasStartedConnectingID,
+                    ringingID: self.$ringingID,
+                    hasConnectedID: self.$hasConnectedID
                 )
                     .ignoresSafeArea(.all)
                 
                 VStack(alignment: .trailing) {
                     HStack(alignment: .top) {
-                        Button {
-                            self.showSettings = true
-                        } label: {
-                            Image(systemName: "gear")
-                                .resizable()
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(self.showSettings ? Color.white : Color.blue)
-                                .frame(width: 25, height: 25)
-                                .padding()
+                        VStack {
+                            Button {
+                                self.showSettings = true
+                            } label: {
+                                Image(systemName: "gear")
+                                    .resizable()
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(self.showSettings ? Color.white : Color.blue)
+                                    .frame(width: 25, height: 25)
+                                    .padding()
+                            }
+#if !targetEnvironment(simulator)
+                            if #available(iOS 15.0.0, *) {
+                                if UIDevice.current.userInterfaceIdiom == .phone {
+                                    Button {
+                                        self.pip.toggle()
+                                        self.pipClickedID = UUID()
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(self.pip ? Color.white : Color.gray)
+                                                .frame(width: 30, height: 30)
+                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                                                .resizable()
+                                                .multilineTextAlignment(.trailing)
+                                                .foregroundColor(Color.black)
+                                                .frame(width: 20, height: 20)
+                                                .padding()
+                                        }
+                                    }
+                                }
+                            }
+#endif
                         }
                         Spacer()
                         ZStack {
@@ -127,123 +160,125 @@ struct Communication: View {
                     Spacer()
                     HStack(alignment: .center) {
                         if self.fcsdkCallService.hasConnected || self.fcsdkCallService.isOutgoing {
-                        Spacer()
-                        //                        Button {
-                        //                            self.pip.toggle()
-                        //                            if !self.pip {
-                        //                                self.removePip = true
-                        //                            } else if self.pip {
-                        //                                self.removePip = false
-                        //                            }
-                        //                        } label: {
-                        //                            ZStack {
-                        //                                Circle()
-                        //                                    .fill(self.pip ? Color.white : Color.gray)
-                        //                                    .frame(width: 50, height: 50)
-                        //                                Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                        //                                    .resizable()
-                        //                                    .multilineTextAlignment(.trailing)
-                        //                                    .foregroundColor(Color.black)
-                        //                                    .frame(width: 25, height: 25)
-                        //                                    .padding()
-                        //                            }
-                        //                        }
-                        Button {
-                            self.hold.toggle()
-                            if self.hold {
-                                self.holdID = UUID()
-                            } else {
-                                self.resumeID = UUID()
+                            Spacer()
+#if !targetEnvironment(simulator)
+                            if #available(iOS 15.0.0, *) {
+                                if UIDevice.current.userInterfaceIdiom == .pad {
+                                    Button {
+                                        self.pip.toggle()
+                                        self.pipClickedID = UUID()
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(self.pip ? Color.white : Color.gray)
+                                                .frame(width: 50, height: 50)
+                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                                                .resizable()
+                                                .multilineTextAlignment(.trailing)
+                                                .foregroundColor(Color.black)
+                                                .frame(width: 25, height: 25)
+                                                .padding()
+                                        }
+                                    }
+                                }
                             }
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(self.hold ? Color.white : Color.gray)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "pause.circle")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.hold ? Color.gray : Color.white)
-                                    .frame(width: 35, height: 35)
-                                    .padding()
+#endif
+                            Button {
+                                self.hold.toggle()
+                                if self.hold {
+                                    self.holdID = UUID()
+                                } else {
+                                    self.resumeID = UUID()
+                                }
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(self.hold ? Color.white : Color.gray)
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: "pause.circle")
+                                        .resizable()
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(self.hold ? Color.gray : Color.white)
+                                        .frame(width: 35, height: 35)
+                                        .padding()
+                                }
                             }
-                        }
-                        Button {
-                            self.muteAudio.toggle()
-                            if self.muteAudio {
-                                self.muteAudioID = UUID()
-                            } else {
-                                self.resumeAudioID = UUID()
+                            Button {
+                                self.muteAudio.toggle()
+                                if self.muteAudio {
+                                    self.muteAudioID = UUID()
+                                } else {
+                                    self.resumeAudioID = UUID()
+                                }
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(self.muteAudio ? Color.white : Color.gray)
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                        .resizable()
+                                        .frame(width: 25, height: 26)
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
+                                        .padding()
+                                }
                             }
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(self.muteAudio ? Color.white : Color.gray)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: self.muteAudio ? "speaker.slash.fill" : "speaker.wave.3.fill")
-                                    .resizable()
-                                    .frame(width: 25, height: 26)
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.muteAudio ? Color.gray : Color.yellow)
-                                    .padding()
+                            Button {
+                                self.muteVideo.toggle()
+                                if self.muteVideo {
+                                    self.muteVideoID = UUID()
+                                } else {
+                                    self.resumeVideoID = UUID()
+                                }
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(self.muteVideo ? Color.white : Color.gray)
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
+                                        .resizable()
+                                        .frame(width: 33, height: 20)
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
+                                        .padding()
+                                }
                             }
-                        }
-                        Button {
-                            self.muteVideo.toggle()
-                            if self.muteVideo {
-                                self.muteVideoID = UUID()
-                            } else {
-                                self.resumeVideoID = UUID()
+                            Button {
+                                self.cameraFront.toggle()
+                                if self.cameraFront {
+                                    self.cameraFrontID = UUID()
+                                } else {
+                                    self.cameraBackID = UUID()
+                                }
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(self.cameraFront ? Color.white : Color.gray)
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                        .resizable()
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(self.cameraFront ? Color.gray : Color.blue)
+                                        .frame(width: 35, height: 25)
+                                        .padding()
+                                }
                             }
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(self.muteVideo ? Color.white : Color.gray)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: self.muteVideo ? "video.slash.fill" : "video.fill")
-                                    .resizable()
-                                    .frame(width: 33, height: 20)
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.muteVideo ? Color.gray : Color.blue)
-                                    .padding()
+                            Button {
+                                self.closeClickedID = UUID()
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: "phone.down.fill")
+                                        .resizable()
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(Color.white)
+                                        .frame(width: 25, height: 13)
+                                        .padding()
+                                }
                             }
-                        }
-                        Button {
-                            self.cameraFront.toggle()
-                            if self.cameraFront {
-                                self.cameraFrontID = UUID()
-                            } else {
-                                self.cameraBackID = UUID()
-                            }
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(self.cameraFront ? Color.white : Color.gray)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "arrow.triangle.2.circlepath.camera")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.cameraFront ? Color.gray : Color.blue)
-                                    .frame(width: 35, height: 25)
-                                    .padding()
-                            }
-                        }
-                        Button {
-                            self.closeClickedID = UUID()
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "phone.down.fill")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(Color.white)
-                                    .frame(width: 25, height: 13)
-                                    .padding()
-                            }
-                        }
-                        Spacer()
+                            Spacer()
                         }
                     }
                 }
@@ -253,6 +288,9 @@ struct Communication: View {
         .frame(alignment: .trailing)
         .navigationBarHidden(true)
         .onAppear {
+            self.hasStartedConnectingID = UUID()
+            self.ringingID = UUID()
+            self.hasConnectedID = UUID()
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
             self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.rate) ?? .fro20)
@@ -262,21 +300,21 @@ struct Communication: View {
         .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
             if newValue {
                 self.fcsdkCallService.presentCommunication = false
-                //TODO: - Being fired more than once, we need to set only if outgoing fire on has ended but if we do subsequent calls fail because well it doesnt know if we are outgoing
-//                if !self.fcsdkCallService.isOutgoing {
                 self.closeClickedID = UUID()
-//                }
             }
         }
         .onDisappear(perform: {
+            Task {
+            try await self.contactService.fetchContactCalls(self.destination)
+            }
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false
-            Task {
-                try await self.contactService.fetchCalls()
-            }
         })
         .sheet(isPresented: self.$showSettings, content: {
             SettingsSheet()
+                .environmentObject(authenticationService)
+                .environmentObject(fcsdkCallService)
+                .environmentObject(contactService)
         })
         .sheet(isPresented: self.$fcsdkCallService.showDTMFSheet) {
             if self.fcsdkCallService.showDTMFSheet {

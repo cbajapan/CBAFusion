@@ -31,7 +31,11 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var resumeAudioID: UUID?
     @Binding var muteVideoID: UUID?
     @Binding var resumeVideoID: UUID?
-    @State var blurView: Bool = false
+    @Binding var pipClickedID: UUID?
+    @Binding var hasStartedConnectingID: UUID?
+    @Binding var ringingID: UUID?
+    @Binding var hasConnectedID: UUID?
+    @State var blurViewID: UUID?
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
@@ -39,7 +43,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     var logger: Logger?
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
-      
+        
         let communicationViewController = CommunicationViewController(
             callKitManager: self.callKitManager,
             fcsdkCallService: self.fcsdkCallService,
@@ -49,73 +53,91 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             acbuc: self.authenticationService.acbuc!,
             isOutgoing: self.isOutgoing
         )
+        
         communicationViewController.fcsdkCallDelegate = context.coordinator
         return communicationViewController
-
+        
     }
-    
     
     func updateUIViewController(_
                                 uiViewController: CommunicationViewController,
                                 context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>
     ) {
-//        guard let c =  self.fcsdkCallService.currentCall?.remoteView else {return}
-//        uiViewController.remoteView = c
-        //        uiViewController.showPip(show: self.pip)
+        
         uiViewController.authenticationService = self.authenticationService
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
         uiViewController.acbuc = self.authenticationService.acbuc!
         let call = self.fcsdkCallService
-      
+        
         if call.hasStartedConnecting {
-            Task {
-                await uiViewController.currentState(state: .hasStartedConnecting)
-                if self.isOutgoing {
-                    await self.fcsdkCallService.playOutgoingRingtone()
+            if hasStartedConnectingID != context.coordinator.previousHasStartedConnectingID {
+                Task {
+                    await uiViewController.currentState(state: .hasStartedConnecting)
                 }
             }
+            context.coordinator.previousHasStartedConnectingID = hasStartedConnectingID
         }
         
+        
         if call.isRinging {
-            Task {
-                await uiViewController.currentState(state: .isRinging)
+            if ringingID != context.coordinator.previousRingingID {
+                Task {
+                    await uiViewController.currentState(state: .isRinging)
+                    if self.isOutgoing {
+                        self.fcsdkCallService.startRing()
+                    }
+                }
             }
+            context.coordinator.previousRingingID = ringingID
         }
         
         if call.hasConnected {
-            Task {
-                if self.isOutgoing {
-                await self.fcsdkCallService.stopOutgoingRingtone()
+            if hasConnectedID != context.coordinator.previousHasConnectedID {
+                Task {
+#if !targetEnvironment(simulator)
+                    if #available(iOS 15.0.0, *) {
+                        guard let remoteView = self.currentCall?.remoteView else { return }
+                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
+                    }
+#endif
+                    await uiViewController.currentState(state: .hasConnected)
+                    if self.isOutgoing {
+                        self.fcsdkCallService.stopRing()
+                    }
                 }
-                guard let remoteView = self.currentCall?.remoteView else { return }
-                await uiViewController.updateRemoteViewForBuffer(view: remoteView)
-                await uiViewController.currentState(state: .hasConnected)
-              let l = self.currentCall?.remoteView?.layer as? AVSampleBufferDisplayLayer
-                print("THE STATUS", l?.status.rawValue as Any)
             }
+            context.coordinator.previousHasConnectedID = hasConnectedID
+        }
+        
+        
+        if pipClickedID != context.coordinator.previousPipClickedID {
+            Task {
+                await uiViewController.showPip(show: self.pip)
+            }
+            context.coordinator.previousPipClickedID = pipClickedID
         }
         
         if holdID != context.coordinator.previousHoldID {
             Task {
                 await uiViewController.currentState(state: .hold)
-                blurView = true
+                blurViewID = UUID()
             }
             context.coordinator.previousHoldID = holdID
         }
         
-        if blurView {
+        if blurViewID != context.coordinator.previousBlurViewID {
             Task {
                 await uiViewController.blurView()
             }
+            context.coordinator.previousBlurViewID = blurViewID
         }
         
         if resumeID != context.coordinator.previousResumeID {
             Task {
                 await uiViewController.currentState(state: .resume)
                 await uiViewController.removeBlurView()
-                blurView = false
             }
             context.coordinator.previousResumeID = resumeID
         }
@@ -166,26 +188,18 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                     self.logger?.error("\(error)")
+                    self.logger?.error("\(error)")
                 }
-                    await setServiceHasEnded()
-                    await uiViewController.currentState(state: .hasEnded)
+                await setServiceHasEnded()
+                await uiViewController.currentState(state: .hasEnded)
                 if self.isOutgoing {
-                await self.fcsdkCallService.stopOutgoingRingtone()
+                    self.fcsdkCallService.stopRing()
+                    await MainActor.run {
+                    }
                 }
             }
             context.coordinator.previousCloseClickID = closeClickID
         }
-        
-        
-        if self.pip {
-            uiViewController.showPip(show: true)
-        }
-        
-        if self.removePip {
-            uiViewController.showPip(show: false)
-        }
-        
     }
     
     class Coordinator: NSObject, FCSDKCallDelegate {
@@ -200,6 +214,11 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         var previousResumeID: UUID? = nil
         var previousMuteVideoID: UUID? = nil
         var previousResumeVideoID: UUID? = nil
+        var previousPipClickedID: UUID? = nil
+        var previousHasStartedConnectingID: UUID? = nil
+        var previousRingingID: UUID? = nil
+        var previousHasConnectedID: UUID? = nil
+        var previousBlurViewID: UUID? = nil
         
         init(_ parent: CommunicationViewControllerRepresentable) {
             self.parent = parent

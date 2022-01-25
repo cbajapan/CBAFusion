@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FCSDKiOS
+import AVKit
 
 struct ContactCard: View {
     
@@ -87,7 +88,6 @@ struct ContactCard: View {
         })
         .onAppear {
             Task {
-                try await self.contactService.fetchCalls()
                 self.contactService.selectedContact = self.contact
                 await self.contactService.setCallsForContact(self.contact!)
             }

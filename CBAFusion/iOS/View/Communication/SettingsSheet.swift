@@ -47,7 +47,7 @@ struct SettingsSheet: View {
                     
                     if self.contactService.showProgress || self.authenticationService.showProgress {
                      ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: colorScheme == .dark ? .white : .black))
+                         .progressViewStyle(CircularProgressViewStyle(tint: colorScheme == .dark ? .white : .black))
                          .scaleEffect(1.5)
                     }
                  

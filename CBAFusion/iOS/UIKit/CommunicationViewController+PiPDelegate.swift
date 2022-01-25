@@ -9,68 +9,88 @@ import Foundation
 import AVKit
 
 
-
-internal var activeCustomPlayerViewControllers = Set<CommunicationViewController>()
-
-extension CommunicationViewController {
-    
-        func setupPiP() {
-    
-            AVPictureInPictureController.isPictureInPictureSupported()
-    
-            let pipContentSource = AVPictureInPictureController.ContentSource(
-                activeVideoCallSourceView: self.remoteView,
-                contentViewController: self)
-    
-            let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-            pipController.canStartPictureInPictureAutomaticallyFromInline = true
-            pipController.delegate = self
-            pipController.startPictureInPicture()
-    
-        }
-//        2021-10-11 09:14:19.418617+0800 CBAFusion[5751:2158591] [Common] -[PGPictureInPictureProxy (0x10321a720) _updateAutoPIPSettingsAndNotifyRemoteObjectWithReason:] - Acquiring remote object proxy for connection <NSXPCConnection: 0x2820dcdc0> connection to service with pid 64 named com.apple.pegasus failed with error: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 64 named com.apple.pegasus was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 64 named com.apple.pegasus was invalidated from this process.}
-//    
-    
-        func showPip(show: Bool) {
-            setupPiP()
-        }
-}
-
-
-
-// MARK: - AVPictureInPictureControllerDelegate
 extension CommunicationViewController: AVPictureInPictureControllerDelegate {
-    public func pictureInPictureControllerWillStartPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        activeCustomPlayerViewControllers.insert(self)
+//, AVPictureInPictureSampleBufferPlaybackDelegate {
+    
+//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, setPlaying playing: Bool) {
+//
+//    }
+//
+//    func pictureInPictureControllerTimeRangeForPlayback(_ pictureInPictureController: AVPictureInPictureController) -> CMTimeRange {
+//        return CMTimeRange(start: .indefinite, duration: .indefinite)
+//    }
+//
+//    func pictureInPictureControllerIsPlaybackPaused(_ pictureInPictureController: AVPictureInPictureController) -> Bool {
+//        return false
+//    }
+//
+//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, didTransitionToRenderSize newRenderSize: CMVideoDimensions) {
+//
+//    }
+//
+//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, skipByInterval skipInterval: CMTime, completion completionHandler: @escaping () -> Void) {
+//
+//    }
+//
+//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, skipByInterval skipInterval: CMTime) async {
+//
+//    }
+//
+    func showPip(show: Bool) async {
+        if show {
+            let suppported = AVPictureInPictureController.isPictureInPictureSupported()
+            if suppported {
+                guard let bufferView = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
+                self.remoteView = bufferView
+//                let sourceLayer = self.remoteBufferView?.sampleBufferDisplayLayer
+                let pipVideoCallViewController = AVPictureInPictureVideoCallViewController()
+                pipVideoCallViewController.preferredContentSize = CGSize(width: 1080, height: 1920)
+                pipVideoCallViewController.view.addSubview(self.remoteView)
+
+//                let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer!, playbackDelegate: self)
+                let source = AVPictureInPictureController.ContentSource(
+                    activeVideoCallSourceView: self.remoteView,
+                    contentViewController: pipVideoCallViewController)
+                
+                let pipController = AVPictureInPictureController(contentSource: source)
+                pipController.canStartPictureInPictureAutomaticallyFromInline = true
+                pipController.delegate = self
+                pipController.startPictureInPicture()
+
+            } else {
+                self.logger.info("PIP not Supported")
+            }
+        } else {
+            await self.fcsdkCallService.currentCall?.call?.removeBufferView()
+        }
     }
     
-    public func pictureInPictureControllerDidStartPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        dismiss(animated: true, completion: nil)
+    
+    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//        print("Source", pictureInPictureController.contentSource)
     }
     
-    public func pictureInPictureController(
-        _ pictureInPictureController: AVPictureInPictureController,
-        failedToStartPictureInPictureWithError error: Error
-    ) {
-        activeCustomPlayerViewControllers.remove(self)
+    
+    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//        print("Source", pictureInPictureController.contentSource)
+    }
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
+        print("failedToStartPictureInPictureWithError", error)
     }
     
-    public func pictureInPictureControllerDidStopPictureInPicture(
-        _ pictureInPictureController: AVPictureInPictureController
-    ) {
-        activeCustomPlayerViewControllers.remove(self)
+    func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        print("Will stop")
     }
     
-    public func pictureInPictureController(
-        _ pictureInPictureController: AVPictureInPictureController,
-        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
-    ) {
-        delegate?.communicationViewController(
-            self,
-            restoreUserInterfaceForPictureInPictureStopWithCompletionHandler: completionHandler)
+    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        print("Did stop")
     }
+    
+    
+    
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController) async -> Bool {
+        print("Async - restoreUserInterfaceForPictureInPictureStopWithCompletionHandler")
+        return true
+    }
+    
 }

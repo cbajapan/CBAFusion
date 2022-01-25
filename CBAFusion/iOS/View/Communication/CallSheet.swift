@@ -11,7 +11,6 @@ struct CallSheet: View {
     
     @Binding var destination: String
     @Binding var hasVideo: Bool
-//    @Binding var isOutgoing: Bool
     @Binding var showCommunication: Bool
     @State var notLoggedIn: Bool = false
     @Environment(\.presentationMode) private var presentationMode

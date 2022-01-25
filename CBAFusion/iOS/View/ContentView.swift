@@ -105,10 +105,12 @@ struct ContentView: View {
                             SettingsSheet()
                                 .environmentObject(authenticationService)
                                 .environmentObject(fcsdkCallService)
+                                .environmentObject(contactService)
                         } else {
                             Authentication()
                                 .environmentObject(authenticationService)
                                 .environmentObject(monitor)
+                                .environmentObject(contactService)
                         }
                     }
                     .onAppear {
