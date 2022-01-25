@@ -12,6 +12,7 @@ An important note: When your device is on a private focus such as **Do Not Distu
 ## CBAFusion is an app for Voice and Video needs. It also has an AED API that allows for message transportation.
 
 **Getting Started**
+
 Please clone the project and then checkout the release of your choice. When you do this, CBAFusion may know which version of FCSDKiOS to fetch that works with the corresponding release, if not you will have to fetch via Swift Package Manager. Please see the release notes for which version of FCSDKiOS corresponds to the version of CBAFusion you wish to use.
 
 Please make sure you reset your Swift Package Cache via ``File -> Packages -> Reset Package Cache`` so that Xcode will fetch the needed Packages for this Sample App to work.
