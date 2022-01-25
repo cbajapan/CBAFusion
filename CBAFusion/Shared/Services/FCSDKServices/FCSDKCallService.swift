@@ -121,7 +121,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func endFCSDKCall() async throws {
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "stopRing"), object: nil)
         guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
         self.currentCall?.call?.end(currentCall.call)
         await self.removeCall(call: currentCall)

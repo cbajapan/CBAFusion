@@ -229,7 +229,7 @@ class CommunicationViewController: UIViewController {
         guard let activeCall = try await self.contactService.fetchActiveCall() else { throw OurErrors.noActiveCalls }
         await self.callKitManager.finishEnd(call: activeCall)
     }
-//We cannot mute because the call is nil we need make sure the call is on the fcsdkCall
+
     @MainActor
     func muteVideo(isMute: Bool) async throws {
         if isMute {

@@ -20,7 +20,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     let window = UIWindow(frame: UIScreen.main.bounds)
     var logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - App Delegate - ")
     // MARK: - UIApplicationDelegate
-    var audioPlayer: AVAudioPlayer?
+
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         self.registerForPushNotifications()
@@ -33,37 +33,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             KeychainItem.deleteKeychainItems()
             UserDefaults.standard.set(true, forKey: "hasLaunched")
         }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(startRing), name: NSNotification.Name(rawValue: "startRing"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(stopRing), name: NSNotification.Name(rawValue: "stopRing"), object: nil)
         return true
     }
     
-    // Unfortunately SwiftUI Has a weird bug where AVAudioPlayer wont loop. So we are going to use notification center to handle it
-    // outside of SwiftUI
-    @objc func startRing() {
-        do {
-                  try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .videoChat, options: .defaultToSpeaker)
-                  try AVAudioSession.sharedInstance().setActive(true)
-                  try AVAudioSession.sharedInstance().setPreferredSampleRate(44100.0)
-                  try AVAudioSession.sharedInstance().setPreferredIOBufferDuration(0.005)
-              } catch {
-                  self.logger.error("Error Starting ACBAudioDeviceManager \(error)")
-              }
-        let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
-        let fileURL = URL(fileURLWithPath: path!)
-        self.audioPlayer = try! AVAudioPlayer(contentsOf: fileURL)
-//        self.providerDelegate?.fcsdkCallService.startAudioSession()
-        self.audioPlayer?.volume = 1.0
-        self.audioPlayer?.numberOfLoops = -1
-        self.audioPlayer?.prepareToPlay()
-        self.audioPlayer?.play()
-    }
-    
-    @objc func stopRing() {
-        self.audioPlayer?.stop()
-        self.audioPlayer = nil
-    }
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         guard let handle = url.startCallHandle else {
