@@ -142,21 +142,13 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func startAudioSession() {
-//        Task {
-//            await MainActor.run {
                 self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
                 self.audioDeviceManager?.start()
-//            }
-//        }
     }
     
     func stopAudioSession() {
-//        Task {
-//            await MainActor.run {
                 self.audioDeviceManager?.stop()
                 self.audioDeviceManager = nil
-//            }
-//        }
     }
     var audioPlayer: AVAudioPlayer?
     func startRing() {

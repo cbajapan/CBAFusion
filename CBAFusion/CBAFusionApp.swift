@@ -25,7 +25,7 @@ struct CBAFusionApp: App {
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
-    @StateObject private var avPlayer = AVPlayer()
+
     @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     @State var callIntent = false
@@ -52,13 +52,14 @@ struct CBAFusionApp: App {
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contactService)
                 .environmentObject(aedService)
-                .environmentObject(avPlayer)
+                
                 .onAppear {
                     fcsdkCallService.appDelegate = delegate
                     fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
                     workWithFocus()
+//                    self.fcsdkCallService.startAudioSession()
                 }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
                     callIntent = true

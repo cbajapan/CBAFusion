@@ -5,6 +5,8 @@
 
 An important note: When your device is on a private focus such as **Do Not Disturb** you must add the app to the allowed apps or turn of the Private Focus to receive Calls.
 
+Please note while you clone this sample it will already know that FCSDKiOS should be fetched via SPM. However please make sure you reset your Swift Package Cache via ``File -> Packages -> Reset Package Cache`` so that Xcode will fetch the needed Packages for this Sample App to work.
+
 ## Documenation
  In order to see an example of how to use this SDK we have provided a tutorial for you. Once you have fetched the fcsdk-ios package in your project press ``Command + control + shift + d``  and you will build the documentation. Then in the side bar find ``fcsdk-ios -> Build an awesome app using FCSDK-iOS`` and enjoy!
 

@@ -58,7 +58,6 @@ struct Communication: View {
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
-    @EnvironmentObject var avPlayer: AVPlayer
     
     @AppStorage("RateOption") var rate = ""
     @AppStorage("ResolutionOption") var res = ""
