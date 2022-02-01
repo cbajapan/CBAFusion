@@ -104,9 +104,9 @@ struct Contacts: View {
         })
         .fullScreenCover(isPresented: self.$fcsdkCallService.presentCommunication, content: {
             Communication(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo)
-//                .environmentObject(authenticationService)
-//                .environmentObject(callKitManager)
-//                .environmentObject(fcsdkCallService)
+                .environmentObject(authenticationService)
+                .environmentObject(callKitManager)
+                .environmentObject(fcsdkCallService)
         })
         .sheet(isPresented: self.$contactService.addSheet, content: {
             AddContact()

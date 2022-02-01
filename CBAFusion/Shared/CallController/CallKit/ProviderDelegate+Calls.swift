@@ -34,13 +34,22 @@ extension ProviderDelegate {
             
             //This error code means do no disturb is on
             if errorCode == 3 {
-                await MainActor.run {
-                    if !self.fcsdkCallService.doNotDisturb {
-                        self.fcsdkCallService.doNotDisturb = true
+                do {
+                    try await self.fcsdkCallService.endACBClientCall()
+                    
+                    try await self.fcsdkCallService.contactService?.fetchContacts()
+                    fcsdkCall.activeCall = false
+                    await self.fcsdkCallService.contactService?.editCall(call: fcsdkCall)
+                
+                    await MainActor.run {
+                        if !self.fcsdkCallService.doNotDisturb {
+                            self.fcsdkCallService.doNotDisturb = true
+                        }
+                        self.fcsdkCallService.hasEnded = false
                     }
+                } catch {
+                    self.logger.error("\(error)")
                 }
-                fcsdkCall.activeCall = false
-                await self.fcsdkCallService.contactService?.editCall(call: fcsdkCall)
             }
             self.logger.error("There was an error in \(#function) - Error: \(error.localizedDescription)")
         }
@@ -51,9 +60,9 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
-            try await self.fcsdkCallService.answerFCSDKCall()
+            await self.fcsdkCallService.answerFCSDKCall()
+            action.fulfill()
         }
-        action.fulfill()
     }
     
     
@@ -70,10 +79,10 @@ extension ProviderDelegate {
                 
                 guard let outgoingFCSDKCall = self.fcsdkCallService.currentCall else { return }
                 guard let preview = outgoingFCSDKCall.previewView else { return }
-                try await self.fcsdkCallService.initializeCall(previewView: preview)
-                acbCall = try await self.fcsdkCallService.startFCSDKCall()
+                await self.fcsdkCallService.startCall(previewView: preview)
+                acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
-
+                
                 provider.reportCall(with: outgoingFCSDKCall.id, updated: callUpdate)
                 
                 await self.fcsdkCallService.hasStartedConnectingDidChange(provider: provider,
@@ -83,6 +92,8 @@ extension ProviderDelegate {
                                                                   id: outgoingFCSDKCall.id,
                                                                   date: self.fcsdkCallService.connectDate ?? Date())
                 await self.fcsdkCallService.addCall(call: outgoingFCSDKCall)
+                //We need to set the delegate initially because if the user is on another call we need to get notified through the delegate and end the call
+                self.fcsdkCallService.currentCall?.call?.delegate = self.fcsdkCallService
                 action.fulfill()
             } catch {
                 self.logger.error("\(error)")
@@ -105,11 +116,13 @@ extension ProviderDelegate {
                 await self.fcsdkCallService.contactService?.editCall(call: call)
                 do {
                     try await self.fcsdkCallService.endACBClientCall()
+                    try await self.fcsdkCallService.contactService?.fetchContactCalls(call.handle)
                 } catch {
                     self.logger.error("\(error)")
                 }
             } else {
                 await asyncEnd()
+                try await self.fcsdkCallService.contactService?.fetchContactCalls(call?.handle ?? "")
             }
             action.fulfill()
         }

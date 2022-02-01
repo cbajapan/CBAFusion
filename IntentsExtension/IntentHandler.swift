@@ -1,6 +1,6 @@
 //
 //  IntentHandler.swift
-//  IntentsExtension
+//  IntentExtension
 //
 //  Created by Cole M on 1/3/22.
 //
@@ -26,21 +26,5 @@ class IntentHandler: INExtension {
         let userActivity = NSUserActivity(activityType: String(describing: INStartCallIntent.self))
 print("USER_ACTIVTY: \(userActivity)")
         response = INStartCallIntentResponse(code: .continueInApp, userActivity: userActivity)
-    }
-    
-}
-
-extension IntentHandler: INShareFocusStatusIntentHandling {
-    func handle(intent: INShareFocusStatusIntent, completion: @escaping (INShareFocusStatusIntentResponse) -> Void) {
-        /// Check if Focus is enabled.
-        if intent.focusStatus?.isFocused == true {
-             /// Focus is enabled
-            print("Focus is enabled")
-        } else {
-            print("Focus is disabled")
-        }
-        /// Provide a response
-        let response = INShareFocusStatusIntentResponse(code: .success, userActivity: nil)
-        completion(response)
     }
 }

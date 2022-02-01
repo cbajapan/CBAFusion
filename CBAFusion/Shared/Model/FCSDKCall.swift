@@ -23,7 +23,7 @@ public final class FCSDKCall: Codable, Hashable {
     /// Our ACBUC Object
     public var acbuc: ACBUC? = nil
     /// The ACBClientCall associated with this CallObject
-    public var call: ACBClientCall? = nil
+    public weak var call: ACBClientCall? = nil
     /// A boolean value that determines if the call is an active call
     public var activeCall: Bool? = false
     /// A boolean value indicating if the call is an outbound call

@@ -96,12 +96,12 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
                 Task {
-#if !targetEnvironment(simulator)
-                    if #available(iOS 15.0.0, *) {
-                        guard let remoteView = self.currentCall?.remoteView else { return }
-                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
-                    }
-#endif
+//#if !targetEnvironment(simulator)
+//                    if #available(iOS 15.0.0, *) {
+//                        guard let remoteView = self.currentCall?.remoteView else { return }
+//                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
+//                    }
+//#endif
                     await uiViewController.currentState(state: .hasConnected)
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
@@ -194,8 +194,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 await uiViewController.currentState(state: .hasEnded)
                 if self.isOutgoing {
                     self.fcsdkCallService.stopRing()
-                    await MainActor.run {
-                    }
                 }
             }
             context.coordinator.previousCloseClickID = closeClickID
@@ -257,6 +255,7 @@ protocol FCSDKCallDelegate: AnyObject {
 enum OurErrors: String, Swift.Error {
     case nilACBUC = "Cannot initialize because ACBUC is nil"
     case nilFCSDKCall = "Cannot initialize because FCSDKCall is nil"
+    case nilACBClientCall = "ACBClientCall is nil"
     case nilPreviewView = "Cannot set previewView because it is nil"
     case nilResolution = "Cannot get Resolution because it is nil"
     case nilFrameRate = "Cannot get frame rate because it is nil"
@@ -265,4 +264,5 @@ enum OurErrors: String, Swift.Error {
     case noContactID = "There is no a ContactID"
     case nilURL = "The URL is nil for network calls"
     case noActiveCalls = "There are not any Active Calls"
+    case noNetworkManager = "The network manager delegate needs set"
 }

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import NIO
+import NIOTransportServices
 
 struct ContentView: View {
     
@@ -117,7 +117,7 @@ struct ContentView: View {
                         self.authenticationService.currentTabIndex = 0
                         self.authenticationService.selectedParentIndex = 0
                         Task {
-                            let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
+                            let eventLoop = NIOTSEventLoopGroup().next()
                             let store = try await SQLiteStore.create(on: eventLoop)
                             contactService.delegate = store
                             try await contactService.fetchContacts()

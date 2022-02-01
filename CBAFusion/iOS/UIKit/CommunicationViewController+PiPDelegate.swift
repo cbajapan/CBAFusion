@@ -8,7 +8,7 @@
 import Foundation
 import AVKit
 
-
+//TODO: -
 extension CommunicationViewController: AVPictureInPictureControllerDelegate {
 //, AVPictureInPictureSampleBufferPlaybackDelegate {
     
@@ -40,16 +40,17 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
         if show {
             let suppported = AVPictureInPictureController.isPictureInPictureSupported()
             if suppported {
+                let communicationView = self.view as! CommunicationView
                 guard let bufferView = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
-                self.remoteView = bufferView
+                communicationView.remoteView = bufferView
 //                let sourceLayer = self.remoteBufferView?.sampleBufferDisplayLayer
                 let pipVideoCallViewController = AVPictureInPictureVideoCallViewController()
                 pipVideoCallViewController.preferredContentSize = CGSize(width: 1080, height: 1920)
-                pipVideoCallViewController.view.addSubview(self.remoteView)
+                pipVideoCallViewController.view.addSubview(communicationView.remoteView)
 
 //                let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer!, playbackDelegate: self)
                 let source = AVPictureInPictureController.ContentSource(
-                    activeVideoCallSourceView: self.remoteView,
+                    activeVideoCallSourceView: communicationView.remoteView,
                     contentViewController: pipVideoCallViewController)
                 
                 let pipController = AVPictureInPictureController(contentSource: source)

@@ -103,7 +103,7 @@ class ContactService: ObservableObject {
         do {
             self.contacts = try await delegate?.fetchContacts()
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error Fetching Contacts: \(error)")
         }
     }
     
@@ -113,7 +113,7 @@ class ContactService: ObservableObject {
             try await delegate?.removeContact(contact)
             try await fetchContacts()
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error deleting Calls: \(error)")
         }
     }
     
@@ -144,7 +144,7 @@ class ContactService: ObservableObject {
             }
             try await self.fetchContacts()
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error adding Call: \(error)")
         }
     }
     
@@ -158,7 +158,7 @@ class ContactService: ObservableObject {
         do {
             self.calls = try await delegate?.fetchCalls()
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error fetching all Calls: \(error)")
         }
     }
     
@@ -167,7 +167,7 @@ class ContactService: ObservableObject {
         do {
             self.calls = try await delegate?.fetchContactCalls(handle: destination)
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error fetching Calls: \(error)")
         }
     }
     
@@ -176,7 +176,7 @@ class ContactService: ObservableObject {
         do {
             call = try await self.delegate?.fetchActiveCalls()?.first
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error fetching Active Call: \(error)")
         }
         return call
     }
@@ -186,7 +186,7 @@ class ContactService: ObservableObject {
             try await delegate?.removeCall(call.contact!, call: call)
             try await fetchContacts()
         } catch {
-            self.logger.info("\("OurErrors.nilDelegate.rawValue")")
+            self.logger.info("\(OurErrors.nilDelegate.rawValue)")
         }
     }
     
@@ -209,7 +209,7 @@ class ContactService: ObservableObject {
             guard let contact = call.contact else { throw OurErrors.noContactID }
             try await self.delegate?.updateCall(contact, call: call)
         } catch {
-             self.logger.error("\(error)")
+             self.logger.error("Error Editing Call: \(error)")
         }
     }
 }

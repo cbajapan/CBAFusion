@@ -11,10 +11,17 @@ import FCSDKiOS
 import Logging
 
 class AuthenticationService: NSObject, ObservableObject {
+    
     var logger: Logger
+    var networkRepository: NetworkRepository
     
     override init() {
+        self.networkRepository = NetworkRepository()
+        self.networkRepository.networkRepositoryDelegate = networkRepository
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
+    }
+    
+    deinit {
     }
     
     func requestLoginObject() -> LoginRequest {
@@ -61,7 +68,8 @@ class AuthenticationService: NSObject, ObservableObject {
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
         do {
-            let (data, response) = try await NetworkRepository.shared.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
+            guard let repository = networkRepository.networkRepositoryDelegate else {return}
+            let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
             let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
             
             await fireStatus(response: response)
@@ -72,9 +80,10 @@ class AuthenticationService: NSObject, ObservableObject {
             if KeychainItem.getSessionID == "" {
                 KeychainItem.saveSessionID(sessionid: sessionID)
             }
+            
         } catch {
             await errorCaught(error: error)
-            self.logger.error("\(error.localizedDescription)")
+            self.logger.error("Error Logging in Error: \(error.localizedDescription)")
         }
     }
     
@@ -145,7 +154,8 @@ class AuthenticationService: NSObject, ObservableObject {
         )
         await stopSession()
         do {
-            let response = try await NetworkRepository.shared.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
+            guard let repository = networkRepository.networkRepositoryDelegate else {return}
+            let response = try await repository.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
             await setSessionID(id: sessionID)
             
             await fireStatus(response: response)

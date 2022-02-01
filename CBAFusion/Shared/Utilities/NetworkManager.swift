@@ -10,7 +10,8 @@ import Combine
 import UIKit
 import Logging
 
-class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
+
+class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     
     
     enum NetworkErrors: Swift.Error {
@@ -19,22 +20,23 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         case jsonConversionFailure(String)
     }
     
-    
-    static let shared = NetworkManager()
-    let configuration = URLSessionConfiguration.default
     var logger: Logger
     
     override init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Network Manager - ")
+        super.init()
     }
     
+    deinit {
+        self.logger.info("Reclaiming memory in NetworkManager")
+    }
     func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
         urlString: String,
         httpMethod: String,
         httpBody: Data? = nil,
-        headerField: String = "",
-        headerValue: String = ""
+        headerField: String? = "",
+        headerValue: String? = ""
     ) async throws -> (Data, URLResponse) {
         
         guard let url = URL(string: urlString) else { throw OurErrors.nilURL }
@@ -51,8 +53,9 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         for cookie in allCookies ?? [] {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
-        let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
-        let (data, response) = try await session.data(for: request)
+        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let (data, response) = try await session.data(for: request, delegate: self)
+        session.finishTasksAndInvalidate()
         
         //If we have some json issue self.logger.info out the string to see the problem
 #if DEBUG
@@ -65,8 +68,8 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
         urlString: String,
         httpMethod: String,
         httpBody: Data? = nil,
-        headerField: String = "",
-        headerValue: String = ""
+        headerField: String? = "",
+        headerValue: String? = ""
     ) async throws -> URLResponse {
         
         guard let url = URL(string: urlString) else { throw OurErrors.nilURL }
@@ -84,8 +87,9 @@ class NetworkManager: NSObject, ObservableObject, URLSessionDelegate {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
         
-        let session = URLSession(configuration: self.configuration, delegate: self, delegateQueue: .main)
-        let (_, response) = try await session.data(for: request)
+        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let (_, response) = try await session.data(for: request, delegate: self)
+        session.finishTasksAndInvalidate()
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkErrors.requestFailed("unvalid response")

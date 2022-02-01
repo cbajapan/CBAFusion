@@ -20,11 +20,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     let window = UIWindow(frame: UIScreen.main.bounds)
     var logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - App Delegate - ")
     // MARK: - UIApplicationDelegate
-
+    
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        UIApplication.shared.applicationIconBadgeNumber = 0
+        
         self.registerForPushNotifications()
-        self.voipRegistration()
+//        self.voipRegistration()
         let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
         if hasLaunched {
             self.logger.info("Not going to delete sessionID")
@@ -51,30 +56,26 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     
     //TODO: We are not using push kit yet for remote notifications
     // Register for VoIP notifications
-    func voipRegistration() {
-        // Create a push registry object
-        let mainQueue = DispatchQueue.main
-        let voipRegistry: PKPushRegistry = PKPushRegistry(queue: mainQueue)
-        voipRegistry.delegate = self
-        voipRegistry.desiredPushTypes = [PKPushType.voIP]
-    }
+//    func voipRegistration() {
+//        // Create a push registry object
+//        let mainQueue = DispatchQueue.main
+//        let voipRegistry: PKPushRegistry = PKPushRegistry(queue: mainQueue)
+//        voipRegistry.delegate = self
+//        voipRegistry.desiredPushTypes = [PKPushType.voIP]
+//    }
     
     //TODO: We are not using push kit yet for remote notifications
     // Push notification setting
     func getNotificationSettings() {
-        if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 UNUserNotificationCenter.current().delegate = self
                 guard settings.authorizationStatus == .authorized else { return }
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
+                Task {
+                    await MainActor.run {
+                        UIApplication.shared.registerForRemoteNotifications()
+                    }
                 }
             }
-        } else {
-            let settings = UIUserNotificationSettings(types: [.sound, .alert, .badge], categories: nil)
-            UIApplication.shared.registerUserNotificationSettings(settings)
-            UIApplication.shared.registerForRemoteNotifications()
-        }
     }
     
     //TODO: We are not using push kit yet for remote notifications
@@ -114,57 +115,57 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
         self.logger.info("willPresent ====== \(userInfo)")
         completionHandler([.banner, .sound, .badge])
     }
+        /// Display the incoming call to the user.
+        func displayIncomingCall(fcsdkCall: FCSDKCall) async {
+            await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
+        }
 }
 
 // MARK: - PKPushRegistryDelegate
 //TODO: Setup Push Kit for CallKit notifications while app is in the background
-extension AppDelegate: PKPushRegistryDelegate {
-    
-    //     Handle updated push credentials
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
-        //        self.logger.info(credentials.token)
-        let deviceToken = credentials.token.map { String(format: "%02x", $0) }.joined()
-        self.logger.info("pushRegistry -> deviceToken :\(deviceToken)")
-    }
-    
-    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        self.logger.info("pushRegistry:didInvalidatePushTokenForType: \(type)")
-    }
-    
-    // Handle incoming pushes
-    func pushRegistry(_ registry: PKPushRegistry,
-                      didReceiveIncomingPushWith payload: PKPushPayload,
-                      for type: PKPushType, completion: @escaping () -> Void) {
-        defer {
-            completion()
-        }
-        
-        guard type == .voIP,
-              let uuidString = payload.dictionaryPayload["UUID"] as? String,
-              let handle = payload.dictionaryPayload["handle"] as? String,
-              let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
-              let uuid = UUID(uuidString: uuidString)
-        else {
-            return
-        }
-        let receivedCall = FCSDKCall(
-            id: uuid,
-            handle: handle,
-            hasVideo: hasVideo,
-            previewView: nil,
-            remoteView: nil,
-            acbuc: nil,
-            call: nil
-        )
-        Task {
-            await displayIncomingCall(fcsdkCall: receivedCall)
-        }
-    }
-    
-    // MARK: - PKPushRegistryDelegate Helper
-    
-    /// Display the incoming call to the user.
-    func displayIncomingCall(fcsdkCall: FCSDKCall) async {
-        await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
-    }
-}
+//extension AppDelegate: PKPushRegistryDelegate {
+//
+//    //     Handle updated push credentials
+//    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+//        //        self.logger.info(credentials.token)
+//        let deviceToken = credentials.token.map { String(format: "%02x", $0) }.joined()
+//        self.logger.info("pushRegistry -> deviceToken :\(deviceToken)")
+//    }
+//
+//    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+//        self.logger.info("pushRegistry:didInvalidatePushTokenForType: \(type)")
+//    }
+//
+//    // Handle incoming pushes
+//    func pushRegistry(_ registry: PKPushRegistry,
+//                      didReceiveIncomingPushWith payload: PKPushPayload,
+//                      for type: PKPushType, completion: @escaping () -> Void) {
+//        defer {
+//            completion()
+//        }
+//
+//        guard type == .voIP,
+//              let uuidString = payload.dictionaryPayload["UUID"] as? String,
+//              let handle = payload.dictionaryPayload["handle"] as? String,
+//              let hasVideo = payload.dictionaryPayload["hasVideo"] as? Bool,
+//              let uuid = UUID(uuidString: uuidString)
+//        else {
+//            return
+//        }
+//        let receivedCall = FCSDKCall(
+//            id: uuid,
+//            handle: handle,
+//            hasVideo: hasVideo,
+//            previewView: nil,
+//            remoteView: nil,
+//            acbuc: nil,
+//            call: nil
+//        )
+//        Task {
+//            await displayIncomingCall(fcsdkCall: receivedCall)
+//        }
+//    }
+//
+//    // MARK: - PKPushRegistryDelegate Helper
+//
+//}

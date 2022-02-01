@@ -29,30 +29,30 @@ class NetworkMonitor: ObservableObject {
         }
         
         
-        monitor.pathUpdateHandler = { path in
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let strongSelf = self else { return }
             switch path.status {
             case .satisfied:
-                self.logger.info("We're connected!")
+                guard let strongSelf = self else { return }
+                strongSelf.logger.info("We're connected!")
             case .unsatisfied:
-                if #available(iOS 14.2, *) {
-                    self.logger.info("No connection. \(path.unsatisfiedReason)")
-                } else {
-                    self.logger.info("No connection.")
-                }
+                    guard let strongSelf = self else { return }
+                    strongSelf.logger.info("No connection. \(path.unsatisfiedReason)")
             case .requiresConnection:
-                self.logger.info("Connection Needed")
+                guard let strongSelf = self else { return }
+                strongSelf.logger.info("Connection Needed")
             @unknown default:
                 break
             }
-            self.logger.info("Available interface: - \(path.availableInterfaces)")
-            self.logger.info("Path is Expensive - \(path.isExpensive)")
-            self.logger.info("Gateways \(path.gateways)")
-            self.logger.info("In low data mode \(path.isConstrained)")
-            self.logger.info("Local Endpoint \(String(describing: path.localEndpoint))")
-            self.logger.info("Remote Endpoint \(String(describing: path.remoteEndpoint))")
-            self.logger.info("Supports DNS \(path.supportsDNS)")
-            self.logger.info("Supports IPv4 \(path.supportsIPv4)")
-            self.logger.info("Supports IPv6 \(path.supportsIPv6)")
+            strongSelf.logger.info("Available interface: - \(path.availableInterfaces)")
+            strongSelf.logger.info("Path is Expensive - \(path.isExpensive)")
+            strongSelf.logger.info("Gateways \(path.gateways)")
+            strongSelf.logger.info("In low data mode \(path.isConstrained)")
+            strongSelf.logger.info("Local Endpoint \(String(describing: path.localEndpoint))")
+            strongSelf.logger.info("Remote Endpoint \(String(describing: path.remoteEndpoint))")
+            strongSelf.logger.info("Supports DNS \(path.supportsDNS)")
+            strongSelf.logger.info("Supports IPv4 \(path.supportsIPv4)")
+            strongSelf.logger.info("Supports IPv6 \(path.supportsIPv6)")
         }
         
         let queue = DispatchQueue(label: "NWPathMonitor")

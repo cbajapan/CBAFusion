@@ -36,11 +36,13 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var errorMessage: String = "Unknown Error"
     @Published var audioDeviceManager: ACBAudioDeviceManager?
     
+    
     override init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - FCSDKCall Service - ")
     }
     deinit {
-        self.currentCall?.call?.delegate = nil
+    appDelegate = nil
+    contactService = nil
     }
     
     
@@ -49,7 +51,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     
-    func startFCSDKCall() async throws -> ACBClientCall? {
+    func initializeFCSDKCall() async throws -> ACBClientCall? {
         guard let uc = self.currentCall?.acbuc else { throw OurErrors.nilACBUC }
         let outboundCall = uc.phone.createCall(
             toAddress: self.currentCall?.handle ?? "",
@@ -62,25 +64,25 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.currentCall?.call?.enableLocalVideo(true)
         await MainActor.run {
             //We Pass the view up to the SDK when using metalKit View
-#if arch(arm64) && !targetEnvironment(simulator)
-            if #available(iOS 15.0.0, *) {
-                self.logger.info("You are using iOS 15 you can use buffer view")
-            } else {
-                self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-            }
-#elseif targetEnvironment(simulator)
+//#if arch(arm64) && !targetEnvironment(simulator)
+//            if #available(iOS 15.0.0, *) {
+//                self.logger.info("You are using iOS 15 you can use buffer view")
+//            } else {
+//                self.currentCall?.call?.remoteView = self.currentCall?.remoteView
+//            }
+//#elseif targetEnvironment(simulator)
             self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-#endif
+//#endif
         }
         return self.currentCall?.call
     }
     
-    func initializeCall(previewView: UIView) async throws {
+    func startCall(previewView: UIView) async {
         await MainActor.run {
             self.hasStartedConnecting = true
             self.connectingDate = Date()
         }
-        guard let uc = self.currentCall?.acbuc else { throw OurErrors.nilACBUC }
+        guard let uc = self.currentCall?.acbuc else { return }
         uc.phone.delegate = self
         //We Pass the view up to the SDK
         uc.phone.previewView = previewView
@@ -91,30 +93,28 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.presentCommunication = true
     }
     
-    func answerFCSDKCall() async throws {
+    func answerFCSDKCall() async {
         await MainActor.run {
             self.hasConnected = true
             self.connectDate = Date()
-            self.presentCommunication = true
         }
-        
-#if arch(arm64) && !targetEnvironment(simulator)
-        if #available(iOS 15.0.0, *) {
-            self.logger.info("You are using iOS 15 you can use buffer view")
-        } else {
-            self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-        }
-#elseif targetEnvironment(simulator)
-        self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-#endif
-        
-        guard let view = self.currentCall?.previewView else { throw OurErrors.nilPreviewView }
-        guard let uc = self.acbuc else { throw OurErrors.nilACBUC }
+        guard let currentCall = self.currentCall?.call else { return }
+//#if arch(arm64) && !targetEnvironment(simulator)
+//        if #available(iOS 15.0.0, *) {
+//            self.logger.info("You are using iOS 15 you can use buffer view")
+//        } else {
+//            currentCall.remoteView = self.currentCall?.remoteView
+//        }
+//#elseif targetEnvironment(simulator)
+        currentCall.remoteView = self.currentCall?.remoteView
+//#endif
+        guard let view = self.currentCall?.previewView else { return }
+        guard let uc = self.acbuc else { return }
         //We Pass the view up to the SDK
         uc.phone.previewView = view
-        try? self.currentCall?.call?.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+        currentCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
     }
-    
+
     func endACBClientCall() async throws {
         guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
         self.currentCall?.call?.end(currentCall.call)
@@ -163,7 +163,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func stopRing() {
-        self.stopAudioSession()
         self.audioPlayer?.stop()
         self.audioPlayer = nil
     }

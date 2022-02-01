@@ -81,7 +81,7 @@ struct Authentication: View {
     }
     
     private func login() async {
-        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
          self.fcsdkCallService.setPhoneDelegate()
     }

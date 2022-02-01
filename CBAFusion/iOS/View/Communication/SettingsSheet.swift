@@ -29,6 +29,10 @@ enum FrameRateOptions: String, Equatable, CaseIterable {
 
 struct SettingsSheet: View {
     
+    
+    @State var selectedResolutionDuringCall: Bool = false
+    @State var selectedFrameRateDuringCall: Bool = false
+    
     @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
@@ -46,98 +50,122 @@ struct SettingsSheet: View {
                 ZStack {
                     
                     if self.contactService.showProgress || self.authenticationService.showProgress {
-                     ProgressView()
-                         .progressViewStyle(CircularProgressViewStyle(tint: colorScheme == .dark ? .white : .black))
-                         .scaleEffect(1.5)
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: colorScheme == .dark ? .white : .black))
+                            .scaleEffect(1.5)
                     }
-                 
                     
-                VStack(alignment: .leading, spacing: 5) {
-                    Group {
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                        Text("Audio Options")
-                            .fontWeight(.light)
-                            .multilineTextAlignment(.leading)
-                        Picker("", selection: $selectedAudio) {
-                            ForEach(AudioOptions.allCases, id: \.self) { item in
-                                Text(item.rawValue)
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                        Group {
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                Text("Audio Options")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $selectedAudio) {
+                                    ForEach(AudioOptions.allCases, id: \.self) { item in
+                                        Text(item.rawValue)
+                                    }
+                                }
+                                .onChange(of: self.selectedAudio, perform: { item in
+                                    self.fcsdkCallService.selectAudio(audio: item)
+                                })
+                                .pickerStyle(SegmentedPickerStyle())
+                                Divider()
+                                    .padding(.top)
+                            }
+                            
+                            Text("Resolution Options")
+                                .fontWeight(.light)
+                                .multilineTextAlignment(.leading)
+                            Picker("", selection: $selectedResolution) {
+                                ForEach(ResolutionOptions.allCases, id: \.self) { item in
+                                    Text(item.rawValue)
+                                }
+                            }
+                            .onChange(of: self.selectedResolution, perform: { item in
+                                self.fcsdkCallService.selectResolution(res: item)
+                                if self.fcsdkCallService.presentCommunication {
+                                selectedResolutionDuringCall = true
+                                }
+                            })
+                            .pickerStyle(SegmentedPickerStyle())
+                            if selectedResolutionDuringCall {
+                                Text("Sorry you can't change the resolution during calls, but we will change it automatically on the next call")
+                                    .animation(.easeInOut(duration: 20), value: 1)
+                                    .transition(.slide)
+                                    .task {
+                                        await removeResolutionMessage()
+                                    }
+                                    .foregroundColor(.red)
+                                    .font(Font.system(size: 12))
+                            }
+                            Divider()
+                                .padding(.top)
+                            
+                            Text("Frame Rate Options")
+                                .fontWeight(.light)
+                                .multilineTextAlignment(.leading)
+                            Picker("", selection: $selectedFrameRate) {
+                                ForEach(FrameRateOptions.allCases, id: \.self) { item in
+                                    Text(item.rawValue)
+                                }
+                            }
+                            .onChange(of: self.selectedFrameRate, perform: { item in
+                                self.fcsdkCallService.selectFramerate(rate: item)
+                                if self.fcsdkCallService.presentCommunication {
+                                selectedFrameRateDuringCall = true
+                                }
+                            })
+                            .pickerStyle(SegmentedPickerStyle())
+                            if selectedFrameRateDuringCall {
+                                Text("Sorry you can't change the frame rate during calls, but we will change it automatically on the next call")
+                                    .task {
+                                        await removeFrameRateMessage()
+                                    }
+                                    .animation(.easeInOut(duration: 20), value: 1)
+                                    .transition(.slide)
+                                    .foregroundColor(.red)
+                                    .font(Font.system(size: 12))
                             }
                         }
-                        .onAppear {
-                            self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
-                        }
-                        .onChange(of: self.selectedAudio, perform: { item in
-                            self.fcsdkCallService.selectAudio(audio: item)
-                        })
-                        .pickerStyle(SegmentedPickerStyle())
                         Divider()
-                            .padding(.top)
-                        }
-                        Text("Resolution Options")
-                            .fontWeight(.light)
-                            .multilineTextAlignment(.leading)
-                        Picker("", selection: $selectedResolution) {
-                            ForEach(ResolutionOptions.allCases, id: \.self) { item in
-                                Text(item.rawValue)
-                            }
-                        }
-                        .onAppear {
-                            self.fcsdkCallService.selectResolution(res: self.selectedResolution)
-                        }
-                        .onChange(of: self.selectedResolution, perform: { item in
-                            self.fcsdkCallService.selectResolution(res: item)
-                        })
-                        .pickerStyle(SegmentedPickerStyle())
-                        Divider()
-                            .padding(.top)
-                        
-                        Text("Frame Rate Options")
-                            .fontWeight(.light)
-                            .multilineTextAlignment(.leading)
-                        Picker("", selection: $selectedFrameRate) {
-                            ForEach(FrameRateOptions.allCases, id: \.self) { item in
-                                Text(item.rawValue)
-                            }
-                        }
-                        .onAppear {
-                            self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
-                        }
-                        .onChange(of: self.selectedFrameRate, perform: { item in
-                            self.fcsdkCallService.selectFramerate(rate: item)
-                        })
-                        .pickerStyle(SegmentedPickerStyle())
-                    }
-                    Divider()
-                    Spacer()
-                    Button("Clear Call History", action: {
-                        Task {
-                        await self.fcsdkCallService.contactService?.deleteCalls()
-                        }
-                    })
-                    Divider()
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
-                            Text("App Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
-                        }
                         Spacer()
-                        if self.fcsdkCallService.currentCall?.call == nil {
-                        Button {
+                        Button("Clear Call History", action: {
                             Task {
-                                await self.logout()
+                                await self.fcsdkCallService.contactService?.deleteCalls()
                             }
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Text("Logout")
-                                    .font(.title2)
-                                    .bold()
+                        })
+                        Divider()
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
+                                Text("App Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
                             }
+                            Spacer()
+                            if self.fcsdkCallService.currentCall?.call == nil {
+                                Button {
+                                    Task {
+                                        await self.logout()
+                                    }
+                                } label: {
+                                    HStack {
+                                        Spacer()
+                                        Text("Logout")
+                                            .font(.title2)
+                                            .bold()
+                                    }
+                                }
+                            }
+                            Spacer()
                         }
-                        }
-                        Spacer()
                     }
                 }
+                .padding()
+                .onAppear {
+                    self.fcsdkCallService.selectResolution(res: self.selectedResolution)
+                    self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
+                    self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
                 }
                 .padding()
                 .navigationBarTitle("Settings")
@@ -148,6 +176,17 @@ struct SettingsSheet: View {
             }
         }
     }
+    
+    private func removeResolutionMessage() async {
+        try? await Task.sleep(nanoseconds: 5_500_000_000)
+        selectedResolutionDuringCall = false
+    }
+    
+    private func removeFrameRateMessage() async {
+        try? await Task.sleep(nanoseconds: 5_500_000_000)
+        selectedFrameRateDuringCall = false
+    }
+    
     func logout() async {
         await authenticationService.logout()
     }

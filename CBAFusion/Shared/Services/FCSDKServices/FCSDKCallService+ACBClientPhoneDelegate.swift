@@ -38,12 +38,12 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         let fcsdkCall = FCSDKCall(
             id: UUID(),
             handle:  call?.remoteAddress ?? "",
-            hasVideo: self.currentCall?.hasVideo ?? false,
+            hasVideo: self.currentCall?.hasVideo ?? true,
             previewView: nil,
             remoteView: nil,
             acbuc: uc,
             call: call!,
-            activeCall: true,
+            activeCall: false,
             outbound: false,
             missed: false,
             rejected: false,
@@ -60,20 +60,22 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     
     func processInboundCall(fcsdkCall: FCSDKCall) async throws {
         let call = try await self.contactService?.fetchActiveCall()
-        if  !(call?.activeCall ?? false) {
+        
+        if call?.activeCall == false || call?.activeCall == nil{
             await MainActor.run {
                 fcsdkCall.call?.delegate = self
-                self.currentCall = fcsdkCall
                 self.currentCall?.call?.delegate = fcsdkCall.call?.delegate
             }
-            guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
-            await self.appDelegate?.displayIncomingCall(fcsdkCall: currentCall)
+            
             fcsdkCall.missed = false
             fcsdkCall.outbound = false
             fcsdkCall.rejected = false
             fcsdkCall.activeCall = true
             await self.addCall(call: fcsdkCall)
-        } else {
+            self.currentCall = fcsdkCall
+            guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
+            await self.appDelegate?.displayIncomingCall(fcsdkCall: currentCall)
+        } else if call?.activeCall == true {
             fcsdkCall.call?.end(fcsdkCall.call)
             LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
             await MainActor.run {

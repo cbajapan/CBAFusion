@@ -29,12 +29,13 @@ struct CBAFusionApp: App {
     @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     @State var callIntent = false
+    @State var connectedToSocket: Bool = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
     var logger: Logger
     
     init() {
-        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Main App- ")
+        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Main App - ")
     }
     
     func requestMicrophoneAndCameraPermissionFromAppSettings() async {
@@ -58,10 +59,9 @@ struct CBAFusionApp: App {
                     fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
-                    workWithFocus()
-//                    self.fcsdkCallService.startAudioSession()
                 }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
+                  
                     callIntent = true
                     guard let handle = activity.startCallHandle else {
                         self.logger.error("Could not determine start call handle from user activity: \(activity)")
@@ -74,7 +74,6 @@ struct CBAFusionApp: App {
                         await reAuthFlowWithCallIntent()
                     }
                 }
-        }
         .onChange(of: scenePhase) { (phase) in
             switch phase {
             case .active:
@@ -107,7 +106,7 @@ struct CBAFusionApp: App {
             }
         }
     }
-    
+}
     func reAuthFlow() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
@@ -116,21 +115,13 @@ struct CBAFusionApp: App {
     
     func reAuthFlowWithCallIntent() async {
         await reAuthFlow()
-        await fcsdkCallService.presentCommunicationSheet()
-        callIntent = false
-    }
-    
-    func workWithFocus() {
-        /// Retrieve the current authorization status: INFocusStatusAuthorizationStatus
-//        self.logger.info("INFocusStatusAuthorizationStatus: ", INFocusStatusCenter.default.authorizationStatus)
-
-        /// Request authorization to check Focus Status
-        INFocusStatusCenter.default.requestAuthorization { status in
-            /// Provides a INFocusStatusAuthorizationStatus
-        self.logger.info("Focus is: \(status)")
-        }
-
-        /// Check if Focus is enabled. INFocusStatusAuthorizationStatus must be .authorized
-//        self.logger.info("isFocused: ", INFocusStatusCenter.default.focusStatus.isFocused)
+        repeat {
+            Task {
+                if self.authenticationService.acbuc?.connection != false {
+                    await fcsdkCallService.presentCommunicationSheet()
+                        callIntent = false
+                }
+            }
+        } while (self.authenticationService.acbuc?.connection == false)  
     }
 }
