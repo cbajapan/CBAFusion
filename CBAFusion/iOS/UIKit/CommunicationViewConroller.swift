@@ -82,6 +82,9 @@ class CommunicationViewController: UIViewController {
     
     
     func initiateCall() async {
+        
+        do {
+        try await self.contactService.fetchContacts()
         if let contact = self.contactService.contacts?.first(where: { $0.number == self.destination } )  {
             await createCallObject(contact: contact)
         } else {
@@ -92,15 +95,15 @@ class CommunicationViewController: UIViewController {
                 calls: nil,
                 blocked: false)
             
-            do {
                 try await self.contactService.delegate?.createContact(contact)
-            } catch {
-                self.logger.error("\(error)")
-            }
             await createCallObject(contact: contact)
+        }
+        } catch {
+            self.logger.error("\(error)")
         }
     }
     
+    @MainActor
     func createCallObject(contact: ContactModel) async {
         let communicationView = self.view as! CommunicationView
         let fcsdkCall = FCSDKCall(
@@ -125,7 +128,7 @@ class CommunicationViewController: UIViewController {
     }
     
     func endCall() async throws {
-        guard let activeCall = try await self.contactService.fetchActiveCall() else { throw OurErrors.noActiveCalls }
+        guard let activeCall = await self.contactService.fetchActiveCall() else { return }
         await self.callKitManager.finishEnd(call: activeCall)
     }
     

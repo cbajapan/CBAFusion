@@ -131,16 +131,19 @@ struct SettingsSheet: View {
                         }
                         Divider()
                         Spacer()
+                        if self.fcsdkCallService.currentCall?.call == nil {
                         Button("Clear Call History", action: {
                             Task {
                                 await self.fcsdkCallService.contactService?.deleteCalls()
                             }
                         })
+                        }
                         Divider()
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
-                                Text("App Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
+                                Text("App Version: \(UIApplication.appVersion!)").fontWeight(.light)
+                                Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
                             }
                             Spacer()
                             if self.fcsdkCallService.currentCall?.call == nil {
@@ -166,6 +169,11 @@ struct SettingsSheet: View {
                     self.fcsdkCallService.selectResolution(res: self.selectedResolution)
                     self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
                     self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+                }
+                .onDisappear {
+                    Task {
+                    try await self.contactService.fetchContacts()
+                    }
                 }
                 .padding()
                 .navigationBarTitle("Settings")

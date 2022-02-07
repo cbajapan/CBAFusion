@@ -10,7 +10,13 @@ import SwiftUI
 import FCSDKiOS
 import Logging
 
-class AuthenticationService: NSObject, ObservableObject {
+
+protocol AuthenticationProtcol: AnyObject {
+    var acbuc: ACBUC? { get set }
+    func loginUser(networkStatus: Bool) async
+}
+
+class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
     
     var logger: Logger
     var networkRepository: NetworkRepository
@@ -132,10 +138,12 @@ class AuthenticationService: NSObject, ObservableObject {
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         self.acbuc?.useCookies = useCookies
         self.acbuc?.startSession()
+        await MainActor.run {
         self.connectedToSocket = self.acbuc?.connection != nil
         self.sessionExists = true
+        }
     }
-    
+
     
     /// Logout and stop the session
     func logout() async {
@@ -160,6 +168,7 @@ class AuthenticationService: NSObject, ObservableObject {
             
             await fireStatus(response: response)
             self.sessionExists = false
+            self.acbuc = nil
         } catch {
             await errorCaught(error: error)
             self.logger.error("\(error.localizedDescription)")
@@ -196,6 +205,20 @@ extension AuthenticationService: ACBUCDelegate {
     
     func ucDidLoseConnection(_ uc: ACBUC) {
         self.logger.info("Did lose connection \(String(describing: uc))")
+    }
+    
+    func uc(_ uc: ACBUC, willRetryConnectionNumber attemptNumber: UInt, in delay: TimeInterval) {
+        self.logger.info("We are trying to reconnect to the network \(uc), \(attemptNumber), \(delay)")
+        Task {
+            self.acbuc?.startSession()
+            await MainActor.run {
+            self.sessionExists = true
+            }
+        }
+    }
+    
+    func ucDidReestablishConnection(_ uc: ACBUC) {
+        self.logger.info("We restablished Network Connectivity \(uc)")
     }
     
 }

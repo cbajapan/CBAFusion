@@ -125,7 +125,7 @@ struct ContentView: View {
                                   for contact in self.contactService.contacts ?? [] {
                                       for call in contact.calls ?? [] {
                                           call.activeCall = false
-                                          await self.contactService.editCall(call: call)
+                                          await self.contactService.editCall(fcsdkCall: call)
                                       }
                                   }
                         }

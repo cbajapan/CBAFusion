@@ -19,15 +19,17 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             await MainActor.run {
                 self.isOutgoing = false
             }
+            try await self.contactService?.fetchContacts()
             if let contact = self.contactService?.contacts?.first(where: { $0.number == call.remoteAddress } )  {
                 await createCallObject(contact, call: call)
             } else {
                 let contact = ContactModel(
                     id: UUID(),
-                    username: self.destination,
-                    number: self.destination,
+                    username: call.remoteDisplayName ?? "",
+                    number: call.remoteAddress ?? "",
                     calls: nil,
                     blocked: false)
+                try await self.contactService?.delegate?.createContact(contact)
                 await createCallObject(contact, call: call)
             }
         }
@@ -59,9 +61,9 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     }
     
     func processInboundCall(fcsdkCall: FCSDKCall) async throws {
-        let call = try await self.contactService?.fetchActiveCall()
+        let call = await self.contactService?.fetchActiveCall()
         
-        if call?.activeCall == false || call?.activeCall == nil{
+        if call?.activeCall == nil {
             await MainActor.run {
                 fcsdkCall.call?.delegate = self
                 self.currentCall?.call?.delegate = fcsdkCall.call?.delegate
@@ -71,7 +73,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             fcsdkCall.outbound = false
             fcsdkCall.rejected = false
             fcsdkCall.activeCall = true
-            await self.addCall(call: fcsdkCall)
+            await self.addCall(fcsdkCall: fcsdkCall)
             self.currentCall = fcsdkCall
             guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: currentCall)
@@ -84,7 +86,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                 fcsdkCall.rejected = false
                 fcsdkCall.activeCall = false
             }
-            await self.addCall(call: fcsdkCall)
+            await self.addCall(fcsdkCall: fcsdkCall)
         }
     }
     

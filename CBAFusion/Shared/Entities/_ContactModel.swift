@@ -11,7 +11,7 @@ import FluentKit
 
 
 final class _ContactModel: FluentKit.Model {
-    static let schema = "contacts"
+    static let schema = "contact"
 
     @ID(key: .id) var id: UUID?
     @Field(key: "username") var username: String
@@ -34,4 +34,8 @@ final class _ContactModel: FluentKit.Model {
         self.updatedAt = contact.updatedAt
         self.deletedAt = contact.deletedAt
     }
+    
+//    func makeContact() throws -> ContactModel {
+//        ContactModel(id: id!, username: username, number: number, calls: calls, blocked: blocked, createdAt: createdAt, updatedAt: updatedAt, deletedAt: deletedAt)
+//    }
 }

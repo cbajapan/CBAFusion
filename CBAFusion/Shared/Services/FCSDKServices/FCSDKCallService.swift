@@ -17,6 +17,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     var appDelegate: AppDelegate?
     var contactService: ContactService?
     var logger: Logger
+    weak var delegate: AuthenticationProtcol?
     @Published var destination: String = ""
     @Published var hasVideo: Bool = true
     @Published var isOutgoing: Bool = false
@@ -36,13 +37,12 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var errorMessage: String = "Unknown Error"
     @Published var audioDeviceManager: ACBAudioDeviceManager?
     
-    
     override init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - FCSDKCall Service - ")
     }
     deinit {
-    appDelegate = nil
-    contactService = nil
+        appDelegate = nil
+        contactService = nil
     }
     
     
@@ -64,15 +64,15 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.currentCall?.call?.enableLocalVideo(true)
         await MainActor.run {
             //We Pass the view up to the SDK when using metalKit View
-//#if arch(arm64) && !targetEnvironment(simulator)
-//            if #available(iOS 15.0.0, *) {
-//                self.logger.info("You are using iOS 15 you can use buffer view")
-//            } else {
-//                self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-//            }
-//#elseif targetEnvironment(simulator)
+            //#if arch(arm64) && !targetEnvironment(simulator)
+            //            if #available(iOS 15.0.0, *) {
+            //                self.logger.info("You are using iOS 15 you can use buffer view")
+            //            } else {
+            //                self.currentCall?.call?.remoteView = self.currentCall?.remoteView
+            //            }
+            //#elseif targetEnvironment(simulator)
             self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-//#endif
+            //#endif
         }
         return self.currentCall?.call
     }
@@ -99,31 +99,27 @@ class FCSDKCallService: NSObject, ObservableObject {
             self.connectDate = Date()
         }
         guard let currentCall = self.currentCall?.call else { return }
-//#if arch(arm64) && !targetEnvironment(simulator)
-//        if #available(iOS 15.0.0, *) {
-//            self.logger.info("You are using iOS 15 you can use buffer view")
-//        } else {
-//            currentCall.remoteView = self.currentCall?.remoteView
-//        }
-//#elseif targetEnvironment(simulator)
+        //#if arch(arm64) && !targetEnvironment(simulator)
+        //        if #available(iOS 15.0.0, *) {
+        //            self.logger.info("You are using iOS 15 you can use buffer view")
+        //        } else {
+        //            currentCall.remoteView = self.currentCall?.remoteView
+        //        }
+        //#elseif targetEnvironment(simulator)
         currentCall.remoteView = self.currentCall?.remoteView
-//#endif
+        //#endif
         guard let view = self.currentCall?.previewView else { return }
         guard let uc = self.acbuc else { return }
         //We Pass the view up to the SDK
         uc.phone.previewView = view
+        
         currentCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
     }
 
-    func endACBClientCall() async throws {
-        guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
-        self.currentCall?.call?.end(currentCall.call)
-    }
-    
-    func endFCSDKCall() async throws {
-        guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
-        self.currentCall?.call?.end(currentCall.call)
-        await self.removeCall(call: currentCall)
+    func endFCSDKCall(_ fcsdkCall: FCSDKCall) async throws {
+        fcsdkCall.call?.end(fcsdkCall.call)
+        await self.removeCall(fcsdkCall: fcsdkCall)
+        self.hasEnded = true
     }
     
     func hasStartedConnectingDidChange(provider: CXProvider, id: UUID, date: Date) async {
@@ -142,13 +138,13 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func startAudioSession() {
-                self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
-                self.audioDeviceManager?.start()
+        self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
+        self.audioDeviceManager?.start()
     }
     
     func stopAudioSession() {
-                self.audioDeviceManager?.stop()
-                self.audioDeviceManager = nil
+        self.audioDeviceManager?.stop()
+        self.audioDeviceManager = nil
     }
     var audioPlayer: AVAudioPlayer?
     func startRing() {
@@ -166,7 +162,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.audioPlayer?.stop()
         self.audioPlayer = nil
     }
-
+    
 }
 
 /// Settings
@@ -207,19 +203,18 @@ extension FCSDKCallService {
 extension FCSDKCallService {
     
     @MainActor
-    func addCall(call: FCSDKCall) async {
+    func addCall(fcsdkCall: FCSDKCall) async {
         do {
-            try await self.contactService?.addCall(call, isEdit: false)
+            try await self.contactService?.addCall(fcsdkCall.contact!, fcsdkCall: fcsdkCall)
         } catch {
-            self.logger.error("\(error)")
+            self.logger.error("Error adding call - ERROR: \(error)")
         }
     }
-    
+
     @MainActor
-    func removeCall(call: FCSDKCall) async {
-        call.activeCall = false
-        await self.contactService?.editCall(call: call)
-        self.currentCall = nil
+    func removeCall(fcsdkCall: FCSDKCall) async {
+        fcsdkCall.activeCall = false
+        await self.contactService?.editCall(fcsdkCall: fcsdkCall)
     }
     
     @MainActor

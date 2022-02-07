@@ -188,7 +188,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                    self.logger?.error("\(error)")
+                    self.logger?.error("Error ending call - Error: \(error)")
                 }
                 await setServiceHasEnded()
                 await uiViewController.currentState(state: .hasEnded)

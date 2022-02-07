@@ -30,6 +30,8 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     deinit {
         self.logger.info("Reclaiming memory in NetworkManager")
     }
+    
+    @available(iOS 15.0.0, *)
     func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
         urlString: String,
@@ -63,7 +65,7 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 #endif
         return (data, response)
     }
-    
+    @available(iOS 15.0.0, *)
     func asyncNetworkWrapper(
         urlString: String,
         httpMethod: String,

@@ -157,7 +157,7 @@ struct Communication: View {
                     }
                     Spacer()
                     HStack(alignment: .center) {
-                        if self.fcsdkCallService.hasConnected || self.fcsdkCallService.isOutgoing {
+                        if self.fcsdkCallService.hasConnected {
                             Spacer()
 //#if !targetEnvironment(simulator)
 //                            if #available(iOS 15.0.0, *) {
@@ -261,6 +261,10 @@ struct Communication: View {
                                         .padding()
                                 }
                             }
+                        } else {
+                            Spacer()
+                        }
+
                             Button {
                                 self.closeClickedID = UUID()
                             } label: {
@@ -276,8 +280,10 @@ struct Communication: View {
                                         .padding()
                                 }
                             }
+                        if self.fcsdkCallService.hasConnected {
                             Spacer()
                         }
+                        
                     }
                 }
             }

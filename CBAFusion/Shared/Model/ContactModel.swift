@@ -8,19 +8,19 @@
 import Foundation
 import FCSDKiOS
 
-public final class ContactModel: Hashable {
+final class ContactModel: Hashable {
     
-    public let listID = UUID()
-    public let id: UUID
-    public let username: String
-    public let number: String
-    public let calls: [FCSDKCall]?
-    public let blocked: Bool?
-    public var createdAt: Date? = nil
-    public var updatedAt: Date? = nil
-    public var deletedAt: Date? = nil
+  let listID = UUID()
+  let id: UUID
+  let username: String
+  let number: String
+  let calls: [FCSDKCall]?
+  let blocked: Bool?
+  var createdAt: Date? = nil
+  var updatedAt: Date? = nil
+  var deletedAt: Date? = nil
     
-    public init(
+    init(
         id: UUID,
         username: String,
         number: String,
@@ -40,11 +40,11 @@ public final class ContactModel: Hashable {
         self.deletedAt = deletedAt
     }
     
-    public static func == (lhs: ContactModel, rhs: ContactModel) -> Bool {
+    static func == (lhs: ContactModel, rhs: ContactModel) -> Bool {
         return lhs.id == rhs.id
     }
 
-    public func hash(into hasher: inout Hasher) {
+    func hash(into hasher: inout Hasher) {
         id.hash(into: &hasher)
     }
     

@@ -37,7 +37,7 @@ class NetworkMonitor: ObservableObject {
                 strongSelf.logger.info("We're connected!")
             case .unsatisfied:
                     guard let strongSelf = self else { return }
-                    strongSelf.logger.info("No connection. \(path.unsatisfiedReason)")
+                    strongSelf.logger.info("No connection. \(path)")
             case .requiresConnection:
                 guard let strongSelf = self else { return }
                 strongSelf.logger.info("Connection Needed")

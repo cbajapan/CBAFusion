@@ -26,19 +26,19 @@ struct ContactCard: View {
         ZStack {
             VStack(alignment: .leading) {
                 ScrollView {
-                    ForEach(self.contactService.calls ?? [], id: \.id) { call in
+                    ForEach(self.calls ?? [], id: \.id) { call in
                         HStack {
-                            if call.missed == true {
+                            if call.missed == true && call.outbound == false {
                                 Image(systemName: "arrow.down.left.video")
                                     .foregroundColor(.red)
                                 Text("You Missed a call from \(call.handle) - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
                                     .foregroundColor(.red)
-                            } else if call.rejected == true {
+                            } else if call.rejected == true && call.outbound == false {
                                 Image(systemName: "arrow.down.left.video.fill")
                                     .foregroundColor(.red)
                                 Text("You Rejected a call from \(call.handle) - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
                                     .foregroundColor(.red)
-                            } else if call.outbound == false {
+                            } else if call.outbound == false && call.rejected == false {
                                 Image(systemName: "arrow.down.left.video.fill")
                                     .foregroundColor(.blue)
                                 Text("\(call.handle) called you - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
@@ -69,7 +69,7 @@ struct ContactCard: View {
                        self.authenticationService.connectedToSocket,
                        self.authenticationService.sessionExists {
                         self.fcsdkCallService.presentCommunication = true
-                        self.fcsdkCallService.destination =  self.contactService.selectedContact?.number ?? ""
+                        self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
                         self.fcsdkCallService.hasVideo = true
                         self.fcsdkCallService.isOutgoing = true
                     } else {
@@ -89,8 +89,12 @@ struct ContactCard: View {
         .onAppear {
             Task {
                 self.contactService.selectedContact = self.contact
+                self.fcsdkCallService.destination = self.contact?.number ?? ""
                 await self.contactService.setCallsForContact(self.contact!)
             }
+        }
+        .onChange(of: self.contactService.calls) { newValue in
+            self.calls = newValue
         }
     }
     

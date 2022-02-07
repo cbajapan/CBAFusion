@@ -25,11 +25,10 @@ struct CBAFusionApp: App {
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
-
+    
     @State var providerDelegate: ProviderDelegate?
     @State var exists = SQLiteStore.exists()
     @State var callIntent = false
-    @State var connectedToSocket: Bool = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
     var logger: Logger
@@ -53,15 +52,16 @@ struct CBAFusionApp: App {
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contactService)
                 .environmentObject(aedService)
-                
+            
                 .onAppear {
+                    fcsdkCallService.delegate = authenticationService
                     fcsdkCallService.appDelegate = delegate
                     fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
                     AppSettings.registerDefaults()
                 }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
-                  
+                    
                     callIntent = true
                     guard let handle = activity.startCallHandle else {
                         self.logger.error("Could not determine start call handle from user activity: \(activity)")
@@ -74,39 +74,39 @@ struct CBAFusionApp: App {
                         await reAuthFlowWithCallIntent()
                     }
                 }
-        .onChange(of: scenePhase) { (phase) in
-            switch phase {
-            case .active:
-                self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
-                Task {
-                    await self.requestMicrophoneAndCameraPermissionFromAppSettings()
-                    if self.authenticationService.acbuc?.connection == false {
-                        self.authenticationService.sessionExists = false
-                    }
-                    
-                    // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
-                    if !callIntent {
-                    if self.authenticationService.acbuc == nil && !self.authenticationService.sessionID.isEmpty,
-                       servername != "" && username != "" {
-                        await reAuthFlow()
-                    } else if !self.authenticationService.sessionID.isEmpty,
-                              servername != "" && username != "",
-                              self.authenticationService.acbuc?.connection == false {
-                        await reAuthFlow()
-                    }
-                        self.logger.info("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
+                .onChange(of: scenePhase) { (phase) in
+                    switch phase {
+                    case .active:
+                        self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                        Task {
+                            await self.requestMicrophoneAndCameraPermissionFromAppSettings()
+                            if self.authenticationService.acbuc?.connection == false {
+                                self.authenticationService.sessionExists = false
+                            }
+                            
+                            // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
+                            if !callIntent {
+                                if self.authenticationService.acbuc == nil && !self.authenticationService.sessionID.isEmpty,
+                                   servername != "" && username != "" {
+                                    await reAuthFlow()
+                                }
+                                if self.authenticationService.acbuc?.connection != nil {
+                                    self.authenticationService.sessionExists = true
+                                }
+                            }
+                            self.logger.info("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
+                            
+                        }
+                    case .background:
+                        self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                    case .inactive:
+                        self.logger.info("ScenePhase: inactive")
+                    @unknown default:
+                        self.logger.info("ScenePhase: unexpected state")
                     }
                 }
-            case .background:
-                self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
-            case .inactive:
-                self.logger.info("ScenePhase: inactive")
-            @unknown default:
-                self.logger.info("ScenePhase: unexpected state")
-            }
         }
     }
-}
     func reAuthFlow() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
@@ -119,7 +119,7 @@ struct CBAFusionApp: App {
             Task {
                 if self.authenticationService.acbuc?.connection != false {
                     await fcsdkCallService.presentCommunicationSheet()
-                        callIntent = false
+                    callIntent = false
                 }
             }
         } while (self.authenticationService.acbuc?.connection == false)  

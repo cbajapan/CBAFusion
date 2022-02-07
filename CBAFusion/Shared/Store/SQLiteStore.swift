@@ -110,12 +110,12 @@ class SQLiteStore: FCSDKStore {
     }
     
     func removeContact(_ contact: ContactModel) async throws {
-        try await _ContactModel(contact: contact, new: false).delete(on: database).get()
+        try await _ContactModel(contact: contact, new: false).delete(force: true, on: database).get()
     }
     
     func fetchCalls() async throws -> [FCSDKCall]? {
-        try await _CallsModel.query(on: database)
-            .with(\.$contact)
+      try await _CallsModel.query(on: database)
+            .with(\.$contact).withDeleted()
             .all()
             .flatMapEachThrowing {
             try $0.makeCall()
@@ -123,9 +123,9 @@ class SQLiteStore: FCSDKStore {
     }
     
     func fetchContactCalls(handle: String) async throws -> [FCSDKCall]? {
-        try await _CallsModel.query(on: database)
+        return try await _CallsModel.query(on: database)
             .filter(\.$handle == handle)
-            .with(\.$contact)
+            .with(\.$contact).withDeleted()
             .all()
             .flatMapEachThrowing {
             try $0.makeCall()
@@ -136,30 +136,32 @@ class SQLiteStore: FCSDKStore {
     func fetchActiveCalls() async throws -> [FCSDKCall]? {
         try await _CallsModel.query(on: database)
             .filter(\.$activeCall == true)
-            .with(\.$contact)
+            .with(\.$contact).withDeleted()
             .all()
             .flatMapEachThrowing {
                 try $0.makeCall()
         }.get()
     }
 
-    func createCall(_ contactID: UUID?, call: _CallsModel) async throws {
+    func createCall(_ contactID: UUID?, call: _CallsModel) async throws -> [ContactModel]? {
         let contacts = try await _ContactModel.query(on: database).all()
         let contact = contacts.first(where: { $0.id == contactID } )
         try await contact?.$calls.create(call, on: database).get()
+        return try await self.fetchContacts()
     }
     
-    func updateCall(_ contactID: UUID, call: FCSDKCall) async throws {
-        try await _CallsModel(call: call, contactID: contactID, new: false).update(on: database).get()
+    func updateCall(_ contactID: UUID, fcsdkCall: FCSDKCall) async throws  -> [ContactModel]? {
+        try await _CallsModel(call: fcsdkCall, contactID: contactID, new: false).update(on: database).get()
+        return try await self.fetchContacts()
     }
     
-    func removeCall(_ contactID: UUID, call: FCSDKCall) async throws {
-        try await _CallsModel(call: call, contactID: contactID, new: false).delete(on: database).get()
+    func removeCall(_ contactID: UUID, fcsdkCall: FCSDKCall) async throws {
+        try await _CallsModel(call: fcsdkCall, contactID: contactID, new: false).delete(force: true, on: database).get()
     }
     
     func removeCalls() async throws -> (Bool, [FCSDKCall]?) {
         do {
-        try await _CallsModel.query(on: self.database).delete()
+        try await _CallsModel.query(on: self.database).delete(force: true)
             let calls = try await self.fetchCalls()
             return (true, calls)
         } catch {
@@ -210,7 +212,7 @@ struct CreateCallsMigration: Migration {
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
             .field("deleted_at", .datetime)
-            .field("contact_id", .uuid, .required, .references("contacts", "id"))
+            .field("contact_id", .uuid, .required, .references(_ContactModel.schema, "id", onDelete: .cascade))
             .create()
     }
     

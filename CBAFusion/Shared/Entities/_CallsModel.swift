@@ -11,7 +11,7 @@ import FluentKit
 import FCSDKiOS
 
 final class _CallsModel: FluentKit.Model {
-    static let schema = "calls"
+    static let schema = "call"
 
     @ID(key: .id) var id: UUID?
     @Field(key: "handle") var handle: String
@@ -43,6 +43,6 @@ final class _CallsModel: FluentKit.Model {
     }
     
     func makeCall() throws -> FCSDKCall {
-        FCSDKCall(id: id!, handle: handle, hasVideo: hasVideo, previewView: nil, remoteView: nil, acbuc: nil, call: nil, activeCall: activeCall, outbound: outbound, missed: missed, rejected: rejected, contact: contact.id, createdAt: createdAt, updatedAt: updatedAt, deletedAt: deletedAt)
+        return FCSDKCall(id: id!, handle: handle, hasVideo: hasVideo, previewView: nil, remoteView: nil, acbuc: nil, call: nil, activeCall: activeCall, outbound: outbound, missed: missed, rejected: rejected, contact: contact.id, createdAt: createdAt, updatedAt: updatedAt, deletedAt: deletedAt)
     }
 }
