@@ -64,15 +64,15 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.currentCall?.call?.enableLocalVideo(true)
         await MainActor.run {
             //We Pass the view up to the SDK when using metalKit View
-            //#if arch(arm64) && !targetEnvironment(simulator)
-            //            if #available(iOS 15.0.0, *) {
-            //                self.logger.info("You are using iOS 15 you can use buffer view")
-            //            } else {
-            //                self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-            //            }
-            //#elseif targetEnvironment(simulator)
+            #if arch(arm64) && !targetEnvironment(simulator)
+                        if #available(iOS 15.0.0, *) {
+                            self.logger.info("You are using iOS 15 you can use buffer view")
+                        } else {
+                            self.currentCall?.call?.remoteView = self.currentCall?.remoteView
+                        }
+            #elseif targetEnvironment(simulator)
             self.currentCall?.call?.remoteView = self.currentCall?.remoteView
-            //#endif
+            #endif
         }
         return self.currentCall?.call
     }
@@ -99,15 +99,15 @@ class FCSDKCallService: NSObject, ObservableObject {
             self.connectDate = Date()
         }
         guard let currentCall = self.currentCall?.call else { return }
-        //#if arch(arm64) && !targetEnvironment(simulator)
-        //        if #available(iOS 15.0.0, *) {
-        //            self.logger.info("You are using iOS 15 you can use buffer view")
-        //        } else {
-        //            currentCall.remoteView = self.currentCall?.remoteView
-        //        }
-        //#elseif targetEnvironment(simulator)
+        #if arch(arm64) && !targetEnvironment(simulator)
+                if #available(iOS 15.0.0, *) {
+                    self.logger.info("You are using iOS 15 you can use buffer view")
+                } else {
+                    currentCall.remoteView = self.currentCall?.remoteView
+                }
+        #elseif targetEnvironment(simulator)
         currentCall.remoteView = self.currentCall?.remoteView
-        //#endif
+        #endif
         guard let view = self.currentCall?.previewView else { return }
         guard let uc = self.acbuc else { return }
         //We Pass the view up to the SDK

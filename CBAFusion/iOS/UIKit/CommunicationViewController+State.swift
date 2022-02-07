@@ -58,7 +58,7 @@ extension CommunicationViewController {
                 self.logger.error("\(error)")
             }
         case .hasEnded:
-//            await self.fcsdkCallService.currentCall?.call?.removeBufferView()
+            await self.fcsdkCallService.currentCall?.call?.removeBufferView()
             await communicationView.breakDownView()
             await communicationView.removeConnectingUI()
             await self.currentState(state: .setup)

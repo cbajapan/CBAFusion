@@ -226,6 +226,17 @@ class CommunicationViewController: UIViewController {
         self.currentCamera = .front
     }
     
+    @MainActor
+    func updateRemoteViewForBuffer(view: UIView) async {
+        let communicationView = self.view as! CommunicationView
+        communicationView.remoteView.removeFromSuperview()
+        communicationView.remoteView = view
+            //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
+            ///This method is used to set the remoteView with a BufferView
+            guard let view = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
+        communicationView.remoteView = view
+        }
+    
     /// Configurations for Capture
     func configureResolutionOptions() throws {
         _ = self.acbuc.phone.recommendedCaptureSettings()

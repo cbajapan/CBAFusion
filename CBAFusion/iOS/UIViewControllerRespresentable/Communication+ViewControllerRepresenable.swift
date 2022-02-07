@@ -96,12 +96,12 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
                 Task {
-//#if !targetEnvironment(simulator)
-//                    if #available(iOS 15.0.0, *) {
-//                        guard let remoteView = self.currentCall?.remoteView else { return }
-//                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
-//                    }
-//#endif
+#if !targetEnvironment(simulator)
+                    if #available(iOS 15.0.0, *) {
+                        guard let remoteView = self.currentCall?.remoteView else { return }
+                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
+                    }
+#endif
                     await uiViewController.currentState(state: .hasConnected)
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
@@ -150,6 +150,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if resumeVideoID != context.coordinator.previousResumeVideoID {
+            
             Task {
                 await uiViewController.currentState(state: .resumeVideo)
             }
