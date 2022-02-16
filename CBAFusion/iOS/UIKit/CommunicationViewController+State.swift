@@ -35,61 +35,61 @@ extension CommunicationViewController {
             break
         case .hasStartedConnecting:
             communicationView.numberLabel.text = self.fcsdkCall?.call?.remoteAddress
-            await communicationView.connectingUI(isRinging: false)
+            communicationView.connectingUI(isRinging: false)
         case .isRinging:
             communicationView.numberLabel.text = self.fcsdkCall?.call?.remoteAddress
-            await communicationView.connectingUI(isRinging: true)
+            communicationView.connectingUI(isRinging: true)
         case .hasConnected:
-            await communicationView.removeConnectingUI()
-            await communicationView.setupUI()
-            await communicationView.anchors()
+            communicationView.removeConnectingUI()
+            communicationView.setupUI()
+            communicationView.anchors()
         case .isOutgoing:
             break
         case .hold:
             do {
-                try await self.onHoldView()
+                try self.onHoldView()
             } catch {
                 self.logger.error("\(error)")
             }
         case .resume:
             do {
-                try await self.removeOnHold()
+                try self.removeOnHold()
             } catch {
                 self.logger.error("\(error)")
             }
         case .hasEnded:
-            await self.fcsdkCallService.currentCall?.call?.removeBufferView()
-            await communicationView.breakDownView()
-            await communicationView.removeConnectingUI()
+            await self.fcsdkCallService.fcsdkCall?.call?.removeBufferView()
+            communicationView.breakDownView()
+            communicationView.removeConnectingUI()
             await self.currentState(state: .setup)
         case .muteVideo:
             do {
-                try await self.muteVideo(isMute: true)
+                try self.muteVideo(isMute: true)
             } catch {
                 self.logger.error("\(error)")
             }
         case .resumeVideo:
             do {
-                try await self.muteVideo(isMute: false)
+                try self.muteVideo(isMute: false)
             } catch {
                 self.logger.error("\(error)")
             }
         case .muteAudio:
             do {
-                try await self.muteAudio(isMute: true)
+                try self.muteAudio(isMute: true)
             } catch {
                 self.logger.error("\(error)")
             }
         case .resumeAudio:
             do {
-                try await self.muteAudio(isMute: false)
+                try self.muteAudio(isMute: false)
             } catch {
                 self.logger.error("\(error)")
             }
         case .cameraFront:
-            await self.flipCamera(show: true)
+            self.flipCamera(show: true)
         case .cameraBack:
-            await self.flipCamera(show: false)
+            self.flipCamera(show: false)
         }
     }
 }

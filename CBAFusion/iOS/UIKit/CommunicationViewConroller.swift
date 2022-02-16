@@ -66,7 +66,7 @@ class CommunicationViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
         Task {
             if self.authenticationService?.connectedToSocket != nil {
-                await self.configureVideo()
+                self.configureVideo()
                 if self.isOutgoing {
                     await self.initiateCall()
                 } else {
@@ -84,20 +84,20 @@ class CommunicationViewController: UIViewController {
     func initiateCall() async {
         
         do {
-        try await self.contactService.fetchContacts()
-        if let contact = self.contactService.contacts?.first(where: { $0.number == self.destination } )  {
-            await createCallObject(contact: contact)
-        } else {
-            let contact = ContactModel(
-                id: UUID(),
-                username: self.destination,
-                number: self.destination,
-                calls: nil,
-                blocked: false)
-            
+            try await self.contactService.fetchContacts()
+            if let contact = self.contactService.contacts?.first(where: { $0.number == self.destination } )  {
+                await createCallObject(contact: contact)
+            } else {
+                let contact = ContactModel(
+                    id: UUID(),
+                    username: self.destination,
+                    number: self.destination,
+                    calls: nil,
+                    blocked: false)
+                
                 try await self.contactService.delegate?.createContact(contact)
-            await createCallObject(contact: contact)
-        }
+                await createCallObject(contact: contact)
+            }
         } catch {
             self.logger.error("\(error)")
         }
@@ -133,23 +133,23 @@ class CommunicationViewController: UIViewController {
     }
     
     @MainActor
-    func muteVideo(isMute: Bool) async throws {
+    func muteVideo(isMute: Bool) throws {
         if isMute {
-            self.fcsdkCallService.currentCall?.call?.enableLocalVideo(false)
+            self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(false)
         } else {
-            self.fcsdkCallService.currentCall?.call?.enableLocalVideo(true)
+            self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(true)
         }
     }
     
     @MainActor
-    func muteAudio(isMute: Bool) async throws {
+    func muteAudio(isMute: Bool) throws {
         if isMute {
-            self.fcsdkCallService.currentCall?.call?.enableLocalAudio(false)
+            self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(false)
         } else {
-            self.fcsdkCallService.currentCall?.call?.enableLocalAudio(true)
+            self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(true)
         }
     }
-
+    
     func gestures() {
         let communicationView = self.view as! CommunicationView
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
@@ -158,22 +158,20 @@ class CommunicationViewController: UIViewController {
     }
     
     @objc func applicationDidBecomeActive(_ notification: Notification) {
-        Task {
-            let communicationView = self.view as! CommunicationView
-            if communicationView.remoteView.frame.isEmpty,
-               self.fcsdkCallService.presentCommunication,
-               !self.isOutgoing {
-                await communicationView.anchors()
-            }
+        let communicationView = self.view as! CommunicationView
+        if communicationView.remoteView.frame.isEmpty,
+           self.fcsdkCallService.presentCommunication,
+           !self.isOutgoing {
+            communicationView.anchors()
         }
     }
-
-    func onHoldView() async throws {
-        self.fcsdkCallService.currentCall?.call?.hold()
+    
+    func onHoldView() throws {
+        self.fcsdkCallService.fcsdkCall?.call?.hold()
     }
     
-    func removeOnHold() async throws {
-        self.fcsdkCallService.currentCall?.call?.resume()
+    func removeOnHold() throws {
+        self.fcsdkCallService.fcsdkCall?.call?.resume()
     }
     
     func blurView() async {
@@ -204,9 +202,9 @@ class CommunicationViewController: UIViewController {
             }
         }
     }
-
+    
     @MainActor
-    func flipCamera(show: Bool) async {
+    func flipCamera(show: Bool) {
         if show {
             self.currentCamera = .front
         } else {
@@ -216,7 +214,7 @@ class CommunicationViewController: UIViewController {
     }
     
     @MainActor
-    func configureVideo() async {
+    func configureVideo() {
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
         
@@ -231,11 +229,11 @@ class CommunicationViewController: UIViewController {
         let communicationView = self.view as! CommunicationView
         communicationView.remoteView.removeFromSuperview()
         communicationView.remoteView = view
-            //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
-            ///This method is used to set the remoteView with a BufferView
-            guard let view = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
+        //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
+        ///This method is used to set the remoteView with a BufferView
+        guard let view = await self.fcsdkCallService.fcsdkCall?.call?.remoteBufferView() else { return }
         communicationView.remoteView = view
-        }
+    }
     
     /// Configurations for Capture
     func configureResolutionOptions() throws {

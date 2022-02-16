@@ -35,33 +35,47 @@ struct CallSheet: View {
         .navigationBarItems(leading:
                                 Button(action: {
             if UIDevice.current.userInterfaceIdiom == .phone {
-            self.presentationMode.wrappedValue.dismiss()
+                self.presentationMode.wrappedValue.dismiss()
             }
         }, label: {
             if UIDevice.current.userInterfaceIdiom == .phone {
-            Text("Cancel")
-                .foregroundColor(Color.red)
+                Text("Cancel")
+                    .foregroundColor(Color.red)
+            }
+        }), trailing:
+                                HStack {
+//            Button {
+//                setupCall(hasVideo: false)
+//            } label: {
+//                Image(systemName: "phone")
+//                    .foregroundColor(.blue)
+//            }
+            Button {
+                setupCall(hasVideo: true)
+            } label: {
+                Image(systemName: "video")
+                    .foregroundColor(.blue)
             }
         }
-                                      ), trailing:
-                                Button(action: {
-            if authenticationService.acbuc != nil {
-                self.fcsdkCallService.isOutgoing = true
-                self.showCommunication = true
-                self.presentationMode.wrappedValue.dismiss()
-            } else {
-                
-            }
-        }, label: {
-            Text("Connect")
-                .foregroundColor(Color.blue)
-        }))
+        )
         .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
             Button("OK", role: .cancel) {
                 processNotLoggedIn()
             }
         })
     }
+    
+    func setupCall(hasVideo: Bool) {
+        if authenticationService.acbuc != nil {
+            self.fcsdkCallService.isOutgoing = true
+            self.fcsdkCallService.hasVideo = hasVideo
+            self.showCommunication = true
+            self.presentationMode.wrappedValue.dismiss()
+        } else {
+            
+        }
+    }
+    
     func processNotLoggedIn() {
         Task {
             await self.authenticationService.logout()

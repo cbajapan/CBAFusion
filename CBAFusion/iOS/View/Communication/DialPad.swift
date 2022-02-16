@@ -24,13 +24,13 @@ struct DialPad: View {
     
     private func keyWasPressed(_ key: String) {
         
-        if self.fcsdkCallService.currentCall?.call != nil {
+        if self.fcsdkCallService.fcsdkCall?.call != nil {
             if self.legacyDTMF {
-                self.fcsdkCallService.currentCall?.call?.playDTMFCode(key, localPlayback: true)
+                self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(key, localPlayback: true)
             } else {
                 // Really should use this and let Apple handle DTMF Stuff, but if you want you can use the Legacy way with no problem
                 Task {
-                await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.currentCall!.id, digit: key)
+                await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.id, digit: key)
                 }
             }
         } else {

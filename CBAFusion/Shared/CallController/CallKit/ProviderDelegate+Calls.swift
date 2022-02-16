@@ -76,7 +76,7 @@ extension ProviderDelegate {
                 callUpdate.hasVideo = fcsdkCallService.hasVideo
                 callUpdate.supportsHolding = false
                 
-                guard let outgoingFCSDKCall = self.fcsdkCallService.currentCall else { return }
+                guard let outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall else { return }
                 guard let preview = outgoingFCSDKCall.previewView else { return }
                 await self.fcsdkCallService.startCall(previewView: preview)
                 acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
@@ -91,7 +91,7 @@ extension ProviderDelegate {
                                                                   date: self.fcsdkCallService.connectDate ?? Date())
                 await self.fcsdkCallService.addCall(fcsdkCall: outgoingFCSDKCall)
                 //We need to set the delegate initially because if the user is on another call we need to get notified through the delegate and end the call
-                self.fcsdkCallService.currentCall?.call?.delegate = self.fcsdkCallService
+                self.fcsdkCallService.fcsdkCall?.call?.delegate = self.fcsdkCallService
                 action.fulfill()
             } catch {
                 self.logger.error("\(error)")
@@ -104,7 +104,7 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         Task {
             // if we are on a call end otherwise also end
-            if let call = self.fcsdkCallService.currentCall {
+            if let call = self.fcsdkCallService.fcsdkCall {
                 if fcsdkCallService.hasConnected == false && call.outbound == false {
                     call.missed = false
                     call.outbound = false
@@ -125,7 +125,7 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
         self.logger.info("Provider - CXPlayDTMFCallAction")
         let dtmfDigits:String = action.digits
-        self.fcsdkCallService.currentCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
+        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
         action.fulfill()
     }
     
