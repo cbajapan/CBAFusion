@@ -21,7 +21,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var muteAudio: Bool
     @Binding var hold: Bool
     @Binding var isOutgoing: Bool
-    @Binding var currentCall: FCSDKCall?
+    @Binding var fcsdkCall: FCSDKCall?
     @Binding var closeClickID: UUID?
     @Binding var cameraFrontID: UUID?
     @Binding var cameraBackID: UUID?
@@ -96,12 +96,12 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
                 Task {
-//#if !targetEnvironment(simulator)
-//                    if #available(iOS 15.0.0, *) {
-//                        guard let remoteView = self.currentCall?.remoteView else { return }
-//                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
-//                    }
-//#endif
+#if !targetEnvironment(simulator)
+                    if #available(iOS 15.0.0, *) {
+                        guard let remoteView = self.fcsdkCall?.remoteView else { return }
+                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
+                    }
+#endif
                     await uiViewController.currentState(state: .hasConnected)
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
@@ -150,6 +150,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if resumeVideoID != context.coordinator.previousResumeVideoID {
+            
             Task {
                 await uiViewController.currentState(state: .resumeVideo)
             }
@@ -224,12 +225,12 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         @MainActor
         func passCallToService(_ call: FCSDKCall) async {
-            self.parent.currentCall = call
+            self.parent.fcsdkCall = call
         }
         
         func passViewsToService(preview: UIView, remoteView: UIView) async {
-            await self.parent.currentCall?.previewView = preview
-            await self.parent.currentCall?.remoteView = remoteView
+            await self.parent.fcsdkCall?.previewView = preview
+            await self.parent.fcsdkCall?.remoteView = remoteView
         }
     }
     

@@ -41,7 +41,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
             let suppported = AVPictureInPictureController.isPictureInPictureSupported()
             if suppported {
                 let communicationView = self.view as! CommunicationView
-                guard let bufferView = await self.fcsdkCallService.currentCall?.call?.remoteBufferView() else { return }
+                guard let bufferView = await self.fcsdkCallService.fcsdkCall?.call?.remoteBufferView() else { return }
                 communicationView.remoteView = bufferView
 //                let sourceLayer = self.remoteBufferView?.sampleBufferDisplayLayer
                 let pipVideoCallViewController = AVPictureInPictureVideoCallViewController()
@@ -62,7 +62,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
                 self.logger.info("PIP not Supported")
             }
         } else {
-            await self.fcsdkCallService.currentCall?.call?.removeBufferView()
+            await self.fcsdkCallService.fcsdkCall?.call?.removeBufferView()
         }
     }
     

@@ -38,7 +38,7 @@ class CommunicationView: UIView {
     
     
     @MainActor
-    func anchors() async {
+    func anchors() {
         
         //We can adjust the size of video if we want to via the constraints API, the next 2 lines can center a view
         //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
@@ -62,7 +62,7 @@ class CommunicationView: UIView {
     }
     
     @MainActor
-    func setupUI() async {
+    func setupUI() {
         addSubview(self.remoteView)
         addSubview(self.previewView)
         self.previewView.layer.cornerRadius = 10
@@ -71,13 +71,13 @@ class CommunicationView: UIView {
 
     
     @MainActor
-    func breakDownView() async {
+    func breakDownView() {
         remoteView.removeFromSuperview()
         previewView.removeFromSuperview()
     }
     
     @MainActor
-    func connectingUI(isRinging: Bool) async {
+    func connectingUI(isRinging: Bool) {
         numberLabel.font = .boldSystemFont(ofSize: 18)
         if isRinging {
             nameLabel.text = "Ringing..."
@@ -95,7 +95,7 @@ class CommunicationView: UIView {
     }
     
     @MainActor
-    func removeConnectingUI() async {
+    func removeConnectingUI() {
         stackView.removeFromSuperview()
     }
     

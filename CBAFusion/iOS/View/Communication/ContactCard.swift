@@ -64,20 +64,19 @@ struct ContactCard: View {
         .navigationTitle(self.contactService.selectedContact?.username ?? "")
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    if authenticationService.acbuc != nil,
-                       self.authenticationService.connectedToSocket,
-                       self.authenticationService.sessionExists {
-                        self.fcsdkCallService.presentCommunication = true
-                        self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
-                        self.fcsdkCallService.hasVideo = true
-                        self.fcsdkCallService.isOutgoing = true
-                    } else {
-                        notLoggedIn = true
+                HStack {
+//                    Button {
+//                        setupCall(hasVideo: false)
+//                    } label: {
+//                        Image(systemName: "phone")
+//                            .foregroundColor(.blue)
+//                    }
+                    Button {
+                        setupCall(hasVideo: true)
+                    } label: {
+                        Image(systemName: "video")
+                            .foregroundColor(.blue)
                     }
-                } label: {
-                    Image(systemName: "video")
-                        .foregroundColor(.blue)
                 }
             }
         })
@@ -88,6 +87,8 @@ struct ContactCard: View {
         })
         .onAppear {
             Task {
+                try await self.contactService.fetchContactCalls(destination)
+                self.calls = self.contactService.calls
                 self.contactService.selectedContact = self.contact
                 self.fcsdkCallService.destination = self.contact?.number ?? ""
                 await self.contactService.setCallsForContact(self.contact!)
@@ -95,6 +96,20 @@ struct ContactCard: View {
         }
         .onChange(of: self.contactService.calls) { newValue in
             self.calls = newValue
+        }
+    }
+    
+    
+    func setupCall(hasVideo: Bool) {
+        if authenticationService.acbuc != nil,
+           self.authenticationService.connectedToSocket,
+           self.authenticationService.sessionExists {
+            self.fcsdkCallService.presentCommunication = true
+            self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
+            self.fcsdkCallService.hasVideo = hasVideo
+            self.fcsdkCallService.isOutgoing = true
+        } else {
+            notLoggedIn = true
         }
     }
     

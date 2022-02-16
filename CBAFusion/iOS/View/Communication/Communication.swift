@@ -75,7 +75,7 @@ struct Communication: View {
                     muteAudio: self.$muteAudio,
                     hold: self.$hold,
                     isOutgoing: self.$fcsdkCallService.isOutgoing,
-                    currentCall: self.$fcsdkCallService.currentCall,
+                    fcsdkCall: self.$fcsdkCallService.fcsdkCall,
                     closeClickID: self.$closeClickedID,
                     cameraFrontID: self.$cameraFrontID,
                     cameraBackID: self.$cameraBackID,
@@ -92,6 +92,7 @@ struct Communication: View {
                 )
                     .ignoresSafeArea(.all)
                 
+                
                 VStack(alignment: .trailing) {
                     HStack(alignment: .top) {
                         VStack {
@@ -105,28 +106,28 @@ struct Communication: View {
                                     .frame(width: 25, height: 25)
                                     .padding()
                             }
-//#if !targetEnvironment(simulator)
-//                            if #available(iOS 15.0.0, *) {
-//                                if UIDevice.current.userInterfaceIdiom == .phone {
-//                                    Button {
-//                                        self.pip.toggle()
-//                                        self.pipClickedID = UUID()
-//                                    } label: {
-//                                        ZStack {
-//                                            Circle()
-//                                                .fill(self.pip ? Color.white : Color.gray)
-//                                                .frame(width: 30, height: 30)
-//                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-//                                                .resizable()
-//                                                .multilineTextAlignment(.trailing)
-//                                                .foregroundColor(Color.black)
-//                                                .frame(width: 20, height: 20)
-//                                                .padding()
-//                                        }
-//                                    }
-//                                }
-//                            }
-//#endif
+                            //#if !targetEnvironment(simulator)
+                            //                            if #available(iOS 15.0.0, *) {
+                            //                                if UIDevice.current.userInterfaceIdiom == .phone {
+                            //                                    Button {
+                            //                                        self.pip.toggle()
+                            //                                        self.pipClickedID = UUID()
+                            //                                    } label: {
+                            //                                        ZStack {
+                            //                                            Circle()
+                            //                                                .fill(self.pip ? Color.white : Color.gray)
+                            //                                                .frame(width: 30, height: 30)
+                            //                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                            //                                                .resizable()
+                            //                                                .multilineTextAlignment(.trailing)
+                            //                                                .foregroundColor(Color.black)
+                            //                                                .frame(width: 20, height: 20)
+                            //                                                .padding()
+                            //                                        }
+                            //                                    }
+                            //                                }
+                            //                            }
+                            //#endif
                         }
                         Spacer()
                         ZStack {
@@ -140,7 +141,7 @@ struct Communication: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text(self.fcsdkCallService.currentCall?.call?.remoteDisplayName ?? "")
+                            Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
                             Button {
@@ -159,28 +160,28 @@ struct Communication: View {
                     HStack(alignment: .center) {
                         if self.fcsdkCallService.hasConnected {
                             Spacer()
-//#if !targetEnvironment(simulator)
-//                            if #available(iOS 15.0.0, *) {
-//                                if UIDevice.current.userInterfaceIdiom == .pad {
-//                                    Button {
-//                                        self.pip.toggle()
-//                                        self.pipClickedID = UUID()
-//                                    } label: {
-//                                        ZStack {
-//                                            Circle()
-//                                                .fill(self.pip ? Color.white : Color.gray)
-//                                                .frame(width: 50, height: 50)
-//                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-//                                                .resizable()
-//                                                .multilineTextAlignment(.trailing)
-//                                                .foregroundColor(Color.black)
-//                                                .frame(width: 25, height: 25)
-//                                                .padding()
-//                                        }
-//                                    }
-//                                }
-//                            }
-//#endif
+                            //#if !targetEnvironment(simulator)
+                            //                            if #available(iOS 15.0.0, *) {
+                            //                                if UIDevice.current.userInterfaceIdiom == .pad {
+                            //                                    Button {
+                            //                                        self.pip.toggle()
+                            //                                        self.pipClickedID = UUID()
+                            //                                    } label: {
+                            //                                        ZStack {
+                            //                                            Circle()
+                            //                                                .fill(self.pip ? Color.white : Color.gray)
+                            //                                                .frame(width: 50, height: 50)
+                            //                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                            //                                                .resizable()
+                            //                                                .multilineTextAlignment(.trailing)
+                            //                                                .foregroundColor(Color.black)
+                            //                                                .frame(width: 25, height: 25)
+                            //                                                .padding()
+                            //                                        }
+                            //                                    }
+                            //                                }
+                            //                            }
+                            //#endif
                             Button {
                                 self.hold.toggle()
                                 if self.hold {
@@ -264,22 +265,22 @@ struct Communication: View {
                         } else {
                             Spacer()
                         }
-
-                            Button {
-                                self.closeClickedID = UUID()
-                            } label: {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 50, height: 50)
-                                    Image(systemName: "phone.down.fill")
-                                        .resizable()
-                                        .multilineTextAlignment(.trailing)
-                                        .foregroundColor(Color.white)
-                                        .frame(width: 25, height: 13)
-                                        .padding()
-                                }
+                        
+                        Button {
+                            self.closeClickedID = UUID()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "phone.down.fill")
+                                    .resizable()
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 25, height: 13)
+                                    .padding()
                             }
+                        }
                         if self.fcsdkCallService.hasConnected {
                             Spacer()
                         }
@@ -311,7 +312,7 @@ struct Communication: View {
         }
         .onDisappear(perform: {
             Task {
-            try await self.contactService.fetchContactCalls(self.destination)
+                try await self.contactService.fetchContactCalls(self.destination)
             }
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false

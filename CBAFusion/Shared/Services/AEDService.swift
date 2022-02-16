@@ -35,10 +35,10 @@ class AEDService : NSObject, ObservableObject, ACBTopicDelegate {
                 else{
                     expiryClause = "no expiry"
                 }
-                
-                var msg = "Topic '\(currentTopic?.name ?? "")' connected succesfully (\(expiryClause))."
+                guard let name = currentTopic?.name else { return }
+                var msg = "Topic '\(name)' connected succesfully (\(expiryClause))."
                 self.consoleMessage = msg
-                msg = "Current topic is '\(currentTopic?.name ?? "")'. Topic Data:"
+                msg = "Current topic is '\(name)'. Topic Data:"
                 self.consoleMessage = msg
             }
         }

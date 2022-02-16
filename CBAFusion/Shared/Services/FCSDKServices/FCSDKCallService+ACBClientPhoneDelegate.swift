@@ -35,16 +35,16 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         }
     }
     
-    func createCallObject(_ contact: ContactModel, call: ACBClientCall?) async {
+    func createCallObject(_ contact: ContactModel, call: ACBClientCall) async {
         guard let uc = self.acbuc else { return }
         let fcsdkCall = FCSDKCall(
             id: UUID(),
-            handle:  call?.remoteAddress ?? "",
-            hasVideo: self.currentCall?.hasVideo ?? true,
+            handle:  call.remoteAddress ?? "",
+            hasVideo: call.hasRemoteVideo,
             previewView: nil,
             remoteView: nil,
             acbuc: uc,
-            call: call!,
+            call: call,
             activeCall: false,
             outbound: false,
             missed: false,
@@ -66,7 +66,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         if call?.activeCall == nil {
             await MainActor.run {
                 fcsdkCall.call?.delegate = self
-                self.currentCall?.call?.delegate = fcsdkCall.call?.delegate
+                self.fcsdkCall?.call?.delegate = fcsdkCall.call?.delegate
             }
             
             fcsdkCall.missed = false
@@ -74,11 +74,11 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             fcsdkCall.rejected = false
             fcsdkCall.activeCall = true
             await self.addCall(fcsdkCall: fcsdkCall)
-            self.currentCall = fcsdkCall
-            guard let currentCall = self.currentCall else { throw OurErrors.nilFCSDKCall }
-            await self.appDelegate?.displayIncomingCall(fcsdkCall: currentCall)
+            self.fcsdkCall = fcsdkCall
+            guard let fcsdkCall = self.fcsdkCall else { throw OurErrors.nilFCSDKCall }
+            await self.appDelegate?.displayIncomingCall(fcsdkCall: fcsdkCall)
         } else if call?.activeCall == true {
-            fcsdkCall.call?.end(fcsdkCall.call)
+            fcsdkCall.call?.end()
             LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
             await MainActor.run {
                 fcsdkCall.missed = true
