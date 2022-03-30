@@ -40,7 +40,7 @@ struct CBAFusionApp: App {
     func requestMicrophoneAndCameraPermissionFromAppSettings() async {
         let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
-        ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
+        await ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
     }
     
     var body: some Scene {

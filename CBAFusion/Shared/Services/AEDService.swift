@@ -130,10 +130,10 @@ class AEDService : NSObject, ObservableObject, ACBTopicDelegate {
         }
     }
     
-    func topicDidDelete(_ topic: ACBTopic?) {
+    func topicDidDelete(_ topic: ACBTopic) {
         Task {
             await MainActor.run {
-                let msg: String = "Topic '\(String(describing: topic?.name))' has been deleted."
+                let msg: String = "Topic '\(String(describing: topic.name))' has been deleted."
                 self.consoleMessage = msg
                 topicList.removeAll(where: { $0 == topic }) 
             }

@@ -131,7 +131,9 @@ struct SettingsSheet: View {
                         }
                         Divider()
                         Spacer()
-                        if self.fcsdkCallService.fcsdkCall?.call == nil {
+                        if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
+                           self.fcsdkCallService.fcsdkCall?.activeCall == nil
+                        {
                         Button("Clear Call History", action: {
                             Task {
                                 await self.fcsdkCallService.contactService?.deleteCalls()
@@ -146,7 +148,9 @@ struct SettingsSheet: View {
                                 Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
                             }
                             Spacer()
-                            if self.fcsdkCallService.fcsdkCall?.call == nil {
+                            if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
+                               self.fcsdkCallService.fcsdkCall?.activeCall == nil
+                            {
                                 Button {
                                     Task {
                                         await self.logout()

@@ -132,12 +132,12 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
     /// Create the Session
     func createSession(sessionid: String, networkStatus: Bool) async {
         self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
-        self.acbuc?.setNetworkReachable(networkStatus)
+        await self.acbuc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
         self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         self.acbuc?.useCookies = useCookies
-        self.acbuc?.startSession()
+        await self.acbuc?.startSession()
         await MainActor.run {
         self.connectedToSocket = self.acbuc?.connection != nil
         self.sessionExists = true
@@ -184,7 +184,7 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
     
     /// Stop the Session
     func stopSession() async {
-        self.acbuc?.stopSession()
+        await self.acbuc?.stopSession()
     }
 }
 
@@ -207,10 +207,10 @@ extension AuthenticationService: ACBUCDelegate {
         self.logger.info("Did lose connection \(String(describing: uc))")
     }
     
-    func uc(_ uc: ACBUC, willRetryConnectionNumber attemptNumber: UInt, in delay: TimeInterval) {
+    func uc(_ uc: ACBUC, willRetryConnectionNumber attemptNumber: Int, in delay: TimeInterval) {
         self.logger.info("We are trying to reconnect to the network \(uc), \(attemptNumber), \(delay)")
         Task {
-            self.acbuc?.startSession()
+            await self.acbuc?.startSession()
             await MainActor.run {
             self.sessionExists = true
             }

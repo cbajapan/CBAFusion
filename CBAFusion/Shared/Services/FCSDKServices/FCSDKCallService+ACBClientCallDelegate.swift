@@ -127,10 +127,8 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    func call(_ call: ACBClientCall, didReceiveSSRCsForAudio audioSSRCs: [AnyHashable]?, andVideo videoSSRCs: [AnyHashable]?) {
-        guard let audio = audioSSRCs else {return}
-        guard let video = videoSSRCs else {return}
-        self.logger.info("Received SSRC information for AUDIO \(audio) and VIDEO \(video)")
+    func call(_ call: ACBClientCall, didReceiveSSRCsForAudio audioSSRCs: [String], andVideo videoSSRCs: [String]) {
+        self.logger.info("Received SSRC information for AUDIO \(audioSSRCs) and VIDEO \(videoSSRCs)")
     }
     
     internal func call(_ call: ACBClientCall, didReportInboundQualityChange inboundQuality: Int) {

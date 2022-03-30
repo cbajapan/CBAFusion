@@ -10,6 +10,7 @@ import Network
 import AVFoundation
 import Logging
 
+
 class NetworkMonitor: ObservableObject {
     
     let monitor: NWPathMonitor

@@ -50,7 +50,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.acbuc?.phone.delegate = self
     }
     
-    
+
     func initializeFCSDKCall() async throws -> ACBClientCall? {
         
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
@@ -121,7 +121,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func endFCSDKCall(_ fcsdkCall: FCSDKCall) async throws {
-        fcsdkCall.call?.end()
+        await fcsdkCall.call?.end()
         await self.removeCall(fcsdkCall: fcsdkCall)
         self.hasEnded = true
     }

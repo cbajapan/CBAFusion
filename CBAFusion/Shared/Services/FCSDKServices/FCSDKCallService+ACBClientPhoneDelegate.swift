@@ -14,7 +14,8 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     
     
     //Receive calls with FCSDK
-    func phone(_ phone: ACBClientPhone, didReceiveCall call: ACBClientCall) {
+    func phone(_ phone: ACBClientPhone, didReceive call: ACBClientCall) {
+
         Task {
             await MainActor.run {
                 self.isOutgoing = false
@@ -78,7 +79,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             guard let fcsdkCall = self.fcsdkCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: fcsdkCall)
         } else if call?.activeCall == true {
-            fcsdkCall.call?.end()
+            await fcsdkCall.call?.end()
             LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
             await MainActor.run {
                 fcsdkCall.missed = true
@@ -90,8 +91,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         }
     }
     
-    func phone(_ phone: ACBClientPhone?, didChange settings: ACBVideoCaptureSetting?, forCamera camera: AVCaptureDevice.Position) {
+    func phone(_ phone: ACBClientPhone, didChange settings: ACBVideoCaptureSetting?, forCamera camera: AVCaptureDevice.Position) {
         self.logger.info("didChangeCaptureSetting - resolution=\(String(describing: settings?.resolution.rawValue)) frame rate=\(String(describing: settings?.frameRate)) camera=\(camera.rawValue)")
     }
-    
 }
