@@ -115,7 +115,7 @@ struct Console: View {
     @MainActor
     func publishData() async {
         if self.key.count > 0 && self.value.count > 0 {
-            self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
+            await self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
             self.key = ""
             self.value = ""
         } else {
@@ -127,7 +127,7 @@ struct Console: View {
     @MainActor
     func deleteData() async {
         if self.key.count > 0 {
-            self.aedService.currentTopic?.deleteData(withKey: self.key)
+            await self.aedService.currentTopic?.deleteData(withKey: self.key)
             self.key = ""
             self.value = ""
         } else {
@@ -139,7 +139,7 @@ struct Console: View {
     @MainActor
     func sendMessage() async {
         if self.messageText.count > 0 {
-            self.aedService.currentTopic?.sendAedMessage(self.messageText)
+            await self.aedService.currentTopic?.sendAedMessage(self.messageText)
             self.messageText = ""
         } else {
             self.authenticationService.showErrorAlert = true

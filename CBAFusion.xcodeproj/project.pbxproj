@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0904ABFC27BCA9C2003DDEB5 /* FCSDK-iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 0904ABFB27BCA9C2003DDEB5 /* FCSDK-iOS */; };
 		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
 		0910D8FA279E450900A3E288 /* Simulator.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0910D8F9279E450900A3E288 /* Simulator.mp4 */; };
+		091CF4D827E8427500B1CAC9 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 091CF4D727E8427500B1CAC9 /* FluentSQLiteDriver */; };
+		091CF4DB27E842A500B1CAC9 /* NIOTransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = 091CF4DA27E842A500B1CAC9 /* NIOTransportServices */; };
 		0921A5522761791E0069F324 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5042761791E0069F324 /* Assets.xcassets */; };
 		0921A5552761791E0069F324 /* ContactModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5092761791E0069F324 /* ContactModel.swift */; };
 		0921A5562761791E0069F324 /* LoginResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A50B2761791E0069F324 /* LoginResponse.swift */; };
@@ -63,8 +64,6 @@
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
 		094C606D278BB50600617691 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C606C278BB50600617691 /* DateFormatter.swift */; };
 		09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09681B432791508800DB6A69 /* FCSDKCall.swift */; };
-		097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 097BBFD2277593670024EC48 /* FluentSQLiteDriver */; settings = {ATTRIBUTES = (Required, ); }; };
-		0992A79F27AFBB0300F8C9F9 /* NIOTransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = 0992A79E27AFBB0300F8C9F9 /* NIOTransportServices */; };
 		09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886B27850AC7007FE276 /* LocalNotification.swift */; };
 		09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886D27851BBB007FE276 /* ContactCard.swift */; };
 		09BAD46227A0FE3D008F034A /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095A1EAC2782968E002D5805 /* Intents.framework */; };
@@ -223,9 +222,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0992A79F27AFBB0300F8C9F9 /* NIOTransportServices in Frameworks */,
-				097BBFD3277593670024EC48 /* FluentSQLiteDriver in Frameworks */,
-				0904ABFC27BCA9C2003DDEB5 /* FCSDK-iOS in Frameworks */,
+				091CF4DB27E842A500B1CAC9 /* NIOTransportServices in Frameworks */,
+				091CF4D827E8427500B1CAC9 /* FluentSQLiteDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -633,9 +631,8 @@
 			);
 			name = CBAFusion;
 			packageProductDependencies = (
-				097BBFD2277593670024EC48 /* FluentSQLiteDriver */,
-				0992A79E27AFBB0300F8C9F9 /* NIOTransportServices */,
-				0904ABFB27BCA9C2003DDEB5 /* FCSDK-iOS */,
+				091CF4D727E8427500B1CAC9 /* FluentSQLiteDriver */,
+				091CF4DA27E842A500B1CAC9 /* NIOTransportServices */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
@@ -694,9 +691,8 @@
 			);
 			mainGroup = 094EE2F826DCE211008C1637;
 			packageReferences = (
-				097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
-				0992A79D27AFBB0300F8C9F9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */,
-				0904ABFA27BCA9C2003DDEB5 /* XCRemoteSwiftPackageReference "fcsdk-ios" */,
+				091CF4D627E8427500B1CAC9 /* XCRemoteSwiftPackageReference "fluent-sqlite" */,
+				091CF4D927E842A500B1CAC9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */,
 			);
 			productRefGroup = 094EE30226DCE211008C1637 /* Products */;
 			projectDirPath = "";
@@ -1095,7 +1091,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -1119,7 +1115,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1140,7 +1136,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -1164,7 +1160,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1182,7 +1178,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -1194,7 +1190,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1211,7 +1207,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -1223,7 +1219,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1284,23 +1280,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		0904ABFA27BCA9C2003DDEB5 /* XCRemoteSwiftPackageReference "fcsdk-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/cbajapan/fcsdk-ios";
-			requirement = {
-				kind = exactVersion;
-				version = "4.0.0-rc.1.5";
-			};
-		};
-		097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
+		091CF4D627E8427500B1CAC9 /* XCRemoteSwiftPackageReference "fluent-sqlite" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/vapor/fluent-sqlite";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				branch = main;
+				kind = branch;
 			};
 		};
-		0992A79D27AFBB0300F8C9F9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */ = {
+		091CF4D927E842A500B1CAC9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio-transport-services";
 			requirement = {
@@ -1311,19 +1299,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		0904ABFB27BCA9C2003DDEB5 /* FCSDK-iOS */ = {
+		091CF4D727E8427500B1CAC9 /* FluentSQLiteDriver */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 0904ABFA27BCA9C2003DDEB5 /* XCRemoteSwiftPackageReference "fcsdk-ios" */;
-			productName = "FCSDK-iOS";
-		};
-		097BBFD2277593670024EC48 /* FluentSQLiteDriver */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 097BBFD1277593670024EC48 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
+			package = 091CF4D627E8427500B1CAC9 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
 		};
-		0992A79E27AFBB0300F8C9F9 /* NIOTransportServices */ = {
+		091CF4DA27E842A500B1CAC9 /* NIOTransportServices */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 0992A79D27AFBB0300F8C9F9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */;
+			package = 091CF4D927E842A500B1CAC9 /* XCRemoteSwiftPackageReference "swift-nio-transport-services" */;
 			productName = NIOTransportServices;
 		};
 /* End XCSwiftPackageProductDependency section */

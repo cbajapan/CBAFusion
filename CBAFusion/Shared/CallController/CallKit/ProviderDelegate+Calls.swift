@@ -55,7 +55,7 @@ extension ProviderDelegate {
     }
     
     
-    //    Answer Call after we get notified that we have an incoming call
+    // Answer Call after we get notified that we have an incoming call
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
@@ -100,7 +100,17 @@ extension ProviderDelegate {
         }
     }
     
+    //Hold Call
+    //TODO: - We want to keep track of which call we have and set it to an on hold state. Let's make it happen
+    func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
+        Task {
+            print("Action", action)
+            print("Provider", provider)
+        }
+    }
+    
     //End Call
+    //TODO: - When we end the call we want to check if we have any calls on hold if it is on hold then resume the call. We also want to make sure the correct call is ended while handling multiple calls.
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         Task {
             // if we are on a call end otherwise also end
@@ -112,13 +122,15 @@ extension ProviderDelegate {
                 }
                 do {
                     try await self.fcsdkCallService.endFCSDKCall(call)
+                    action.fulfill()
                 } catch {
                     self.logger.error("\(error)")
+                    action.fail()
                 }
             } else {
                 self.logger.info("No Call To End")
+                action.fail()
             }
-            action.fulfill()
         }
     }
     //DTMF

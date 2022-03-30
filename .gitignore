@@ -128,6 +128,6 @@ iOSInjectionProject/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 
-fcsdk-ios
+swift-fcsdk-ios
 FCSDKiOS.xcframework
 *.xcframework

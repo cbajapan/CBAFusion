@@ -146,7 +146,7 @@ struct AED: View{
             }
             
             if topic.connected {
-                topic.disconnect(withDeleteFlag: delete)
+                await topic.disconnect(withDeleteFlag: delete)
                 self.aedService.topicList.removeAll(where: { $0 == topic })
                 await MainActor.run {
                     let msg = "Topic \(topic.name) disconnected."
@@ -186,7 +186,7 @@ struct AED: View{
     @MainActor
     func publishData() async {
         if !self.key.isEmpty && !self.value.isEmpty {
-            self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
+            await self.aedService.currentTopic?.submitData(withKey: self.key, value: self.value)
             self.key = ""
             self.value = ""
         } else {
@@ -198,7 +198,7 @@ struct AED: View{
     @MainActor
     func deleteData() async {
         if !self.key.isEmpty {
-            self.aedService.currentTopic?.deleteData(withKey: self.key)
+            await self.aedService.currentTopic?.deleteData(withKey: self.key)
             self.key = ""
             self.value = ""
         } else {
@@ -210,7 +210,7 @@ struct AED: View{
     @MainActor
     func sendMessage() async {
         if !self.messageText.isEmpty{
-            self.aedService.currentTopic?.sendAedMessage(self.messageText)
+            await self.aedService.currentTopic?.sendAedMessage(self.messageText)
             self.messageText = ""
         } else {
             self.authenticationService.showErrorAlert = true
