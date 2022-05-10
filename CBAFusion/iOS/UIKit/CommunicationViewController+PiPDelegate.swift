@@ -52,7 +52,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
                 let source = AVPictureInPictureController.ContentSource(
                     activeVideoCallSourceView: communicationView.remoteView,
                     contentViewController: pipVideoCallViewController)
-                
+
                 let pipController = AVPictureInPictureController(contentSource: source)
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self

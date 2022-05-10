@@ -114,9 +114,9 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.acbuc else { return }
         //We Pass the view up to the SDK
         uc.phone.previewView = view
-        
+       
         fcsdkCall.enableLocalVideo(true)
-        
+        fcsdkCall.enableLocalAudio(true)
         fcsdkCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
     }
     
@@ -142,15 +142,21 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func startAudioSession() {
-        self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
-        self.audioDeviceManager?.start()
+        Task {
+            await MainActor.run {
+            self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
+            self.audioDeviceManager?.start()
+            }
+        }
     }
     
     func stopAudioSession() {
         self.audioDeviceManager?.stop()
         self.audioDeviceManager = nil
     }
+    
     var audioPlayer: AVAudioPlayer?
+    @MainActor
     func startRing() {
         self.startAudioSession()
         let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")

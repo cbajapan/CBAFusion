@@ -80,7 +80,6 @@ class CommunicationViewController: UIViewController {
         self.gestures()
     }
     
-    
     func initiateCall() async {
         
         do {
@@ -225,14 +224,15 @@ class CommunicationViewController: UIViewController {
     }
     
     @MainActor
-    func updateRemoteViewForBuffer(view: UIView) async {
+    func updateRemoteViewForBuffer(remote: UIView, local: UIView) async {
         let communicationView = self.view as! CommunicationView
         communicationView.remoteView.removeFromSuperview()
         communicationView.remoteView = view
         //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
         ///This method is used to set the remoteView with a BufferView
-        guard let view = await self.fcsdkCallService.fcsdkCall?.call?.remoteBufferView() else { return }
-        communicationView.remoteView = view
+        guard let remote = await self.fcsdkCallService.fcsdkCall?.call?.remoteBufferView() else { return }
+        communicationView.remoteView = remote
+        communicationView.previewView = local
     }
     
     /// Configurations for Capture

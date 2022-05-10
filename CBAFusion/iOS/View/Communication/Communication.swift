@@ -58,10 +58,7 @@ struct Communication: View {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
     
-    @AppStorage("RateOption") var rate = ""
-    @AppStorage("ResolutionOption") var res = ""
-    @AppStorage("AudioOption") var audio = ""
-    
+
     
     var body: some View {
         GeometryReader { geometry in
@@ -92,7 +89,6 @@ struct Communication: View {
                 )
                     .ignoresSafeArea(.all)
                 
-                
                 VStack(alignment: .trailing) {
                     HStack(alignment: .top) {
                         VStack {
@@ -106,28 +102,28 @@ struct Communication: View {
                                     .frame(width: 25, height: 25)
                                     .padding()
                             }
-                            //#if !targetEnvironment(simulator)
-                            //                            if #available(iOS 15.0.0, *) {
-                            //                                if UIDevice.current.userInterfaceIdiom == .phone {
-                            //                                    Button {
-                            //                                        self.pip.toggle()
-                            //                                        self.pipClickedID = UUID()
-                            //                                    } label: {
-                            //                                        ZStack {
-                            //                                            Circle()
-                            //                                                .fill(self.pip ? Color.white : Color.gray)
-                            //                                                .frame(width: 30, height: 30)
-                            //                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                            //                                                .resizable()
-                            //                                                .multilineTextAlignment(.trailing)
-                            //                                                .foregroundColor(Color.black)
-                            //                                                .frame(width: 20, height: 20)
-                            //                                                .padding()
-                            //                                        }
-                            //                                    }
-                            //                                }
-                            //                            }
-                            //#endif
+                            #if !targetEnvironment(simulator)
+                                                        if #available(iOS 15.0.0, *) {
+                                                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                                                Button {
+                                                                    self.pip.toggle()
+                                                                    self.pipClickedID = UUID()
+                                                                } label: {
+                                                                    ZStack {
+                                                                        Circle()
+                                                                            .fill(self.pip ? Color.white : Color.gray)
+                                                                            .frame(width: 30, height: 30)
+                                                                        Image(systemName:self.pip ? "pip.exit" : "pip.enter")
+                                                                            .resizable()
+                                                                            .multilineTextAlignment(.trailing)
+                                                                            .foregroundColor(Color.black)
+                                                                            .frame(width: 20, height: 20)
+                                                                            .padding()
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                            #endif
                         }
                         Spacer()
                         ZStack {
@@ -293,15 +289,11 @@ struct Communication: View {
         .frame(alignment: .trailing)
         .navigationBarHidden(true)
         .onAppear {
-            self.fcsdkCallService.startAudioSession()
             self.hasStartedConnectingID = UUID()
             self.ringingID = UUID()
             self.hasConnectedID = UUID()
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
-            self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.rate) ?? .fro20)
-            self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.res) ?? .auto)
-            self.fcsdkCallService.selectAudio(audio: AudioOptions(rawValue: self.audio) ?? .speaker)
         }
         .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
             if newValue {

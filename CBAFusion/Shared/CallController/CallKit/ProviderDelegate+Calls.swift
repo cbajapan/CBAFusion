@@ -14,6 +14,7 @@ import SwiftUI
 
 extension ProviderDelegate {
     
+    @MainActor
     func reportIncomingCall(fcsdkCall: FCSDKCall) async {
         await MainActor.run {
             if self.authenticationService.showSettingsSheet {
@@ -56,14 +57,17 @@ extension ProviderDelegate {
     
     
     // Answer Call after we get notified that we have an incoming call
+    @MainActor
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
+            try await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
+            self.fcsdkCallService.startAudioSession()
             await self.fcsdkCallService.answerFCSDKCall()
             action.fulfill()
+            print("Answer Action Fullfilled")
         }
     }
-    
     
     //Start Call
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
@@ -145,7 +149,8 @@ extension ProviderDelegate {
     func providerDidBegin(_ provider: CXProvider) {
         self.logger.info("Provider began")
     }
-    
+
+    @MainActor
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         self.logger.info("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
         self.logger.info("\(audioSession.sampleRate)")
@@ -155,7 +160,6 @@ extension ProviderDelegate {
         self.logger.info("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
     }
     
-    
     // Here we can reset the provider to remove any stale callkit calls
     func providerDidReset(_ provider: CXProvider) {
         self.logger.info("Provider did reset")
@@ -163,3 +167,4 @@ extension ProviderDelegate {
     
     
 }
+

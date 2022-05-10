@@ -62,12 +62,20 @@ class CallKitManager: NSObject, ObservableObject {
     }
     
     
-    
+    ///CallKit Transaction Request Error Codes
+    ///case unknown = 0
+    ///case unentitled = 1
+    ///case unknownCallProvider = 2
+    ///case emptyTransaction = 3
+    ///case unknownCallUUID = 4
+    ///case callUUIDAlreadyExists = 5
+    ///case invalidActions = 6
+    ///case maximunCallGroupsReached = 7
     private func requestTransaction(_ transaction: CXTransaction) async {
         do {
             try await callController.request(transaction)
         } catch {
-            self.logger.error("Error requesting transaction: \(error)")
+            self.logger.error("Error requesting transaction: \(error.localizedDescription)")
         }
     }
 }

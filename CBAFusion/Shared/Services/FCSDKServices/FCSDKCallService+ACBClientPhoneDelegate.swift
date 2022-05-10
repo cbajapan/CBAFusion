@@ -15,7 +15,6 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     
     //Receive calls with FCSDK
     func phone(_ phone: ACBClientPhone, didReceive call: ACBClientCall) {
-
         Task {
             await MainActor.run {
                 self.isOutgoing = false

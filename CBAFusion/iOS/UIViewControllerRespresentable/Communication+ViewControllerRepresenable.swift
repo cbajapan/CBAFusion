@@ -42,6 +42,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var contactService: ContactService
     var logger: Logger?
     
+    @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
+    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
+    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
+    
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
         
         let communicationViewController = CommunicationViewController(
@@ -99,12 +103,17 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
 #if !targetEnvironment(simulator)
                     if #available(iOS 15.0.0, *) {
                         guard let remoteView = self.fcsdkCall?.remoteView else { return }
-                        await uiViewController.updateRemoteViewForBuffer(view: remoteView)
+                        guard let previewView = self.fcsdkCall?.previewView else { return }
+                        await uiViewController.updateRemoteViewForBuffer(remote: remoteView, local: previewView)
                     }
 #endif
                     await uiViewController.currentState(state: .hasConnected)
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
+                    } else {
+                        self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
+                        self.fcsdkCallService.selectResolution(res: self.selectedResolution)
+                        self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
                     }
                 }
             }
