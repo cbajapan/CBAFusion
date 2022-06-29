@@ -6,15 +6,30 @@
 trigger:
 - main
 
+variables:
+- group: liveassist
+
 pool:
-  vmImage: 'macos-latest'
+  vmImage: 'macOS-12'
+
+name: $(Date:yyyyMMdd)$(Rev:.r)_$(Build.SourceBranchName)
 
 steps:
+
+- task: InstallAppleCertificate@2
+  inputs:
+    certSecureFile: 'apple-Signing-Certificates.p12'
+    certPwd: '$(P12password)'
+    keychain: 'temp'
+
 - task: Xcode@5
   inputs:
     actions: 'build'
-    scheme: ''
-    sdk: 'iphoneos'
     configuration: 'Release'
-    xcWorkspacePath: '**/*.xcodeproj/project.xcworkspace'
-    xcodeVersion: 'default' # Options: 8, 9, 10, 11, 12, default, specifyPath
+    sdk: 'iphoneos'
+    xcWorkspacePath: '**/CBAFusion.xcodeproj'
+    packageApp: true
+    signingOption: 'auto'
+    teamId: '6SMQB2LH3S'
+    publishJUnitResults: true
+    testRunTitle: 'CBAFusionSample'
