@@ -1,0 +1,40 @@
+# Xcode
+# Build, test, and archive an Xcode workspace on macOS.
+# Add steps that install certificates, test, sign, and distribute an app, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/xcode
+
+trigger:
+- main
+
+variables:
+- group: liveassist
+
+pool:
+  vmImage: 'macOS-12'
+
+name: $(Date:yyyyMMdd)$(Rev:.r)_$(Build.SourceBranchName)
+
+steps:
+
+- task: InstallAppleCertificate@2
+  inputs:
+    certSecureFile: 'apple-Signing-Certificates.p12'
+    certPwd: '$(P12password)'
+    keychain: 'temp'
+
+- task: InstallAppleProvisioningProfile@1
+  inputs:
+    provisioningProfileLocation: 'secureFiles'
+    provProfileSecureFile: 'Azure_DevOps_CBAFusion.mobileprovision'
+
+- task: Xcode@5
+  inputs:
+    actions: 'build'
+    configuration: 'Release'
+    sdk: 'iphoneos'
+    xcWorkspacePath: '**/CBAFusion.xcodeproj'
+    packageApp: true
+    signingOption: 'auto'
+    teamId: '6SMQB2LH3S'
+    publishJUnitResults: true
+    testRunTitle: 'CBAFusionSample'
