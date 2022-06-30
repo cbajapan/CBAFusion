@@ -22,6 +22,11 @@ steps:
     certPwd: '$(P12password)'
     keychain: 'temp'
 
+- task: InstallAppleProvisioningProfile@1
+  inputs:
+    provisioningProfileLocation: 'secureFiles'
+    provProfileSecureFile: 'Azure_DevOps_CBAFusion.mobileprovision'
+
 - task: Xcode@5
   inputs:
     actions: 'build'
