@@ -1,3 +1,10 @@
+### Unwanted repo directories and files
+azure-pipelines.yml
+CBAFusion.xcodeproj
+CBAFusionTests
+CBAFusionUITests
+IntentsExtension
+
 ### macOS ###
 # General
 .DS_Store
