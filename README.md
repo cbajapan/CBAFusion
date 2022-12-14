@@ -1,6 +1,6 @@
 # CBAFusion
 ![CBALogo](cbaLogo.png)
-## This example is a release candidate. 
+## This is a SwiftUI example project for FCSDKiOS 
 
 
 An important note: When your device is on a private focus such as **Do Not Disturb** you must add the app to the allowed apps or turn of the Private Focus to receive Calls.
@@ -31,5 +31,4 @@ Please make sure you reset your Swift Package Cache via ``File -> Packages -> Re
 
 
 **Bugs**
-- *Intermittent audio issue while receiving calls*
-- *If Do Not Disturb is on calls and then you turn it off an then try to make another call they fail. The app must be removed from memory and then reopened.*
+- *Minor bugs saving contact to the local database
