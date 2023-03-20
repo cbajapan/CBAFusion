@@ -17,7 +17,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.hasEnded = true
     }
     
-    func call(_ call: ACBClientCall, didChange status: ACBClientCallStatus) {
+    func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
         switch status {
         case .setup:
             break
@@ -34,6 +34,9 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .inCall:
             Task {
                 await self.inCall()
+                await MainActor.run {
+                    isStreaming = true
+                }
             }
         case .timedOut:
             Task {
@@ -85,47 +88,41 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.errorMessage = message
     }
     
-    func call(_ call: ACBClientCall, didReceiveSessionInterruption message: String) {
-        if message == "Session interrupted" {
-            if  self.fcsdkCall?.call != nil {
-                if  self.fcsdkCall?.call?.status == .inCall {
-                    if !self.isOnHold {
-                        call.hold()
-                        self.isOnHold = true
+//   @FCSDKTransportActor
+    func didReceiveSessionInterruption(_ message: String, call: ACBClientCall) async {
+            if message == "Session interrupted" {
+                if  self.fcsdkCall?.call != nil {
+                    if self.fcsdkCall?.call?.status == .inCall {
+                        if !self.isOnHold {
+                            call.hold()
+                            self.isOnHold = true
+                        }
                     }
                 }
             }
         }
-    }
     
-    func call(_ call: ACBClientCall, didReceiveCallFailureWithError error: Error) {
-        Task {
+    func didReceiveCallFailure(with error: Error, call: ACBClientCall) async {
             await MainActor.run {
                 self.sendErrorMessage = true
                 self.errorMessage = error.localizedDescription
             }
         }
-    }
     
     
-    
-    func call(_ call: ACBClientCall, didReceiveDialFailureWithError error: Error) {
-        Task {
+    func didReceiveDialFailure(with error: Error, call: ACBClientCall) async {
             await MainActor.run {
                 self.sendErrorMessage = true
                 self.errorMessage = error.localizedDescription
             }
         }
-    }
     
-    func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String) {
-        Task {
+    func didReceiveCallRecordingPermissionFailure(_ message: String, call: ACBClientCall?) async {
             await MainActor.run {
                 self.sendErrorMessage = true
                 self.errorMessage = message
             }
         }
-    }
     
     func call(_ call: ACBClientCall, didReceiveSSRCsForAudio audioSSRCs: [String], andVideo videoSSRCs: [String]) {
         self.logger.info("Received SSRC information for AUDIO \(audioSSRCs) and VIDEO \(videoSSRCs)")
@@ -135,7 +132,12 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.logger.info("Call Quality: \(inboundQuality)")
     }
     
-    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall) {
+//   @FCSDKTransportActor
+    func didReceiveMediaChangeRequest(_ call: ACBClientCall) async {
+            let audio = call.hasRemoteAudio
+            let video = call.hasRemoteVideo
+            self.logger.info("HAS AUDIO \(audio)")
+            self.logger.info("HAS VIDEO \(video)")
     }
     
     

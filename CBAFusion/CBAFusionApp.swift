@@ -77,7 +77,7 @@ struct CBAFusionApp: App {
                 .onChange(of: scenePhase) { (phase) in
                     switch phase {
                     case .active:
-                        self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+//                        self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                         Task {
                             await self.requestMicrophoneAndCameraPermissionFromAppSettings()
                             if self.authenticationService.acbuc?.connection == false {
@@ -98,7 +98,8 @@ struct CBAFusionApp: App {
                             
                         }
                     case .background:
-                        self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                        break
+//                        self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                     case .inactive:
                         self.logger.info("ScenePhase: inactive")
                     @unknown default:
@@ -110,7 +111,8 @@ struct CBAFusionApp: App {
     func reAuthFlow() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-        self.fcsdkCallService.setPhoneDelegate()
+        guard let uc = self.fcsdkCallService.acbuc else { return }
+        await self.fcsdkCallService.setPhoneDelegate(uc)
     }
     
     func reAuthFlowWithCallIntent() async {

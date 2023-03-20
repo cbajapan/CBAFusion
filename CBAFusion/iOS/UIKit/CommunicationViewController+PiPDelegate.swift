@@ -36,6 +36,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
 //
 //    }
 //
+    @available(iOS 15.0, *)
     func showPip(show: Bool) async {
         if show {
             let suppported = AVPictureInPictureController.isPictureInPictureSupported()
@@ -68,12 +69,12 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate {
     
     
     func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//        print("Source", pictureInPictureController.contentSource)
+        print("Source", pictureInPictureController.contentSource as Any)
     }
     
     
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//        print("Source", pictureInPictureController.contentSource)
+        print("Source", pictureInPictureController.contentSource as Any)
     }
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         print("failedToStartPictureInPictureWithError", error)

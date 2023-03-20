@@ -10,7 +10,6 @@ import Combine
 import UIKit
 import Logging
 
-
 class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     
     
@@ -31,7 +30,7 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         self.logger.info("Reclaiming memory in NetworkManager")
     }
     
-    @available(iOS 15.0.0, *)
+//    @available(iOS 14.0.0, *)
     func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
         urlString: String,
@@ -41,6 +40,12 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         headerValue: String? = ""
     ) async throws -> (Data, URLResponse) {
         
+        //Strip port for ATS when pointing at the reverse proxy
+        if urlString.contains(":8443") {
+            var urlString = urlString
+            let stripped = urlString.components(separatedBy: ":8443")
+            urlString = stripped[0] + stripped[1]
+        }
         guard let url = URL(string: urlString) else { throw OurErrors.nilURL }
         var request = URLRequest(url: url)
         request.httpMethod = httpMethod
@@ -55,17 +60,48 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         for cookie in allCookies ?? [] {
             HTTPCookieStorage.shared.deleteCookie(cookie)
         }
+        
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let (data, response) = try await session.data(for: request, delegate: self)
+        var setData: Data?
+        var setResponse: URLResponse?
+        if #available(iOS 15.0, *) {
+            let (data, response) = try await session.data(for: request, delegate: self)
+            setData = data
+            setResponse = response
+        } else {
+            // Fallback on earlier versions
+            let responseObject: ResponseObject = try await withCheckedThrowingContinuation { continuation in
+                session.dataTask(with: request) { data, response, error in
+                    if data != nil && response != nil {
+                        guard let data = data else { return }
+                        guard let response = response as? HTTPURLResponse else {
+                            return
+                        }
+                        guard response.statusCode == 200 else {
+                            return
+                        }
+                        let responseObject = ResponseObject(data: data, response: response)
+                        continuation.resume(returning: responseObject)
+                    } else {
+                        continuation.resume(throwing: error!)
+                    }
+                }.resume()
+                
+            }
+            setResponse = responseObject.response
+            setData = responseObject.data
+        }
         session.finishTasksAndInvalidate()
+        guard let setData = setData else { throw NetworkErrors.requestFailed("invalid data") }
+        guard let setResponse = setResponse else { throw NetworkErrors.requestFailed("invalid response") }
         
         //If we have some json issue self.logger.info out the string to see the problem
 #if DEBUG
-        data.printJSON()
+        setData.printJSON()
 #endif
-        return (data, response)
+        return (setData, setResponse)
     }
-    @available(iOS 15.0.0, *)
+//    @available(iOS 14.0.0, *)
     func asyncNetworkWrapper(
         urlString: String,
         httpMethod: String,
@@ -90,19 +126,44 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         }
         
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let (_, response) = try await session.data(for: request, delegate: self)
+        var setResponse: URLResponse?
+        if #available(iOS 15.0, *) {
+            let (_, response) = try await session.data(for: request, delegate: self)
+            setResponse = response
+        } else {
+            // Fallback on earlier versions
+            let responseObject: ResponseObject = try await withCheckedThrowingContinuation { continuation in
+                session.dataTask(with: request) { data, response, error in
+                    if data != nil && response != nil {
+                        guard let data = data else { return }
+                        guard let response = response as? HTTPURLResponse else {
+                            return
+                        }
+                        guard response.statusCode == 200 else {
+                            return
+                        }
+                        let responseObject = ResponseObject(data: data, response: response)
+                        continuation.resume(returning: responseObject)
+                    } else {
+                        continuation.resume(throwing: error!)
+                    }
+                }.resume()
+                
+            }
+            setResponse = responseObject.response
+        }
         session.finishTasksAndInvalidate()
         
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkErrors.requestFailed("unvalid response")
+        guard let httpResponse = setResponse as? HTTPURLResponse else {
+            throw NetworkErrors.requestFailed("invalid response")
         }
         guard httpResponse.statusCode == 200 else {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
         }
 #if DEBUG
-        self.logger.info("Response_______ \(response)")
+        self.logger.info("Response_______ \(httpResponse)")
 #endif
-        return response
+        return httpResponse
     }
     
     
@@ -128,4 +189,9 @@ extension Data {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - DATA Extension - ").info("\(JSONString)")
         }
     }
+}
+
+public struct ResponseObject: Sendable {
+    public let data: Data
+    public let response: HTTPURLResponse
 }

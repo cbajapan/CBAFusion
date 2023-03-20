@@ -17,11 +17,20 @@ class FCSDKCallService: NSObject, ObservableObject {
     var appDelegate: AppDelegate?
     var contactService: ContactService?
     var logger: Logger
-    weak var delegate: AuthenticationProtcol?
+    weak var delegate: AuthenticationProtocol?
+    var audioPlayer: AVAudioPlayer?
     @Published var destination: String = ""
     @Published var hasVideo: Bool = false
     @Published var isOutgoing: Bool = false
-    @Published var acbuc: ACBUC?
+    @Published var acbuc: ACBUC? {
+        didSet {
+            Task { [weak self] in
+            self?.uc = self?.acbuc
+            }
+        }
+    }
+//   @FCSDKTransportActor
+    var uc: ACBUC?
     @Published var fcsdkCall: FCSDKCall? = nil
     @Published var hasStartedConnecting: Bool = false
     @Published var isRinging: Bool = false
@@ -35,26 +44,28 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var doNotDisturb: Bool = false
     @Published var sendErrorMessage: Bool = false
     @Published var errorMessage: String = "Unknown Error"
-    @Published var audioDeviceManager: ACBAudioDeviceManager?
+    @Published var isStreaming: Bool = false
+//   @FCSDKTransportActor
+    var audioDeviceManager: ACBAudioDeviceManager?
     
     override init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - FCSDKCall Service - ")
     }
+    
     deinit {
-        appDelegate = nil
-        contactService = nil
+       print("Reclaiming FCSDKCallService")
     }
-    
-    
-    func setPhoneDelegate() {
-        self.acbuc?.phone.delegate = self
-    }
-    
+//
+//   @FCSDKTransportActor
+//    func setPhoneDelegate() {
+//        self.acbuc?.phone.delegate = self
+//    }
+//
 
     func initializeFCSDKCall() async throws -> ACBClientCall? {
         
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
-        let outboundCall = uc.phone.createCall(
+        let outboundCall = await uc.phone.createCall(
             toAddress: self.fcsdkCall?.handle ?? "",
             withAudio: AppSettings.perferredAudioDirection(),
             video: AppSettings.perferredVideoDirection(),
@@ -78,15 +89,19 @@ class FCSDKCallService: NSObject, ObservableObject {
         return self.fcsdkCall?.call
     }
     
+    @MainActor
     func startCall(previewView: UIView) async {
-        await MainActor.run {
-            self.hasStartedConnecting = true
-            self.connectingDate = Date()
-        }
+        self.hasStartedConnecting = true
+        self.connectingDate = Date()
         guard let uc = self.fcsdkCall?.acbuc else { return }
-        uc.phone.delegate = self
+        await setPhoneDelegate(uc)
         //We Pass the view up to the SDK
         uc.phone.previewView = previewView
+        }
+    
+//   @FCSDKTransportActor
+    func setPhoneDelegate(_ uc: ACBUC) async {
+        uc.phone.delegate = self
     }
     
     @MainActor
@@ -94,19 +109,17 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.presentCommunication = true
     }
     
+    @MainActor
     func answerFCSDKCall() async {
-        await MainActor.run {
             self.hasConnected = true
             self.connectDate = Date()
-        }
-        
         guard let fcsdkCall = self.fcsdkCall?.call else { return }
 #if arch(arm64) && !targetEnvironment(simulator)
         if #available(iOS 15.0.0, *) {
             self.logger.info("You are using iOS 15 you can use buffer view")
         } else {
-            fcsdkCall.remoteView = self.fcsdkCall?.remoteView
-        }
+                fcsdkCall.remoteView = self.fcsdkCall?.remoteView
+            }
 #elseif targetEnvironment(simulator)
         fcsdkCall.remoteView = self.fcsdkCall?.remoteView
 #endif
@@ -114,16 +127,20 @@ class FCSDKCallService: NSObject, ObservableObject {
         guard let uc = self.acbuc else { return }
         //We Pass the view up to the SDK
         uc.phone.previewView = view
-       
-        fcsdkCall.enableLocalVideo(true)
-        fcsdkCall.enableLocalAudio(true)
-        fcsdkCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+        await answer(fcsdkCall)
     }
     
+//   @FCSDKTransportActor
+    func answer(_ fcsdkCall: ACBClientCall) async {
+        await fcsdkCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+    }
+//   @FCSDKTransportActor
     func endFCSDKCall(_ fcsdkCall: FCSDKCall) async throws {
         await fcsdkCall.call?.end()
         await self.removeCall(fcsdkCall: fcsdkCall)
-        self.hasEnded = true
+        await MainActor.run {
+            self.hasEnded = true
+        }
     }
     
     func hasStartedConnectingDidChange(provider: CXProvider, id: UUID, date: Date) async {
@@ -141,24 +158,20 @@ class FCSDKCallService: NSObject, ObservableObject {
         return Date().timeIntervalSince(connectDate)
     }
     
+//   @FCSDKTransportActor
     func startAudioSession() {
-        Task {
-            await MainActor.run {
-            self.audioDeviceManager = self.acbuc?.phone.audioDeviceManager
-            self.audioDeviceManager?.start()
-            }
-        }
+            self.audioDeviceManager = self.uc?.phone.audioDeviceManager
+//            self.audioDeviceManager?.start()
     }
     
+//   @FCSDKTransportActor
     func stopAudioSession() {
         self.audioDeviceManager?.stop()
         self.audioDeviceManager = nil
     }
     
-    var audioPlayer: AVAudioPlayer?
     @MainActor
     func startRing() {
-        self.startAudioSession()
         let path  = Bundle.main.path(forResource: "ringring", ofType: ".wav")
         let fileURL = URL(fileURLWithPath: path!)
         self.audioPlayer = try! AVAudioPlayer(contentsOf: fileURL)
@@ -177,6 +190,8 @@ class FCSDKCallService: NSObject, ObservableObject {
 
 /// Settings
 extension FCSDKCallService {
+    
+//   @FCSDKTransportActor
     func selectAudio(audio: AudioOptions) {
         switch audio {
         case .ear:
@@ -186,6 +201,7 @@ extension FCSDKCallService {
         }
     }
     
+//   @FCSDKTransportActor
     func selectResolution(res: ResolutionOptions) {
         switch res {
         case .auto:
@@ -199,6 +215,7 @@ extension FCSDKCallService {
         }
     }
     
+//   @FCSDKTransportActor
     func selectFramerate(rate: FrameRateOptions) {
         switch rate {
         case .fro20:

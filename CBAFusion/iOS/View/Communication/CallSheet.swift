@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FCSDKiOS
 
 struct CallSheet: View {
     
@@ -58,30 +59,39 @@ struct CallSheet: View {
             }
         }
         )
-        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
-            Button("OK", role: .cancel) {
-                processNotLoggedIn()
-            }
+        .alert(isPresented: self.$notLoggedIn, content: {
+            Alert(
+                title: Text("We are sorry you don't seem to be logged in"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                    Task {
+                        await processNotLoggedIn()
+                    }
+                })
+            )
         })
+//        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
+//            Button("OK", role: .cancel) {
+//                processNotLoggedIn()
+//            }
+//        })
     }
     
     func setupCall(hasVideo: Bool) {
-        if authenticationService.acbuc != nil {
+//        if authenticationService.acbuc != nil {
             self.fcsdkCallService.isOutgoing = true
             self.fcsdkCallService.hasVideo = hasVideo
             self.showCommunication = true
             self.presentationMode.wrappedValue.dismiss()
-        } else {
-            
-        }
+//        } else {
+//            
+//        }
     }
     
-    func processNotLoggedIn() {
-        Task {
+    func processNotLoggedIn() async {
             await self.authenticationService.logout()
             KeychainItem.deleteSessionID()
             self.authenticationService.sessionID = KeychainItem.getSessionID
-        }
     }
     
 }

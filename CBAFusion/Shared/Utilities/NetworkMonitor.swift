@@ -9,12 +9,14 @@ import Foundation
 import Network
 import AVFoundation
 import Logging
-
+import Combine
 
 class NetworkMonitor: ObservableObject {
     
     let monitor: NWPathMonitor
     var logger: Logger
+    var stateCancellable: Cancellable?
+    let pathState = NWPathState()
     
     init(type: RequiredInterfaceType) {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Network Monitor - ")
@@ -30,34 +32,33 @@ class NetworkMonitor: ObservableObject {
         }
         
         
-        monitor.pathUpdateHandler = { [weak self] path in
-            guard let strongSelf = self else { return }
-            switch path.status {
-            case .satisfied:
-                guard let strongSelf = self else { return }
-                strongSelf.logger.info("We're connected!")
-            case .unsatisfied:
-                    guard let strongSelf = self else { return }
-                    strongSelf.logger.info("No connection. \(path)")
-            case .requiresConnection:
-                guard let strongSelf = self else { return }
-                strongSelf.logger.info("Connection Needed")
-            @unknown default:
-                break
-            }
-            strongSelf.logger.info("Available interface: - \(path.availableInterfaces)")
-            strongSelf.logger.info("Path is Expensive - \(path.isExpensive)")
-            strongSelf.logger.info("Gateways \(path.gateways)")
-            strongSelf.logger.info("In low data mode \(path.isConstrained)")
-            strongSelf.logger.info("Local Endpoint \(String(describing: path.localEndpoint))")
-            strongSelf.logger.info("Remote Endpoint \(String(describing: path.remoteEndpoint))")
-            strongSelf.logger.info("Supports DNS \(path.supportsDNS)")
-            strongSelf.logger.info("Supports IPv4 \(path.supportsIPv4)")
-            strongSelf.logger.info("Supports IPv6 \(path.supportsIPv6)")
+        stateCancellable = pathState.publisher(for: \.pathStatus) as? Cancellable
+        monitor.pathUpdateHandler = { [weak self] state in
+            guard let strongSelf = self else {return}
+            strongSelf.pathState.pathStatus = state.status
         }
         
+        Task {
+//        for await status in pathState.$pathStatus.values {
+//            switch status {
+//            case .satisfied:
+//                logger.trace("We're connected!")
+//            case .unsatisfied:
+//                logger.trace("No connection. \(status)")
+//            case .requiresConnection:
+//                logger.trace("Connection Needed")
+//            @unknown default:
+//                break
+//            }
+//            guard status != .unsatisfied, status != .requiresConnection else { break }
+//        }
+        }
         let queue = DispatchQueue(label: "NWPathMonitor")
         monitor.start(queue: queue)
+    }
+    
+    deinit {
+        stateCancellable = nil
     }
     
     func networkStatus() -> Bool {
@@ -74,4 +75,9 @@ enum RequiredInterfaceType {
     case wired
     case wireless
     case all
+}
+
+
+class NWPathState: NSObject, ObservableObject {
+    @Published public var pathStatus: NWPath.Status = .requiresConnection
 }

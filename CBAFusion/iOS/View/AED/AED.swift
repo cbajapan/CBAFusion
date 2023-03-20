@@ -49,6 +49,7 @@ struct AED: View{
                                     .tint(.green)
                                 }
                             }
+//                            .onDelete(perform: <#T##Optional<(Foundation.IndexSet) -> Void>#>)
                         }
                     }
                     Section(header: Text("Topic")
@@ -127,15 +128,28 @@ struct AED: View{
             .onChange(of: self.aedService.consoleMessage) { newValue in
                 self.console += "\n\(newValue)"
             }
-            .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
-                Button("OK", role: .cancel) {
-                    self.authenticationService.showErrorAlert = false
-                }
+            .alert(isPresented:  self.$authenticationService.showErrorAlert, content: {
+                Alert(
+                    title: Text("\(self.authenticationService.errorMessage)"),
+                    message: Text(""),
+                    dismissButton: .cancel(Text("Okay"), action: {
+                        self.authenticationService.showErrorAlert = false
+                    })
+                )
             })
+//            .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
+//                Button("OK", role: .cancel) {
+//                    self.authenticationService.showErrorAlert = false
+//                }
+//            })
         }
         .onTapGesture(count: 2) {
             hideKeyboard()
         }
+    }
+    
+    fileprivate func delete(at offsets: IndexSet) {
+//            guard let item = offsets.last else {return}
     }
     
     func disconnectOrDeleteTopic(_ topic: ACBTopic?, delete: Bool) async {
@@ -148,13 +162,13 @@ struct AED: View{
             if topic.connected {
                 await topic.disconnect(withDeleteFlag: delete)
                 self.aedService.topicList.removeAll(where: { $0 == topic })
+                let msg = "Topic \(topic.name) disconnected."
                 await MainActor.run {
-                    let msg = "Topic \(topic.name) disconnected."
                     self.aedService.consoleMessage = msg
                 }
             } else {
+                let msg = "Topic \(self.aedService.currentTopic?.name ?? "") already disconnected."
                 await MainActor.run {
-                    let msg = "Topic \(self.aedService.currentTopic?.name ?? "") already disconnected."
                     self.aedService.consoleMessage = msg
                 }
             }

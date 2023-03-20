@@ -11,22 +11,31 @@ import FCSDKiOS
 import AVKit
 import Logging
 
-class CommunicationViewController: UIViewController {
+
+
+class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var callKitManager: CallKitManager
+   //@FCSDKTransportActor
     var fcsdkCallService: FCSDKCallService
     var contactService: ContactService
     var authenticationService: AuthenticationService?
+   //@FCSDKTransportActor
     var acbuc: ACBUC
+   //@FCSDKTransportActor
     var fcsdkCall: FCSDKCall?
+   //@FCSDKTransportActor
     var audioAllowed: Bool = false
+   //@FCSDKTransportActor
     var videoAllowed: Bool = false
+   //@FCSDKTransportActor
     var currentCamera: AVCaptureDevice.Position!
     var destination: String
     var hasVideo: Bool
     var isOutgoing: Bool
     var logger: Logger
+    let videoDataOutput = AVCaptureVideoDataOutput()
     
     init(
         callKitManager: CallKitManager,
@@ -46,15 +55,92 @@ class CommunicationViewController: UIViewController {
         self.acbuc = acbuc
         self.isOutgoing = isOutgoing
         super.init(nibName: nil, bundle: nil)
+        
+//        if #available(iOS 16.0, *) {
+//            Task {
+//                await enableMulticamera()
+//            }
+//        }
     }
+    
+    deinit {
+        authenticationService = nil
+        fcsdkCall = nil
+        logger.info("Deinit VC")
+    }
+//    @available(iOS 16.0, *)
+//    func enableMulticamera() async {
+//        Task.detached(priority: .background) {
+//            let captureSession = AVCaptureSession()
+//            let defaultDevices = AVCaptureDevice.DiscoverySession(
+//                deviceTypes: [
+//                    .builtInDualCamera,
+//                    .builtInMicrophone,
+//                    .builtInWideAngleCamera
+//                ],
+//                mediaType: .video,
+//                position: .front
+//            )
+//            // Configure the capture session.
+//            captureSession.beginConfiguration()
+//            var captureDevice: AVCaptureDevice?
+//
+//            _ = defaultDevices.devices.map { dev in
+//                if dev.hasMediaType(.video) {
+//                    captureDevice = dev
+//                }
+//            }
+//            guard let d = captureDevice else { return }
+//            let input = try! AVCaptureDeviceInput(device: d)
+//            captureSession.removeInput(input)
+//
+//            if captureSession.canAddInput(input) {
+//
+//                captureSession.addInput(input)
+//
+//            }
+//
+//
+//
+//
+//
+//            let output = AVCaptureVideoDataOutput()
+//            guard captureSession.canAddOutput(output) else { return }
+//            captureSession.sessionPreset = .high
+//            captureSession.addOutput(output)
+//            captureSession.commitConfiguration()
+//
+//
+//            captureSession.removeOutput(self.videoDataOutput)
+//
+//            if captureSession.canAddOutput(self.videoDataOutput) {
+//                captureSession.addOutput(self.videoDataOutput)
+//                self.videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+//                self.videoDataOutput.setSampleBufferDelegate(self, queue: .global(qos: .background))
+//
+//            }
+//
+//            print("CONNECTIONS", captureSession.connections)
+//            print("INPUTS", captureSession.inputs)
+//            print("OUTPUTS", captureSession.outputs)
+//            print("Supported___", captureSession.isMultitaskingCameraAccessSupported)
+//            print(captureSession.isMultitaskingCameraAccessEnabled)
+//
+//            if captureSession.isMultitaskingCameraAccessSupported {
+//                // Enable using the camera in multitasking modes.
+//                captureSession.isMultitaskingCameraAccessEnabled = true
+//            }
+//            captureSession.commitConfiguration()
+//
+//            // Start the capture session.
+//            captureSession.startRunning()
+//        }
+//    }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    deinit{
-        self.logger.info("Deinit VC")
-    }
     
     override func loadView() {
         view = CommunicationView()
@@ -66,6 +152,7 @@ class CommunicationViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
         Task {
             if self.authenticationService?.connectedToSocket != nil {
+//                await
                 self.configureVideo()
                 if self.isOutgoing {
                     await self.initiateCall()
@@ -102,7 +189,6 @@ class CommunicationViewController: UIViewController {
         }
     }
     
-    @MainActor
     func createCallObject(contact: ContactModel) async {
         let communicationView = self.view as! CommunicationView
         let fcsdkCall = FCSDKCall(
@@ -131,8 +217,8 @@ class CommunicationViewController: UIViewController {
         await self.callKitManager.finishEnd(call: activeCall)
     }
     
-    @MainActor
-    func muteVideo(isMute: Bool) throws {
+   //@FCSDKTransportActor
+    func muteVideo(isMute: Bool) async throws {
         if isMute {
             self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(false)
         } else {
@@ -140,8 +226,8 @@ class CommunicationViewController: UIViewController {
         }
     }
     
-    @MainActor
-    func muteAudio(isMute: Bool) throws {
+   //@FCSDKTransportActor
+    func muteAudio(isMute: Bool) async throws {
         if isMute {
             self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(false)
         } else {
@@ -157,19 +243,22 @@ class CommunicationViewController: UIViewController {
     }
     
     @objc func applicationDidBecomeActive(_ notification: Notification) {
-        let communicationView = self.view as! CommunicationView
-        if communicationView.remoteView.frame.isEmpty,
-           self.fcsdkCallService.presentCommunication,
-           !self.isOutgoing {
-            communicationView.anchors()
-        }
+//        let communicationView = self.view as! CommunicationView
+//        if communicationView.remoteView.frame.isEmpty,
+//           self.fcsdkCallService.presentCommunication,
+//           !self.isOutgoing {
+//No Need. There must have been updates in SwiftUI/UIKit on loading view from background state
+//            communicationView.anchors()
+//        }
     }
     
-    func onHoldView() throws {
+   //@FCSDKTransportActor
+    func onHoldView() async throws {
         self.fcsdkCallService.fcsdkCall?.call?.hold()
     }
     
-    func removeOnHold() throws {
+   //@FCSDKTransportActor
+    func removeOnHold() async throws {
         self.fcsdkCallService.fcsdkCall?.call?.resume()
     }
     
@@ -202,7 +291,7 @@ class CommunicationViewController: UIViewController {
         }
     }
     
-    @MainActor
+   //@FCSDKTransportActor
     func flipCamera(show: Bool) {
         if show {
             self.currentCamera = .front
@@ -212,7 +301,7 @@ class CommunicationViewController: UIViewController {
         self.acbuc.phone.setCamera(self.currentCamera)
     }
     
-    @MainActor
+   //@FCSDKTransportActor
     func configureVideo() {
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
@@ -227,20 +316,22 @@ class CommunicationViewController: UIViewController {
     func updateRemoteViewForBuffer(remote: UIView, local: UIView) async {
         let communicationView = self.view as! CommunicationView
         communicationView.remoteView.removeFromSuperview()
-        communicationView.remoteView = view
         //We get the buffer view from the SDK when the call has been answered. This means we already have the ACBClientCall Object
         ///This method is used to set the remoteView with a BufferView
         guard let remote = await self.fcsdkCallService.fcsdkCall?.call?.remoteBufferView() else { return }
+//        
+//        guard let local = await self.fcsdkCallService.fcsdkCall?.call?.preivewBufferView() else { return }
         communicationView.remoteView = remote
-        communicationView.previewView = local
+//        communicationView.previewView = local
     }
     
     /// Configurations for Capture
+  //@FCSDKTransportActor
     func configureResolutionOptions() throws {
         _ = self.acbuc.phone.recommendedCaptureSettings()
     }
     
-    
+   //@FCSDKTransportActor
     func configureFramerateOptions() throws {
         _ = acbuc.phone.recommendedCaptureSettings()
     }

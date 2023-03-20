@@ -68,7 +68,9 @@ struct SettingsSheet: View {
                                     }
                                 }
                                 .onChange(of: self.selectedAudio, perform: { item in
-                                    self.fcsdkCallService.selectAudio(audio: item)
+//                                    Task {
+                                       self.fcsdkCallService.selectAudio(audio: item)
+//                                    }
                                 })
                                 .pickerStyle(SegmentedPickerStyle())
                                 Divider()
@@ -84,7 +86,9 @@ struct SettingsSheet: View {
                                 }
                             }
                             .onChange(of: self.selectedResolution, perform: { item in
-                                self.fcsdkCallService.selectResolution(res: item)
+//                                Task {
+                                    self.fcsdkCallService.selectResolution(res: item)
+//                                }
                                 if self.fcsdkCallService.presentCommunication {
                                 selectedResolutionDuringCall = true
                                 }
@@ -92,11 +96,11 @@ struct SettingsSheet: View {
                             .pickerStyle(SegmentedPickerStyle())
                             if selectedResolutionDuringCall {
                                 Text("Sorry you can't change the resolution during calls, but we will change it automatically on the next call")
+//                                    .task {
+//                                            await removeResolutionMessage()
+//                                    }
                                     .animation(.easeInOut(duration: 20), value: 1)
                                     .transition(.slide)
-                                    .task {
-                                        await removeResolutionMessage()
-                                    }
                                     .foregroundColor(.red)
                                     .font(Font.system(size: 12))
                             }
@@ -112,7 +116,9 @@ struct SettingsSheet: View {
                                 }
                             }
                             .onChange(of: self.selectedFrameRate, perform: { item in
-                                self.fcsdkCallService.selectFramerate(rate: item)
+//                                Task {
+                                    self.fcsdkCallService.selectFramerate(rate: item)
+//                                }
                                 if self.fcsdkCallService.presentCommunication {
                                 selectedFrameRateDuringCall = true
                                 }
@@ -120,9 +126,9 @@ struct SettingsSheet: View {
                             .pickerStyle(SegmentedPickerStyle())
                             if selectedFrameRateDuringCall {
                                 Text("Sorry you can't change the frame rate during calls, but we will change it automatically on the next call")
-                                    .task {
-                                        await removeFrameRateMessage()
-                                    }
+//                                    .task {
+//                                        await removeFrameRateMessage()
+//                                    }
                                     .animation(.easeInOut(duration: 20), value: 1)
                                     .transition(.slide)
                                     .foregroundColor(.red)
@@ -143,9 +149,12 @@ struct SettingsSheet: View {
                         Divider()
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
-                                Text("App Version: \(UIApplication.appVersion!)").fontWeight(.light)
-                                Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
+                                Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")")
+                                    .bold()
+                                Text("App Version: \(UIApplication.appVersion!)")
+                                    .fontWeight(.light)
+//                                Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)")
+//                                    .fontWeight(.light)
                             }
                             Spacer()
                             if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
@@ -170,9 +179,13 @@ struct SettingsSheet: View {
                 }
                 .padding()
                 .onAppear {
-                    self.fcsdkCallService.selectResolution(res: self.selectedResolution)
-                    self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
-                    self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+                    Task {
+                        await removeResolutionMessage()
+                        await removeFrameRateMessage()
+                         self.fcsdkCallService.selectResolution(res: self.selectedResolution)
+                         self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
+                         self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+                    }
                 }
                 .onDisappear {
                     Task {
@@ -183,10 +196,18 @@ struct SettingsSheet: View {
                 .navigationBarTitle("Settings")
             }
         }
-        .alert("There was an error deleting Call History", isPresented: self.$contactService.showError) {
-            Button("OK", role: .cancel) {
-            }
-        }
+        .alert(isPresented: self.$contactService.showError, content: {
+            Alert(
+                title: Text("There was an error deleting Call History"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                })
+            )
+        })
+//        .alert("There was an error deleting Call History", isPresented: self.$contactService.showError) {
+//            Button("OK", role: .cancel) {
+//            }
+//        }
     }
     
     private func removeResolutionMessage() async {

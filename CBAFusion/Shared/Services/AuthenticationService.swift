@@ -11,12 +11,12 @@ import FCSDKiOS
 import Logging
 
 
-protocol AuthenticationProtcol: AnyObject {
+protocol AuthenticationProtocol: AnyObject {
     var acbuc: ACBUC? { get set }
     func loginUser(networkStatus: Bool) async
 }
 
-class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
+class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol {
     
     var logger: Logger
     var networkRepository: NetworkRepository
@@ -43,15 +43,31 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
     @Published var sessionID = KeychainItem.getSessionID
     @Published var connectedToSocket = false
+//   @FCSDKTransportActor
+    var connection = false {
+        didSet {
+            Task { @MainActor [weak self] in
+                self?.connectedToSocket = connection
+            }
+        }
+    }
     @Published var sessionExists = false
     @Published var acbuc: ACBUC?
+//   @FCSDKTransportActor
+    var uc: ACBUC? {
+        didSet {
+            Task { @MainActor [weak self] in
+                self?.acbuc = uc
+            }
+        }
+    }
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
     @Published var showSettingsSheet = false
     @Published var selectedParentIndex: Int = 0
     @Published var currentTabIndex = 0
     @Published var showProgress: Bool = false
-    
+
     /// Authenticate the User
     @MainActor
     func loginUser(networkStatus: Bool) async {
@@ -74,6 +90,7 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         
         do {
+            print(loginCredentials)
             guard let repository = networkRepository.networkRepositoryDelegate else {return}
             let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
             let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
@@ -97,6 +114,7 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
         await showAlert(error: error)
     }
     
+    @MainActor
     func fireStatus(response: URLResponse) async {
         guard let httpResponse = response as? HTTPURLResponse else {return}
         switch httpResponse.statusCode {
@@ -130,17 +148,18 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
     }
     
     /// Create the Session
+//   @FCSDKTransportActor
     func createSession(sessionid: String, networkStatus: Bool) async {
-        self.acbuc = ACBUC.uc(withConfiguration: sessionid, delegate: self)
-        await self.acbuc?.setNetworkReachable(networkStatus)
+        self.uc = await ACBUC.uc(withConfiguration: sessionid, delegate: self)
+        await self.uc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
-        self.acbuc?.acceptAnyCertificate(acceptUntrustedCertificates)
+        self.uc?.acceptAnyCertificate(acceptUntrustedCertificates)
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
-        self.acbuc?.useCookies = useCookies
-        await self.acbuc?.startSession()
+        self.uc?.useCookies = useCookies
+        await self.uc?.startSession()
+        self.connection = self.uc?.connection != nil
         await MainActor.run {
-        self.connectedToSocket = self.acbuc?.connection != nil
-        self.sessionExists = true
+            self.sessionExists = true
         }
     }
 
@@ -167,24 +186,29 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtcol {
             await setSessionID(id: sessionID)
             
             await fireStatus(response: response)
-            self.sessionExists = false
-            self.acbuc = nil
+            await MainActor.run {
+                self.sessionExists = false
+                self.acbuc = nil
+            }
         } catch {
             await errorCaught(error: error)
             self.logger.error("\(error.localizedDescription)")
-            self.showProgress = false
+            await MainActor.run {
+                self.showProgress = false
+            }
         }
     }
     
-    @MainActor func setSessionID(id: String) async {
-        self.connectedToSocket = self.acbuc?.connection != nil
+    @MainActor
+    func setSessionID(id: String) async {
+        self.connectedToSocket = self.uc?.connection != nil
         KeychainItem.deleteSessionID()
         sessionID = KeychainItem.getSessionID
     }
     
     /// Stop the Session
     func stopSession() async {
-        await self.acbuc?.stopSession()
+        await self.uc?.stopSession()
     }
 }
 
@@ -210,7 +234,7 @@ extension AuthenticationService: ACBUCDelegate {
     func uc(_ uc: ACBUC, willRetryConnectionNumber attemptNumber: Int, in delay: TimeInterval) {
         self.logger.info("We are trying to reconnect to the network \(uc), \(attemptNumber), \(delay)")
         Task {
-            await self.acbuc?.startSession()
+            await self.uc?.startSession()
             await MainActor.run {
             self.sessionExists = true
             }

@@ -54,7 +54,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             contactService: self.contactService,
             destination: self.destination,
             hasVideo: self.hasVideo,
-            acbuc: self.authenticationService.acbuc!,
+            acbuc: authenticationService.acbuc!,
             isOutgoing: self.isOutgoing
         )
         
@@ -72,7 +72,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
-        uiViewController.acbuc = self.authenticationService.acbuc!
+//        uiViewController.acbuc = uc!
         let call = self.fcsdkCallService
         
         if call.hasStartedConnecting {
@@ -120,12 +120,13 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousHasConnectedID = hasConnectedID
         }
         
-        
-        if pipClickedID != context.coordinator.previousPipClickedID {
-            Task {
-                await uiViewController.showPip(show: self.pip)
+        if #available(iOS 15, *) {
+            if pipClickedID != context.coordinator.previousPipClickedID {
+                Task {
+                    await uiViewController.showPip(show: self.pip)
+                }
+                context.coordinator.previousPipClickedID = pipClickedID
             }
-            context.coordinator.previousPipClickedID = pipClickedID
         }
         
         if holdID != context.coordinator.previousHoldID {
@@ -245,10 +246,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
     @MainActor
     func setServiceHasEnded() async {
-        if !self.fcsdkCallService.hasEnded {
-            self.fcsdkCallService.hasEnded = true
-            self.fcsdkCallService.connectDate = nil
-        }
+        self.fcsdkCallService.connectDate = nil
     }
     
     func makeCoordinator() -> Coordinator {

@@ -133,7 +133,7 @@ class ContactService: ObservableObject {
         }
     }
     
-    
+    @MainActor
     func setCallsForContact(_ contact: ContactModel) async {
         self.calls = contact.calls
     }

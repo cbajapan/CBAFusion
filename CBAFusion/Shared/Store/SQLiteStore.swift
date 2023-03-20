@@ -94,14 +94,14 @@ class SQLiteStore: FCSDKStore {
                 }
                 return ContactModel(id: $0.id!, username: $0.username,
                                     number: $0.number, calls: c, blocked: $0.blocked)
-        }.get()
+            }.get()
     }
     
     func createContact(_ contact: ContactModel) async throws {
         let contacts = try await fetchContacts()
         let filteredContact = contacts?.filter({ $0.number == contact.number })
         if contact.number != filteredContact?.last?.number {
-        try await _ContactModel(contact: contact, new: true).create(on: database).get()
+            try await _ContactModel(contact: contact, new: true).create(on: database).get()
         }
     }
     
@@ -114,12 +114,12 @@ class SQLiteStore: FCSDKStore {
     }
     
     func fetchCalls() async throws -> [FCSDKCall]? {
-      try await _CallsModel.query(on: database)
+        try await _CallsModel.query(on: database)
             .with(\.$contact).withDeleted()
             .all()
             .flatMapEachThrowing {
-            try $0.makeCall()
-        }.get()
+                try $0.makeCall()
+            }.get()
     }
     
     func fetchContactCalls(handle: String) async throws -> [FCSDKCall]? {
@@ -128,8 +128,8 @@ class SQLiteStore: FCSDKStore {
             .with(\.$contact).withDeleted()
             .all()
             .flatMapEachThrowing {
-            try $0.makeCall()
-        }.get()
+                try $0.makeCall()
+            }.get()
     }
     
     
@@ -140,14 +140,36 @@ class SQLiteStore: FCSDKStore {
             .all()
             .flatMapEachThrowing {
                 try $0.makeCall()
-        }.get()
+            }.get()
     }
-
+    
+    
     func createCall(_ contactID: UUID?, call: _CallsModel) async throws -> [ContactModel]? {
-        let contacts = try await _ContactModel.query(on: database).all()
-        let contact = contacts.first(where: { $0.id == contactID } )
+        var contact: _ContactModel?
+        if #available(iOS 15.0.0, *) {
+            let contacts = try await _ContactModel.query(on: database).all()
+            contact = contacts.first(where: { $0.id == contactID } )
+        } else {
+            guard let contactID = contactID else { throw SQLiteError.notFound }
+            contact = try getNIOCall(contactID)
+        }
         try await contact?.$calls.create(call, on: database).get()
+        
         return try await self.fetchContacts()
+    }
+    
+    
+    func getNIOCall(_ contactID: UUID) throws -> _ContactModel {
+        let contacts = _ContactModel.query(on: database).all()
+        let promise = eventLoop.makePromise(of: _ContactModel.self)
+        contacts.whenSuccess { contacts in
+            if let contact = contacts.first(where: { $0.id == contactID } ) {
+                promise.succeed(contact)
+            } else {
+                promise.fail(SQLiteError.notFound)
+            }
+        }
+        return try promise.futureResult.wait()
     }
     
     func updateCall(_ contactID: UUID, fcsdkCall: FCSDKCall) async throws  -> [ContactModel]? {
@@ -161,7 +183,11 @@ class SQLiteStore: FCSDKStore {
     
     func removeCalls() async throws -> (Bool, [FCSDKCall]?) {
         do {
-        try await _CallsModel.query(on: self.database).delete(force: true)
+            if #available(iOS 15, *) {
+                _ = try await _CallsModel.query(on: self.database).delete(force: true)
+            } else {
+//                _ = _CallsModel.query(on: self.database).delete(force: true)
+            }
             let calls = try await self.fetchCalls()
             return (true, calls)
         } catch {

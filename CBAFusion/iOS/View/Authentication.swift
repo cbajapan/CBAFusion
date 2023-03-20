@@ -72,17 +72,28 @@ struct Authentication: View {
         .onDisappear(perform: {
             self.loggingIn = false
         })
-        .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
-            Button("OK", role: .cancel) {
-                self.authenticationService.showErrorAlert = false
-                self.loggingIn = false
-            }
+        .alert(isPresented: self.$authenticationService.showErrorAlert, content: {
+            Alert(
+                title: Text("\(self.authenticationService.errorMessage)"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                    self.authenticationService.showErrorAlert = false
+                    self.loggingIn = false
+                })
+            )
         })
+//        .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
+//            Button("OK", role: .cancel) {
+//                self.authenticationService.showErrorAlert = false
+//                self.loggingIn = false
+//            }
+//        })
     }
     
     private func login() async {
          await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-         self.fcsdkCallService.setPhoneDelegate()
+        guard let uc = self.fcsdkCallService.acbuc else { return }
+        await self.fcsdkCallService.setPhoneDelegate(uc)
     }
 }

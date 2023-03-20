@@ -47,42 +47,42 @@ extension CommunicationViewController {
             break
         case .hold:
             do {
-                try self.onHoldView()
+                try await self.onHoldView()
             } catch {
                 self.logger.error("\(error)")
             }
         case .resume:
             do {
-                try self.removeOnHold()
+                try await self.removeOnHold()
             } catch {
                 self.logger.error("\(error)")
             }
         case .hasEnded:
-            await self.fcsdkCallService.fcsdkCall?.call?.removeBufferView()
+//            await self.fcsdkCallService.fcsdkCall?.call?.removeBufferView()
             communicationView.breakDownView()
             communicationView.removeConnectingUI()
             await self.currentState(state: .setup)
         case .muteVideo:
             do {
-                try self.muteVideo(isMute: true)
+                try await self.muteVideo(isMute: true)
             } catch {
                 self.logger.error("\(error)")
             }
         case .resumeVideo:
             do {
-                try self.muteVideo(isMute: false)
+                try await self.muteVideo(isMute: false)
             } catch {
                 self.logger.error("\(error)")
             }
         case .muteAudio:
             do {
-                try self.muteAudio(isMute: true)
+                try await self.muteAudio(isMute: true)
             } catch {
                 self.logger.error("\(error)")
             }
         case .resumeAudio:
             do {
-                try self.muteAudio(isMute: false)
+                try await self.muteAudio(isMute: false)
             } catch {
                 self.logger.error("\(error)")
             }
