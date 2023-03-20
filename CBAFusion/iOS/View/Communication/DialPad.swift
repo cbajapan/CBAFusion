@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import FCSDKiOS
 
 struct DialPad: View {
-    @Binding var string: String
-    @Binding var legacyDTMF: Bool
-    @EnvironmentObject var fcsdkCallService: FCSDKCallService
+    @Binding
+    var string: String
+    @Binding
+    var legacyDTMF: Bool
+    @EnvironmentObject
+    var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var callKitManager: CallKitManager
     
     var body: some View {
@@ -23,14 +27,19 @@ struct DialPad: View {
         }.environment(\.keyPadButtonAction, self.keyWasPressed(_:)) }
     
     private func keyWasPressed(_ key: String) {
-        
+        Task {
+            await press(key)
+        }
+    }
+    
+    func press(_ key: String) async {
         if self.fcsdkCallService.fcsdkCall?.call != nil {
             if self.legacyDTMF {
                 self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(key, localPlayback: true)
             } else {
                 // Really should use this and let Apple handle DTMF Stuff, but if you want you can use the Legacy way with no problem
                 Task {
-                await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.id, digit: key)
+                    await self.callKitManager.sendDTMF(uuid: self.fcsdkCallService.fcsdkCall!.id, digit: key)
                 }
             }
         } else {

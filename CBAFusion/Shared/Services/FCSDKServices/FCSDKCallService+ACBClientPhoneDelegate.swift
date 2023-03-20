@@ -14,24 +14,27 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     
     
     //Receive calls with FCSDK
-    func phone(_ phone: ACBClientPhone, didReceive call: ACBClientCall) {
-        Task {
+    func phone(_ phone: ACBClientPhone, received call: ACBClientCall) async {
+        do {
             await MainActor.run {
                 self.isOutgoing = false
             }
             try await self.contactService?.fetchContacts()
-            if let contact = self.contactService?.contacts?.first(where: { $0.number == call.remoteAddress } )  {
+            let number = call.remoteAddress
+            if let contact = self.contactService?.contacts?.first(where: { $0.number == number } )  {
                 await createCallObject(contact, call: call)
             } else {
-                let contact = ContactModel(
+                let contact = await ContactModel(
                     id: UUID(),
-                    username: call.remoteDisplayName ?? "",
-                    number: call.remoteAddress ?? "",
+                    username: call.remoteDisplayName,
+                    number: call.remoteAddress,
                     calls: nil,
                     blocked: false)
                 try await self.contactService?.delegate?.createContact(contact)
                 await createCallObject(contact, call: call)
             }
+        } catch {
+            logger.error("\(error)")
         }
     }
     
@@ -39,10 +42,9 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         guard let uc = self.acbuc else { return }
         let fcsdkCall = FCSDKCall(
             id: UUID(),
-            handle:  call.remoteAddress ?? "",
+            handle:  call.remoteAddress,
             hasVideo: call.hasRemoteVideo,
-            previewView: nil,
-            remoteView: nil,
+            communicationView: nil,
             acbuc: uc,
             call: call,
             activeCall: false,
@@ -64,22 +66,22 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         let call = await self.contactService?.fetchActiveCall()
         
         if call?.activeCall == nil {
-            await MainActor.run {
-                fcsdkCall.call?.delegate = self
-                self.fcsdkCall?.call?.delegate = fcsdkCall.call?.delegate
-            }
+            fcsdkCall.call?.delegate = self
+            self.fcsdkCall?.call?.delegate = fcsdkCall.call?.delegate
             
             fcsdkCall.missed = false
             fcsdkCall.outbound = false
             fcsdkCall.rejected = false
             fcsdkCall.activeCall = true
             await self.addCall(fcsdkCall: fcsdkCall)
-            self.fcsdkCall = fcsdkCall
+            await MainActor.run {
+                self.fcsdkCall = fcsdkCall
+            }
             guard let fcsdkCall = self.fcsdkCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: fcsdkCall)
         } else if call?.activeCall == true {
             await fcsdkCall.call?.end()
-            LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
+            LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \( await fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
             await MainActor.run {
                 fcsdkCall.missed = true
                 fcsdkCall.outbound = false
@@ -90,7 +92,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         }
     }
     
-    func phone(_ phone: ACBClientPhone, didChange settings: ACBVideoCaptureSetting?, forCamera camera: AVCaptureDevice.Position) {
+    func phone(_ phone: ACBClientPhone, didChange settings: ACBVideoCaptureSetting?, forCamera camera: AVCaptureDevice.Position) async {
         self.logger.info("didChangeCaptureSetting - resolution=\(String(describing: settings?.resolution.rawValue)) frame rate=\(String(describing: settings?.frameRate)) camera=\(camera.rawValue)")
     }
 }

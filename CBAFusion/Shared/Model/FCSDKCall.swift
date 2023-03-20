@@ -16,10 +16,8 @@ final class FCSDKCall: Codable, Hashable {
     var handle: String
     /// Lets CallKit know if we want to use video
     var hasVideo: Bool
-    /// The preview view for video calls
-    var previewView: UIView? = nil
-    /// The remote view for video calls
-    var remoteView: UIView? = nil
+    /// Our View Controllers view that we use to update it's content.
+    var communicationView: CommunicationView? = nil
     /// Our ACBUC Object
     var acbuc: ACBUC? = nil
     /// The ACBClientCall associated with this CallObject
@@ -45,8 +43,7 @@ final class FCSDKCall: Codable, Hashable {
         id: UUID,
         handle: String,
         hasVideo: Bool,
-        previewView: UIView? = nil,
-        remoteView: UIView? = nil,
+        communicationView: CommunicationView? = nil,
         acbuc: ACBUC? = nil,
         call: ACBClientCall? = nil,
         activeCall: Bool? = false,
@@ -61,8 +58,7 @@ final class FCSDKCall: Codable, Hashable {
         self.id = id
         self.handle = handle
         self.hasVideo = hasVideo
-        self.previewView = previewView
-        self.remoteView = remoteView
+        self.communicationView = communicationView
         self.acbuc = acbuc
         self.call = call
         self.activeCall = activeCall

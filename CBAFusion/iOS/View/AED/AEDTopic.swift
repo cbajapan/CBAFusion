@@ -11,6 +11,7 @@ import FCSDKiOS
 struct AEDTopic: View {
     
     @State var topic: ACBTopic
+    @State var name: String = ""
     @State var checked: Bool = false
     @Binding var console: String
     @EnvironmentObject var authenticationService: AuthenticationService
@@ -18,7 +19,10 @@ struct AEDTopic: View {
     
     var body: some View {
         HStack{
-            Text(topic.name)
+            Text(name)
+                .task {
+                self.name = topic.name
+            }
             Spacer()
             if self.checked {
                 Image(systemName: "checkmark")
@@ -35,15 +39,17 @@ struct AEDTopic: View {
         }
     }
     
-    @MainActor
+   
     func didTapTopic(_ topic: ACBTopic) async {
         if !topic.name.isEmpty {
             self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: topic.name, delegate: self.aedService)
             let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
             self.console += "\n\(msg)"
         } else {
-            self.authenticationService.showErrorAlert = true
-            self.authenticationService.errorMessage = "Topic Name is empty"
+            await MainActor.run {
+                self.authenticationService.showErrorAlert = true
+                self.authenticationService.errorMessage = "Topic Name is empty"
+            }
         }
     }
 }

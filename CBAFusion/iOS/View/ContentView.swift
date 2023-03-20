@@ -95,7 +95,6 @@ struct ContentView: View {
                                 .padding(.bottom, 12)
                             }
                         }
-                        
                     }
                     .background(Color(uiColor: .systemGray6))
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
@@ -113,19 +112,26 @@ struct ContentView: View {
                                 .environmentObject(contactService)
                         }
                     }
+                    .fullScreenCover(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, content: {
+                        if #available(iOS 15, *) {
+                            BackgroundSelector()
+                        }
+                    })
                     .onAppear {
                         self.authenticationService.currentTabIndex = 0
                         self.authenticationService.selectedParentIndex = 0
+                        let eventLoop = NIOTSEventLoopGroup().next()
                         Task {
-                            let eventLoop = NIOTSEventLoopGroup().next()
                             let store = try await SQLiteStore.create(on: eventLoop)
                             contactService.delegate = store
                             try await contactService.fetchContacts()
                             // We want to make sure all calls are inactive on Appear
                                   for contact in self.contactService.contacts ?? [] {
                                       for call in contact.calls ?? [] {
-                                          call.activeCall = false
-                                          await self.contactService.editCall(fcsdkCall: call)
+                                          if call.activeCall == true {
+                                              call.activeCall = false
+                                              await self.contactService.editCall(fcsdkCall: call)
+                                          }
                                       }
                                   }
                         }
@@ -145,5 +151,26 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+extension UIColor {
+    var rgba: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+
+        return (red, green, blue, alpha)
+    }
+}
+
+extension Color {
+    init(uiColor: UIColor) {
+        self.init(red: Double(uiColor.rgba.red),
+                  green: Double(uiColor.rgba.green),
+                  blue: Double(uiColor.rgba.blue),
+                  opacity: Double(uiColor.rgba.alpha))
     }
 }

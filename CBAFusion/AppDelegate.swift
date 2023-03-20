@@ -24,8 +24,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         //We only can initialize the Systems Logger Once
-        ACBUC.logToFile(.trace)
-        
+        ACBUC.logToFile(.info)
+        //Sets WS Timeout
+//        FCSDKiOS.Constants.WEBSOCKET_CONNECTION_TIMEOUT = 20
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         UIApplication.shared.applicationIconBadgeNumber = 0
@@ -119,6 +120,7 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
     }
         /// Display the incoming call to the user.
         func displayIncomingCall(fcsdkCall: FCSDKCall) async {
+            ACBAudioDeviceManager.useManualAudioForCallKit()
             await providerDelegate?.reportIncomingCall(fcsdkCall: fcsdkCall)
         }
 }

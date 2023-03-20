@@ -65,12 +65,6 @@ struct ContactCard: View {
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack {
-//                    Button {
-//                        setupCall(hasVideo: false)
-//                    } label: {
-//                        Image(systemName: "phone")
-//                            .foregroundColor(.blue)
-//                    }
                     Button {
                         setupCall(hasVideo: true)
                     } label: {
@@ -80,11 +74,22 @@ struct ContactCard: View {
                 }
             }
         })
-        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
-            Button("OK", role: .cancel) {
-                processNotLoggedIn()
-            }
+        .alert(isPresented: self.$contactService.alert, content: {
+            Alert(
+                title: Text("We are sorry you don't seem to be logged in"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                    Task {
+                      await processNotLoggedIn()
+                    }
+                })
+            )
         })
+//        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
+//            Button("OK", role: .cancel) {
+//                processNotLoggedIn()
+//            }
+//        })
         .onAppear {
             Task {
                 try await self.contactService.fetchContactCalls(destination)
@@ -99,26 +104,23 @@ struct ContactCard: View {
         }
     }
     
-    
     func setupCall(hasVideo: Bool) {
-        if authenticationService.acbuc != nil,
-           self.authenticationService.connectedToSocket,
+           if self.authenticationService.connectedToSocket,
            self.authenticationService.sessionExists {
             self.fcsdkCallService.presentCommunication = true
             self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
             self.fcsdkCallService.hasVideo = hasVideo
             self.fcsdkCallService.isOutgoing = true
         } else {
-            notLoggedIn = true
+//            notLoggedIn = true
         }
     }
     
-    func processNotLoggedIn() {
-        Task {
+    func processNotLoggedIn() async {
             await self.authenticationService.logout()
             KeychainItem.deleteSessionID()
             self.authenticationService.sessionID = KeychainItem.getSessionID
         }
     }
-}
+
 

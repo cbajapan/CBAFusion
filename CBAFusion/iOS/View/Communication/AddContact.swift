@@ -43,9 +43,17 @@ struct AddContact: View {
                     Text("Save")
                 })
             }
-            .alert("Please fill in the Contact information", isPresented: self.$contactService.alert, actions: {
-                Button("OK", role: .cancel) { }
+            .alert(isPresented: self.$contactService.alert, content: {
+                Alert(
+                    title: Text("Please fill in the Contact information"),
+                    message: Text(""),
+                    dismissButton: .cancel(Text("Okay"), action: {
+                    })
+                )
             })
+//            .alert("Please fill in the Contact information", isPresented: self.$contactService.alert, actions: {
+//                Button("OK", role: .cancel) { }
+//            })
             .navigationBarTitle(self.contactService.isEdit ? "Edit Contact" : "Add Contact")
         }
     }
