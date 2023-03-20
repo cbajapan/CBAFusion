@@ -133,7 +133,7 @@ class ContactService: ObservableObject {
         }
     }
     
-    
+    @MainActor
     func setCallsForContact(_ contact: ContactModel) async {
         self.calls = contact.calls
     }
@@ -174,6 +174,7 @@ class ContactService: ObservableObject {
         }
     }
     
+    @MainActor
     func deleteCalls() async {
         self.showProgress = true
         let result = try? await self.delegate?.removeCalls()

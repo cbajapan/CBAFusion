@@ -30,8 +30,7 @@ enum FrameRateOptions: String, Equatable, CaseIterable {
 struct SettingsSheet: View {
     
     
-    @State var selectedResolutionDuringCall: Bool = false
-    @State var selectedFrameRateDuringCall: Bool = false
+    @State var switchedViewType: Bool = false
     
     @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
@@ -69,6 +68,7 @@ struct SettingsSheet: View {
                                 }
                                 .onChange(of: self.selectedAudio, perform: { item in
                                     self.fcsdkCallService.selectAudio(audio: item)
+                                    
                                 })
                                 .pickerStyle(SegmentedPickerStyle())
                                 Divider()
@@ -85,21 +85,8 @@ struct SettingsSheet: View {
                             }
                             .onChange(of: self.selectedResolution, perform: { item in
                                 self.fcsdkCallService.selectResolution(res: item)
-                                if self.fcsdkCallService.presentCommunication {
-                                selectedResolutionDuringCall = true
-                                }
                             })
                             .pickerStyle(SegmentedPickerStyle())
-                            if selectedResolutionDuringCall {
-                                Text("Sorry you can't change the resolution during calls, but we will change it automatically on the next call")
-                                    .animation(.easeInOut(duration: 20), value: 1)
-                                    .transition(.slide)
-                                    .task {
-                                        await removeResolutionMessage()
-                                    }
-                                    .foregroundColor(.red)
-                                    .font(Font.system(size: 12))
-                            }
                             Divider()
                                 .padding(.top)
                             
@@ -113,43 +100,62 @@ struct SettingsSheet: View {
                             }
                             .onChange(of: self.selectedFrameRate, perform: { item in
                                 self.fcsdkCallService.selectFramerate(rate: item)
-                                if self.fcsdkCallService.presentCommunication {
-                                selectedFrameRateDuringCall = true
-                                }
                             })
                             .pickerStyle(SegmentedPickerStyle())
-                            if selectedFrameRateDuringCall {
-                                Text("Sorry you can't change the frame rate during calls, but we will change it automatically on the next call")
-                                    .task {
-                                        await removeFrameRateMessage()
-                                    }
-                                    .animation(.easeInOut(duration: 20), value: 1)
-                                    .transition(.slide)
-                                    .foregroundColor(.red)
-                                    .font(Font.system(size: 12))
+                        }
+                        if fcsdkCallService.isBuffer {
+                            HStack {
+                                Spacer()
+                                Button("Choose Background", action: {
+                                    self.authenticationService.showSettingsSheet = false
+                                    self.fcsdkCallService.showBackgroundSelectorSheet = true
+                                }).padding()
                             }
+                        }
+                        HStack {
+                            Spacer()
+                            Toggle(
+                                fcsdkCallService.isBuffer ? "Using Native Buffer Views/Layers" : "Using WebRTC Managed Views",
+                                isOn: $fcsdkCallService.isBuffer
+                            ).onChange(of: fcsdkCallService.isBuffer, perform: { newValue in
+                                switchedViewType = true
+                            })
+                            .padding()
+                        }
+                        if switchedViewType {
+                            Text("Sorry you can't change the Views during the call, but we will change it automatically on the next call")
+                                .task {
+                                    await removeViewTypeMessage()
+                                }
+                                .animation(.easeInOut(duration: 20), value: 1)
+                                .transition(.slide)
+                                .foregroundColor(.red)
+                                .font(Font.system(size: 12))
                         }
                         Divider()
                         Spacer()
                         if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
-                           self.fcsdkCallService.fcsdkCall?.activeCall == nil
+                            self.fcsdkCallService.fcsdkCall?.activeCall == nil
                         {
-                        Button("Clear Call History", action: {
-                            Task {
-                                await self.fcsdkCallService.contactService?.deleteCalls()
-                            }
-                        })
+                            Button("Clear Call History", action: {
+                                Task {
+                                    await self.fcsdkCallService.contactService?.deleteCalls()
+                                }
+                            })
                         }
                         Divider()
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")").bold()
-                                Text("App Version: \(UIApplication.appVersion!)").fontWeight(.light)
-                                Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)").fontWeight(.light)
+                                Text("User: \(UserDefaults.standard.string(forKey: "Username") ?? "")")
+                                    .bold()
+                                Text("App Version: \(UIApplication.appVersion!)")
+                                    .fontWeight(.light)
+                                Text("FCSDK Version: \(FCSDKiOS.Constants.SDK_VERSION_NUMBER)")
+                                    .fontWeight(.light)
                             }
                             Spacer()
                             if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
-                               self.fcsdkCallService.fcsdkCall?.activeCall == nil
+                                self.fcsdkCallService.fcsdkCall?.activeCall == nil
                             {
                                 Button {
                                     Task {
@@ -170,35 +176,40 @@ struct SettingsSheet: View {
                 }
                 .padding()
                 .onAppear {
+                    Task {
+                        await removeViewTypeMessage()
+                    }
                     self.fcsdkCallService.selectResolution(res: self.selectedResolution)
                     self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
                     self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
                 }
                 .onDisappear {
                     Task {
-                    try await self.contactService.fetchContacts()
+                        try await self.contactService.fetchContacts()
                     }
                 }
                 .padding()
                 .navigationBarTitle("Settings")
             }
         }
-        .alert("There was an error deleting Call History", isPresented: self.$contactService.showError) {
-            Button("OK", role: .cancel) {
-            }
-        }
+        .alert(isPresented: self.$contactService.showError, content: {
+            Alert(
+                title: Text("There was an error deleting Call History"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                })
+            )
+        })
+        //        .alert("There was an error deleting Call History", isPresented: self.$contactService.showError) {
+        //            Button("OK", role: .cancel) {
+        //            }
+        //        }
     }
     
-    private func removeResolutionMessage() async {
+    private func removeViewTypeMessage() async {
         try? await Task.sleep(nanoseconds: 5_500_000_000)
-        selectedResolutionDuringCall = false
+        switchedViewType = false
     }
-    
-    private func removeFrameRateMessage() async {
-        try? await Task.sleep(nanoseconds: 5_500_000_000)
-        selectedFrameRateDuringCall = false
-    }
-    
     func logout() async {
         await authenticationService.logout()
     }

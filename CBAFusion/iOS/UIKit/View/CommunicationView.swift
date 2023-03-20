@@ -8,6 +8,7 @@
 import UIKit
 import AVKit
 
+@MainActor
 class CommunicationView: UIView {
 
     
@@ -18,14 +19,12 @@ class CommunicationView: UIView {
     }()
     let numberLabel = UILabel()
     let nameLabel = UILabel()
-    var remoteView = UIView()
-    var remoteBufferView: UIView?
-    var previewView = UIView()
+    var remoteView: UIView?
+    var pipLayer: AVSampleBufferDisplayLayer?
+    var previewView: UIView?
+    var captureSession: AVCaptureSession?
     let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
     var blurEffectView: UIVisualEffectView?
-    
-    
-    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,48 +34,104 @@ class CommunicationView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
-    
-    @MainActor
-    func anchors() {
-        
-        //We can adjust the size of video if we want to via the constraints API, the next 2 lines can center a view
-        //        self.remoteView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
-        //        self.remoteView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+    func updateAnchors(_ orientation: UIDeviceOrientation) {
+        guard let previewView = previewView else { return }
+        guard let remoteView = remoteView else { return }
         if UIApplication.shared.applicationState != .background {
-            //We can change width and height as we wish
-            self.remoteView.anchors(top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                self.previewView.anchors(top: nil, leading: nil, bottom: bottomAnchor, trailing: trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 150, height: 200)
-                
-            } else {
-                self.previewView.anchors(top: nil, leading: nil, bottom: bottomAnchor, trailing: trailingAnchor, topPadding: 0, leadPadding: 0, bottomPadding: 110, trailPadding: 20, width: 250, height: 200)
+            
+            var width: CGFloat = 0
+            var height: CGFloat = 0
+            
+            switch orientation {
+            case .portrait, .portraitUpsideDown:
+                switch UIDevice.current.userInterfaceIdiom {
+                case .phone:
+                    width = 150
+                    height = 200
+                case .pad:
+                    width = 250
+                    height = 200
+                default:
+                    break
+                }
+            case .landscapeRight, .landscapeLeft:
+                switch UIDevice.current.userInterfaceIdiom {
+                case .phone:
+                    width = 200
+                    height = 150
+                case .pad:
+                    width = 200
+                    height = 250
+                default:
+                    break
+                }
+            default:
+                switch UIDevice.current.userInterfaceIdiom {
+                case .phone:
+                    width = 150
+                    height = 200
+                case .pad:
+                    width = 250
+                    height = 200
+                default:
+                    break
+                }
             }
             
-            /// We can access the `AVSampleBufferDisplayLayer` and adjust the layer size. We want to cast our layer  according if we are using the remoteBufferView.
+ 
+            for constraint in previewView.constraints {
+                if constraint.isActive {
+                    constraint.isActive = false
+                }
+            }
+
+            for constraint in remoteView.constraints {
+                if constraint.isActive {
+                    constraint.isActive = false
+                }
+            }
             
-            let layer = self.remoteView.layer as? AVSampleBufferDisplayLayer
-            layer?.masksToBounds = true
-            layer?.videoGravity = .resizeAspectFill
+            remoteView.anchors(
+                top: topAnchor,
+                leading: leadingAnchor,
+                bottom: bottomAnchor,
+                trailing: trailingAnchor
+            )
+
+            previewView.anchors(
+                bottom: bottomAnchor,
+                trailing: trailingAnchor,
+                bottomPadding: 110,
+                trailPadding: 20,
+                width: width,
+                height: height
+            )
+
+            remoteView.frame = remoteView.bounds
+            previewView.frame = previewView.bounds
+            previewView.layer.cornerRadius = 10
+            previewView.layer.masksToBounds = true
+           
         }
     }
     
-    @MainActor
     func setupUI() {
-        addSubview(self.remoteView)
-        addSubview(self.previewView)
-        self.previewView.layer.cornerRadius = 10
-        self.previewView.layer.masksToBounds = true
+        guard let previewView = previewView else { return }
+        guard let remoteView = remoteView else { return }
+        if !subviews.contains(previewView) || !subviews.contains(remoteView) {
+            addSubview(remoteView)
+            addSubview(previewView)
+        }
     }
 
     
-    @MainActor
     func breakDownView() {
+        guard let previewView = previewView else { return }
+        guard let remoteView = remoteView else { return }
         remoteView.removeFromSuperview()
         previewView.removeFromSuperview()
     }
-    
-    @MainActor
+
     func connectingUI(isRinging: Bool) {
         numberLabel.font = .boldSystemFont(ofSize: 18)
         if isRinging {
@@ -90,11 +145,16 @@ class CommunicationView: UIView {
         stackView.addArrangedSubview(nameLabel)
         stackView.axis = .vertical
         if UIApplication.shared.applicationState != .background {
-            stackView.anchors(top: topAnchor, leading: leadingAnchor, bottom: nil, trailing: trailingAnchor, topPadding: 50, leadPadding: 0, bottomPadding: 0, trailPadding: 0, width: 0, height: 0)
+            stackView.anchors(
+                top: topAnchor,
+                leading: leadingAnchor,
+                trailing: trailingAnchor,
+                topPadding: 50
+            )
         }
     }
     
-    @MainActor
+
     func removeConnectingUI() {
         stackView.removeFromSuperview()
     }
