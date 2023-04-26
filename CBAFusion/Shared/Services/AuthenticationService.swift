@@ -46,7 +46,8 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     var connection = false {
         didSet {
             Task { @MainActor [weak self] in
-                self?.connectedToSocket = connection
+                guard let strongSelf = self else { return }
+                strongSelf.connectedToSocket = strongSelf.connection
             }
         }
     }
@@ -55,7 +56,8 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     var uc: ACBUC? {
         didSet {
             Task { @MainActor [weak self] in
-                self?.acbuc = uc
+                guard let strongSelf = self else { return }
+                strongSelf.acbuc = strongSelf.uc
             }
         }
     }

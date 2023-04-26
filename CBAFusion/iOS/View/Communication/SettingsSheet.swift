@@ -12,6 +12,8 @@ import FCSDKiOS
 enum AudioOptions: String, Equatable, CaseIterable {
     case ear = "Ear Piece"
     case speaker = "Speaker Phone"
+    case wiredHeadset = "Wired Headset"
+    case bluetooth = "Bluetooth"
 }
 
 enum ResolutionOptions: String, Equatable, CaseIterable {
@@ -32,9 +34,10 @@ struct SettingsSheet: View {
     
     @State var switchedViewType: Bool = false
     
-    @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
+    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
+    @AppStorage("DefaultAudio") var selectedDefaultAudio: ACBAudioDevice = .speakerphone
     
     
     @EnvironmentObject private var authenticationService: AuthenticationService
@@ -62,17 +65,32 @@ struct SettingsSheet: View {
                                     .fontWeight(.light)
                                     .multilineTextAlignment(.leading)
                                 Picker("", selection: $selectedAudio) {
-                                    ForEach(AudioOptions.allCases, id: \.self) { item in
-                                        Text(item.rawValue)
+                                    ForEach(ACBAudioDevice.allCases, id: \.self) { item in
+                                        Text(item.rawValue.capitalized)
                                     }
                                 }
                                 .onChange(of: self.selectedAudio, perform: { item in
                                     self.fcsdkCallService.selectAudio(audio: item)
-                                    
+
                                 })
                                 .pickerStyle(SegmentedPickerStyle())
                                 Divider()
                                     .padding(.top)
+                                Text("Default Audio")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $selectedDefaultAudio) {
+                                    ForEach(ACBAudioDevice.allCases, id: \.self) { item in
+                                        Text(item.rawValue.capitalized)
+                                    }
+                                }
+                                .task {
+                                    self.fcsdkCallService.selectDefaultAudio(audio: selectedDefaultAudio)
+                                }
+                                .onChange(of: self.selectedDefaultAudio, perform: { item in
+                                    self.fcsdkCallService.selectDefaultAudio(audio: item)
+                                })
+                                .pickerStyle(SegmentedPickerStyle())
                             }
                             
                             Text("Resolution Options")

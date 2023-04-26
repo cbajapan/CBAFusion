@@ -17,14 +17,14 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.hasEnded = true
         if isBuffer {
             await fcsdkCall?.call?.removeBufferView()
-            await fcsdkCall?.call?.removePreviewView()
+            await fcsdkCall?.call?.removeLocalBufferView()
         }
     }
     
     @MainActor
     func setupBufferViews() async {
         fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView()
-        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.previewBufferView()
+        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView()
         fcsdkCall?.communicationView?.setupUI()
         fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
         fcsdkCall?.communicationView?.captureSession = await fcsdkCall?.call?.captureSession()
@@ -39,9 +39,11 @@ extension FCSDKCallService: ACBClientCallDelegate {
         await self.inCall()
         isStreaming = true
     }
-    
-    
+
     func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
+        Task { @MainActor in
+            self.callStatus = status.rawValue
+        }
         switch status {
         case .setup:
            break

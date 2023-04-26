@@ -49,7 +49,11 @@ struct BackgroundSelector: View {
                             await self.fcsdkService.removeBackground()
                         } else {
                             if let uiImage = backgrounds.displayImage?.0 {
-                                await self.fcsdkService.setBackgroundImage(uiImage, mode: backgrounds.displayImage?.0.title == "blur" ? .blur : .image)
+                                if backgrounds.displayImage?.0.title == "blur" {
+                                    await self.fcsdkService.setBackgroundImage(mode: .blur)
+                                } else {
+                                    await self.fcsdkService.setBackgroundImage(uiImage, mode: .image)
+                                }
                             }
                         }
                     }

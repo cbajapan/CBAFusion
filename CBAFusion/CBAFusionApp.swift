@@ -25,6 +25,7 @@ struct CBAFusionApp: App {
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
     @StateObject private var backgrounds = Backgrounds()
+    @StateObject private var pipStateObject = PipStateObject.shared
     
     @State var providerDelegate: ProviderDelegate?
 //    @State var exists = SQLiteStore.exists()
@@ -53,6 +54,7 @@ struct CBAFusionApp: App {
                 .environmentObject(contactService)
                 .environmentObject(aedService)
                 .environmentObject(backgrounds)
+                .environmentObject(pipStateObject)
                 .task {
                     
                     async let image1 = backgrounds.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))

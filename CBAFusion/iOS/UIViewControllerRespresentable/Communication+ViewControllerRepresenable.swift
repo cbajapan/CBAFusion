@@ -13,7 +13,6 @@ import AVFoundation
 
 struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
-    @Binding var pip: Bool
     @Binding var removePip: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -31,7 +30,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var resumeAudioID: UUID?
     @Binding var muteVideoID: UUID?
     @Binding var resumeVideoID: UUID?
-    @Binding var pipClickedID: UUID?
     @Binding var hasStartedConnectingID: UUID?
     @Binding var ringingID: UUID?
     @Binding var hasConnectedID: UUID?
@@ -40,9 +38,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var contactService: ContactService
+    @EnvironmentObject var pipStateObject: PipStateObject
     var logger: Logger?
     
-    @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
+    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     
@@ -121,11 +120,11 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if #available(iOS 15, *) {
-            if pipClickedID != context.coordinator.previousPipClickedID {
+            if pipStateObject.pipClickedID != context.coordinator.previousPipClickedID {
                 Task {
-                    await uiViewController.showPip(show: self.pip)
+                    await uiViewController.showPip(show: pipStateObject.pip)
                 }
-                context.coordinator.previousPipClickedID = pipClickedID
+                context.coordinator.previousPipClickedID = pipStateObject.pipClickedID
             }
         }
         
