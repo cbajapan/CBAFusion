@@ -29,7 +29,7 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     var hasVideo: Bool
     var isOutgoing: Bool
     var logger: Logger
-    var pipController: AVPictureInPictureController!
+    var pipController: AVPictureInPictureController?
     var vc: UIViewController?
     let videoDataOutput = AVCaptureVideoDataOutput()
     
@@ -76,7 +76,7 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
             let communicationView = strongSelf.view as! CommunicationView
             if strongSelf.authenticationService?.connectedToSocket != nil {
                 strongSelf.configureVideo()
-                if !fcsdkCallService.isBuffer {
+                if !strongSelf.fcsdkCallService.isBuffer {
                     communicationView.remoteView = UIView()
                     communicationView.previewView = UIView()
                     communicationView.setupUI()

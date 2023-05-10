@@ -18,11 +18,14 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
         return CMTimeRange(start: .zero, duration: .positiveInfinity)
     }
     func pictureInPictureControllerIsPlaybackPaused(_ pictureInPictureController: AVPictureInPictureController) -> Bool {
+        PipStateObject.shared.pip = false
+        PipStateObject.shared.pipClickedID = UUID()
         return false
     }
     
     @available(iOS 15.0, *)
     func showPip(show: Bool) async {
+        guard let pipController = self.pipController else { return }
         if show {
             if AVPictureInPictureController.isPictureInPictureSupported() {
                 pipController.startPictureInPicture()
@@ -46,7 +49,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
         guard let remoteView = communicationView.remoteView else { return }
         if #available(iOS 16.0, *) {
             guard let captureSession = communicationView.captureSession else { return }
-         
+
             if captureSession.isMultitaskingCameraAccessSupported {
                 let pipVideoCallViewController = AVPictureInPictureVideoCallViewController()
                 pipVideoCallViewController.preferredContentSize = CGSize(width: 1080, height: 1920)
@@ -57,6 +60,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                     contentViewController: pipVideoCallViewController)
                 
                 pipController = AVPictureInPictureController(contentSource: source)
+                guard var pipController = self.pipController else { return }
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
@@ -66,6 +70,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                 let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
 
                 pipController = AVPictureInPictureController(contentSource: source)
+                guard var pipController = self.pipController else { return }
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
@@ -74,7 +79,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                 //If we are iOS 15
                 let sourceLayer = remoteView.layer as! AVSampleBufferDisplayLayer
                 let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
-
+                guard var pipController = self.pipController else { return }
                 pipController = AVPictureInPictureController(contentSource: source)
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
@@ -82,16 +87,22 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
             }
     }
     
-    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {}
-    func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {}
+    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+    }
+    func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        PipStateObject.shared.pip = false
+        PipStateObject.shared.pipClickedID = UUID()
+    }
     
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         logger.error("\(error)")
     }
-    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {}
+    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+    }
     
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController) async -> Bool {
         return true
     }
-    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {}
+    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+    }
 }

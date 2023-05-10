@@ -47,11 +47,9 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var isStreaming: Bool = false
     @Published var backgroundImage: UIImage?
     @Published var virtualBackgroundMode: VirtualBackgroundMode = .image
-    @Published var isBuffer: Bool = true {
-        didSet {
-            print(isBuffer)
-        }
-    }
+    @Published var isBuffer: Bool = true
+    @Published var defaultAudioDevice: ACBAudioDevice = .speakerphone
+    @Published var callStatus: String = ""
     var audioDeviceManager: ACBAudioDeviceManager?
     
     override init() {
@@ -77,7 +75,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         Task { @MainActor [weak self] in
             guard let strongSelf = self else { return }
             //We Pass the view up to the SDK when using metalKit View
-            if !isBuffer {
+            if !strongSelf.isBuffer {
                 strongSelf.fcsdkCall?.call?.remoteView = strongSelf.fcsdkCall?.communicationView?.remoteView
             }
         }
@@ -147,6 +145,7 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func startAudioSession() {
+        self.uc?.phone.audioDeviceManager.start()
         self.audioDeviceManager = self.uc?.phone.audioDeviceManager
     }
     
@@ -176,12 +175,35 @@ class FCSDKCallService: NSObject, ObservableObject {
 /// Settings
 extension FCSDKCallService {
     
-    func selectAudio(audio: AudioOptions) {
+    func selectAudio(audio: ACBAudioDevice) {
         switch audio {
-        case .ear:
+        case .earpiece:
             self.audioDeviceManager?.setAudioDevice(.earpiece)
-        case .speaker:
+        case .speakerphone:
             self.audioDeviceManager?.setAudioDevice(.speakerphone)
+        case .wiredHeadset:
+            self.audioDeviceManager?.setAudioDevice(.wiredHeadset)
+        case .bluetooth:
+            self.audioDeviceManager?.setAudioDevice(.bluetooth)
+        default:
+            break
+        }
+    }
+    
+    func selectDefaultAudio(audio: ACBAudioDevice) {
+        switch audio {
+        case .earpiece:
+            self.audioDeviceManager?.setDefaultAudio(.earpiece)
+        case .speakerphone:
+            self.audioDeviceManager?.setDefaultAudio(.speakerphone)
+        case .wiredHeadset:
+            self.audioDeviceManager?.setDefaultAudio(.wiredHeadset)
+        case .bluetooth:
+            self.audioDeviceManager?.setDefaultAudio(.bluetooth)
+        case .none:
+            self.audioDeviceManager?.setDefaultAudio(.none)
+        default:
+            break
         }
     }
     
@@ -236,7 +258,7 @@ extension FCSDKCallService {
     }
     
     @MainActor
-    func setBackgroundImage(_ image: UIImage, mode: VirtualBackgroundMode = .image) async {
+    func setBackgroundImage(_ image: UIImage? = nil, mode: VirtualBackgroundMode = .image) async {
         if fcsdkCall?.call == nil {
             self.backgroundImage = image
             self.virtualBackgroundMode = mode

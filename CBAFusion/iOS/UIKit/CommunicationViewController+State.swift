@@ -27,6 +27,7 @@ extension CommunicationViewController {
         case resumeVideo
     }
     
+    
     @MainActor
     func currentState(state: CallState) async {
         let communicationView = self.view as! CommunicationView

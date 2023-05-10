@@ -51,7 +51,8 @@ class SQLiteStore: FCSDKStore {
             threadPool: NIOThreadPool(numberOfThreads: 1),
             on: eventLoop
         )
-        
+        databases.threadPool.start()
+      
         databases.use(.sqlite(configuration), as: .sqlite)
         let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
         

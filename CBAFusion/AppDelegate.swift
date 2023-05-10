@@ -23,8 +23,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        //We only can initialize the Systems Logger Once
-        ACBUC.logToFile(.info)
+        //We only can initialize the System's Logger Once
+        ACBUC.logToFile(.trace)
         //Sets WS Timeout
 //        FCSDKiOS.Constants.WEBSOCKET_CONNECTION_TIMEOUT = 20
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
