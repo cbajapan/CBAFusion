@@ -13,15 +13,15 @@
 		0915D16F2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */; };
 		0915D1702A12E7D60027A8E5 /* CommunicationViewController+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */; };
 		0915D1712A12E7D60027A8E5 /* CommunicationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */; };
-		0915D1732A12E8400027A8E5 /* BackgroundSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */; };
-		0915D17E2A12E8720027A8E5 /* DisplayImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1752A12E8720027A8E5 /* DisplayImage.swift */; };
-		0915D17F2A12E8720027A8E5 /* BackgroundItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */; };
-		0915D1802A12E8720027A8E5 /* BackgroundHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */; };
-		0915D1812A12E8720027A8E5 /* ImageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1792A12E8720027A8E5 /* ImageModel.swift */; };
-		0915D1822A12E8720027A8E5 /* VirtualBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */; };
-		0915D1832A12E8720027A8E5 /* BackgroundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */; };
-		0915D1842A12E8720027A8E5 /* CollectionViewSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */; };
-		0915D1852A12E8720027A8E5 /* VirtualBackgroundController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */; };
+		0915D1902A12F12E0027A8E5 /* DisplayImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1872A12F12E0027A8E5 /* DisplayImage.swift */; };
+		0915D1912A12F12E0027A8E5 /* BackgroundItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1892A12F12E0027A8E5 /* BackgroundItemCell.swift */; };
+		0915D1922A12F12E0027A8E5 /* BackgroundHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18A2A12F12E0027A8E5 /* BackgroundHeader.swift */; };
+		0915D1932A12F12E0027A8E5 /* ImageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18B2A12F12E0027A8E5 /* ImageModel.swift */; };
+		0915D1942A12F12E0027A8E5 /* VirtualBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18C2A12F12E0027A8E5 /* VirtualBackgroundViewController.swift */; };
+		0915D1952A12F12E0027A8E5 /* BackgroundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18D2A12F12E0027A8E5 /* BackgroundViewModel.swift */; };
+		0915D1962A12F12E0027A8E5 /* CollectionViewSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18E2A12F12E0027A8E5 /* CollectionViewSections.swift */; };
+		0915D1972A12F12E0027A8E5 /* VirtualBackgroundController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D18F2A12F12E0027A8E5 /* VirtualBackgroundController.swift */; };
+		0915D1992A12F1570027A8E5 /* BackgroundSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1982A12F1570027A8E5 /* BackgroundSelector.swift */; };
 		092007EE27F5D160005FEDB9 /* NIOTransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = 092007ED27F5D160005FEDB9 /* NIOTransportServices */; };
 		092007F127F5D1D6005FEDB9 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 092007F027F5D1D6005FEDB9 /* FluentSQLiteDriver */; };
 		0921A5522761791E0069F324 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5042761791E0069F324 /* Assets.xcassets */; };
@@ -141,15 +141,15 @@
 		0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CommunicationViewController+PiPDelegate.swift"; path = "CBAFusion/iOS/UIKit/CommunicationViewController+PiPDelegate.swift"; sourceTree = SOURCE_ROOT; };
 		0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CommunicationViewController+State.swift"; path = "CBAFusion/iOS/UIKit/CommunicationViewController+State.swift"; sourceTree = SOURCE_ROOT; };
 		0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommunicationViewController.swift; path = CBAFusion/iOS/UIKit/CommunicationViewController.swift; sourceTree = SOURCE_ROOT; };
-		0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BackgroundSelector.swift; path = "../../../../../../Private/swift-fcsdk-cbafusion/CBAFusion/iOS/View/Communication/BackgroundSelector.swift"; sourceTree = "<group>"; };
-		0915D1752A12E8720027A8E5 /* DisplayImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DisplayImage.swift; sourceTree = "<group>"; };
-		0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundItemCell.swift; sourceTree = "<group>"; };
-		0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundHeader.swift; sourceTree = "<group>"; };
-		0915D1792A12E8720027A8E5 /* ImageModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageModel.swift; sourceTree = "<group>"; };
-		0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundViewController.swift; sourceTree = "<group>"; };
-		0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundViewModel.swift; sourceTree = "<group>"; };
-		0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionViewSections.swift; sourceTree = "<group>"; };
-		0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundController.swift; sourceTree = "<group>"; };
+		0915D1872A12F12E0027A8E5 /* DisplayImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DisplayImage.swift; sourceTree = "<group>"; };
+		0915D1892A12F12E0027A8E5 /* BackgroundItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundItemCell.swift; sourceTree = "<group>"; };
+		0915D18A2A12F12E0027A8E5 /* BackgroundHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundHeader.swift; sourceTree = "<group>"; };
+		0915D18B2A12F12E0027A8E5 /* ImageModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageModel.swift; sourceTree = "<group>"; };
+		0915D18C2A12F12E0027A8E5 /* VirtualBackgroundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundViewController.swift; sourceTree = "<group>"; };
+		0915D18D2A12F12E0027A8E5 /* BackgroundViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundViewModel.swift; sourceTree = "<group>"; };
+		0915D18E2A12F12E0027A8E5 /* CollectionViewSections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionViewSections.swift; sourceTree = "<group>"; };
+		0915D18F2A12F12E0027A8E5 /* VirtualBackgroundController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundController.swift; sourceTree = "<group>"; };
+		0915D1982A12F1570027A8E5 /* BackgroundSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundSelector.swift; sourceTree = "<group>"; };
 		0921A4FD2761791E0069F324 /* CBAFusion.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CBAFusion.entitlements; sourceTree = "<group>"; };
 		0921A5042761791E0069F324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0921A5092761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
@@ -256,26 +256,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0915D1742A12E8720027A8E5 /* VirtualBackground */ = {
+		0915D1862A12F12E0027A8E5 /* VirtualBackground */ = {
 			isa = PBXGroup;
 			children = (
-				0915D1752A12E8720027A8E5 /* DisplayImage.swift */,
-				0915D1762A12E8720027A8E5 /* CollectionViewCells */,
-				0915D1792A12E8720027A8E5 /* ImageModel.swift */,
-				0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */,
-				0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */,
-				0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */,
-				0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */,
+				0915D1872A12F12E0027A8E5 /* DisplayImage.swift */,
+				0915D1882A12F12E0027A8E5 /* CollectionViewCells */,
+				0915D18B2A12F12E0027A8E5 /* ImageModel.swift */,
+				0915D18C2A12F12E0027A8E5 /* VirtualBackgroundViewController.swift */,
+				0915D18D2A12F12E0027A8E5 /* BackgroundViewModel.swift */,
+				0915D18E2A12F12E0027A8E5 /* CollectionViewSections.swift */,
+				0915D18F2A12F12E0027A8E5 /* VirtualBackgroundController.swift */,
 			);
-			name = VirtualBackground;
-			path = "../../../../../Private/swift-fcsdk-cbafusion/CBAFusion/iOS/UIKit/VirtualBackground";
+			path = VirtualBackground;
 			sourceTree = "<group>";
 		};
-		0915D1762A12E8720027A8E5 /* CollectionViewCells */ = {
+		0915D1882A12F12E0027A8E5 /* CollectionViewCells */ = {
 			isa = PBXGroup;
 			children = (
-				0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */,
-				0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */,
+				0915D1892A12F12E0027A8E5 /* BackgroundItemCell.swift */,
+				0915D18A2A12F12E0027A8E5 /* BackgroundHeader.swift */,
 			);
 			path = CollectionViewCells;
 			sourceTree = "<group>";
@@ -371,7 +370,7 @@
 		0921A5172761791E0069F324 /* UIKit */ = {
 			isa = PBXGroup;
 			children = (
-				0915D1742A12E8720027A8E5 /* VirtualBackground */,
+				0915D1862A12F12E0027A8E5 /* VirtualBackground */,
 				0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */,
 				0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */,
 				0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */,
@@ -444,7 +443,7 @@
 			children = (
 				0921A5352761791E0069F324 /* AddContact.swift */,
 				0921A5372761791E0069F324 /* SettingsSheet.swift */,
-				0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */,
+				0915D1982A12F1570027A8E5 /* BackgroundSelector.swift */,
 				0921A5382761791E0069F324 /* DialPad.swift */,
 				0921A5392761791E0069F324 /* DTMFSheet.swift */,
 				0921A53A2761791E0069F324 /* Contacts.swift */,
@@ -788,25 +787,25 @@
 			files = (
 				094C606D278BB50600617691 /* DateFormatter.swift in Sources */,
 				0921A5682761791E0069F324 /* NetworkMonitor.swift in Sources */,
+				0915D1912A12F12E0027A8E5 /* BackgroundItemCell.swift in Sources */,
+				0915D1992A12F1570027A8E5 /* BackgroundSelector.swift in Sources */,
 				0921A5812761791E0069F324 /* FCSDKCallService.swift in Sources */,
-				0915D1802A12E8720027A8E5 /* BackgroundHeader.swift in Sources */,
 				09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */,
 				09CB2EBB27AA1950003653BF /* UIApplication+Extension.swift in Sources */,
+				0915D1962A12F12E0027A8E5 /* CollectionViewSections.swift in Sources */,
 				0921A5552761791E0069F324 /* ContactModel.swift in Sources */,
-				0915D17E2A12E8720027A8E5 /* DisplayImage.swift in Sources */,
 				0921A5652761791E0069F324 /* AppSettings.swift in Sources */,
 				0921A5772761791E0069F324 /* DTMFSheet.swift in Sources */,
 				0921A55C2761791E0069F324 /* ProviderDelegate+Calls.swift in Sources */,
 				0921A5582761791E0069F324 /* URL+Extension.swift in Sources */,
-				0915D1842A12E8720027A8E5 /* CollectionViewSections.swift in Sources */,
 				09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */,
 				09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */,
 				0921A5612761791E0069F324 /* NetworkManager.swift in Sources */,
 				09E6D78A278C2A2100948065 /* _CallsModel.swift in Sources */,
+				0915D1972A12F12E0027A8E5 /* VirtualBackgroundController.swift in Sources */,
 				0921A5562761791E0069F324 /* LoginResponse.swift in Sources */,
 				0915D1702A12E7D60027A8E5 /* CommunicationViewController+State.swift in Sources */,
 				0921A55D2761791E0069F324 /* ProviderDelegate.swift in Sources */,
-				0915D1812A12E8720027A8E5 /* ImageModel.swift in Sources */,
 				0921A57A2761791E0069F324 /* CallSheet.swift in Sources */,
 				0921A5842761791E0069F324 /* ContentView.swift in Sources */,
 				09CB2EAB27A8CE9E003653BF /* CommunicationView.swift in Sources */,
@@ -820,7 +819,6 @@
 				0921A56B2761791E0069F324 /* _ContactModel.swift in Sources */,
 				0921A5662761791E0069F324 /* NetworkRepository.swift in Sources */,
 				0921A55B2761791E0069F324 /* CallKitManager.swift in Sources */,
-				0915D1732A12E8400027A8E5 /* BackgroundSelector.swift in Sources */,
 				0921A55A2761791E0069F324 /* NSUserActivity+Extension.swift in Sources */,
 				0921A5642761791E0069F324 /* CommunicationViewControllerDelegate.swift in Sources */,
 				0921A5592761791E0069F324 /* StartCallConvertible.swift in Sources */,
@@ -837,15 +835,16 @@
 				0921A5752761791E0069F324 /* SettingsSheet.swift in Sources */,
 				0921A56E2761791E0069F324 /* Authentication.swift in Sources */,
 				0921A5862761791E0069F324 /* AppDelegate.swift in Sources */,
+				0915D1952A12F12E0027A8E5 /* BackgroundViewModel.swift in Sources */,
 				0921A5622761791E0069F324 /* View+Extension.swift in Sources */,
+				0915D1902A12F12E0027A8E5 /* DisplayImage.swift in Sources */,
+				0915D1942A12F12E0027A8E5 /* VirtualBackgroundViewController.swift in Sources */,
 				0921A5782761791E0069F324 /* Contacts.swift in Sources */,
-				0915D1832A12E8720027A8E5 /* BackgroundViewModel.swift in Sources */,
-				0915D17F2A12E8720027A8E5 /* BackgroundItemCell.swift in Sources */,
+				0915D1932A12F12E0027A8E5 /* ImageModel.swift in Sources */,
+				0915D1922A12F12E0027A8E5 /* BackgroundHeader.swift in Sources */,
 				0921A5722761791E0069F324 /* AED.swift in Sources */,
 				0921A5852761791E0069F324 /* CBAFusionApp.swift in Sources */,
 				0921A5702761791E0069F324 /* Console.swift in Sources */,
-				0915D1822A12E8720027A8E5 /* VirtualBackgroundViewController.swift in Sources */,
-				0915D1852A12E8720027A8E5 /* VirtualBackgroundController.swift in Sources */,
 				0921A5692761791E0069F324 /* Communication+ViewControllerRepresenable.swift in Sources */,
 				0915D1652A12E7900027A8E5 /* Constants.swift in Sources */,
 			);
@@ -1139,7 +1138,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = NO;
@@ -1182,7 +1181,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = NO;
@@ -1197,7 +1196,6 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -1211,7 +1209,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1227,7 +1225,6 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -1241,7 +1238,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = .IntentsExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
