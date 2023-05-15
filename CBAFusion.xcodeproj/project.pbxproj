@@ -1121,7 +1121,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CBAFusion/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "com-cba-japan.CBAFusion";
 				INFOPLIST_KEY_CFBundleExecutable = CBAFusion;
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
@@ -1165,7 +1164,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CBAFusion/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "com-cba-japan.CBAFusion";
 				INFOPLIST_KEY_CFBundleExecutable = CBAFusion;
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
