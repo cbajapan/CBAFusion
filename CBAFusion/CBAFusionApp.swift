@@ -88,7 +88,9 @@ struct CBAFusionApp: App {
                     fcsdkCallService.appDelegate = delegate
                     fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
-                    AppSettings.registerDefaults()
+                    if (UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) == nil), (UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) == nil) {
+                        AppSettings.registerDefaults(.sendAndReceive, audio: .sendAndReceive)
+                    }
                 }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
                     

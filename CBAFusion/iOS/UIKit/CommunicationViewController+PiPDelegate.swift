@@ -60,7 +60,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                     contentViewController: pipVideoCallViewController)
                 
                 pipController = AVPictureInPictureController(contentSource: source)
-                guard var pipController = self.pipController else { return }
+                guard let pipController = self.pipController else { return }
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
@@ -70,7 +70,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                 let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
 
                 pipController = AVPictureInPictureController(contentSource: source)
-                guard var pipController = self.pipController else { return }
+                guard let pipController = self.pipController else { return }
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)

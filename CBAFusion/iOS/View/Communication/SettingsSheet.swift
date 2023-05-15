@@ -39,6 +39,9 @@ struct SettingsSheet: View {
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     @AppStorage("DefaultAudio") var selectedDefaultAudio: ACBAudioDevice = .speakerphone
     
+    @AppStorage(MediaValue.keyAudioDirection.rawValue) var preferredAudio: String = ""
+    @AppStorage(MediaValue.keyVideoDirection.rawValue) var preferredVideo: String = ""
+    
     
     @EnvironmentObject private var authenticationService: AuthenticationService
     @EnvironmentObject private var contactService: ContactService
@@ -61,6 +64,26 @@ struct SettingsSheet: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Group {
                             if UIDevice.current.userInterfaceIdiom == .phone {
+                                Text("Preferred Video Direction")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $preferredVideo) {
+                                    ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue.capitalized)
+                                    }
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                
+                                Text("Preferred Audio Direction")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $preferredAudio) {
+                                    ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue.capitalized)
+                                    }
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                
                                 Text("Audio Options")
                                     .fontWeight(.light)
                                     .multilineTextAlignment(.leading)

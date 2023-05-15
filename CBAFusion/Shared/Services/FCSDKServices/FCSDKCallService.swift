@@ -61,7 +61,6 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func initializeFCSDKCall() async throws -> ACBClientCall? {
-        
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         let outboundCall = await uc.phone.createCall(
             toAddress: self.fcsdkCall?.handle ?? "",
@@ -144,7 +143,7 @@ class FCSDKCallService: NSObject, ObservableObject {
         return Date().timeIntervalSince(connectDate)
     }
     
-    func startAudioSession() {
+    func startAudioSession() async {
         self.uc?.phone.audioDeviceManager.start()
         self.audioDeviceManager = self.uc?.phone.audioDeviceManager
     }

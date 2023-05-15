@@ -194,16 +194,16 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if closeClickID != context.coordinator.previousCloseClickID {
-            Task {
+            Task.detached {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                    self.logger?.error("Error ending call - Error: \(error)")
+                    await self.logger?.error("Error ending call - Error: \(error)")
                 }
                 await setServiceHasEnded()
                 await uiViewController.currentState(state: .hasEnded)
-                if self.isOutgoing {
-                    self.fcsdkCallService.stopRing()
+                if await self.isOutgoing {
+                    await self.fcsdkCallService.stopRing()
                 }
             }
             context.coordinator.previousCloseClickID = closeClickID

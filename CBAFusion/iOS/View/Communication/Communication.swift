@@ -68,8 +68,6 @@ struct Communication: View {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
     
-    
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -307,16 +305,16 @@ struct Communication: View {
             self.hasConnectedID = UUID()
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
-            self.fcsdkCallService.startAudioSession()
+            Task.detached {
+                await self.fcsdkCallService.startAudioSession()
+            }
         }
         
         .onReceive(self.fcsdkCallService.$isStreaming, perform: { output in
             if output {
-                Task {
                     self.fcsdkCallService.selectResolution(res: self.selectedResolution)
                     self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
                     self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
-                }
             }
         })
         .onReceive(self.fcsdkCallService.$hasEnded, perform: { output in
@@ -331,7 +329,7 @@ struct Communication: View {
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false
             self.fcsdkCallService.isStreaming = false
-            Task {
+            Task.detached {
                 try await self.contactService.fetchContactCalls(self.destination)
             }
         })

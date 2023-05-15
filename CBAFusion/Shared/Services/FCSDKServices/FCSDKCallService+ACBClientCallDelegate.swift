@@ -16,8 +16,8 @@ extension FCSDKCallService: ACBClientCallDelegate {
     @MainActor private func endCall() async {
         self.hasEnded = true
         if isBuffer {
-            await fcsdkCall?.call?.removeBufferView()
-            await fcsdkCall?.call?.removeLocalBufferView()
+            await self.fcsdkCall?.call?.removeBufferView()
+            await self.fcsdkCall?.call?.removeLocalBufferView()
         }
     }
     
@@ -39,14 +39,14 @@ extension FCSDKCallService: ACBClientCallDelegate {
         await self.inCall()
         isStreaming = true
     }
-
+    
     func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
         Task { @MainActor in
             self.callStatus = status.rawValue
         }
         switch status {
         case .setup:
-           break
+            break
         case .preparingBufferViews:
             if isBuffer {
                 await setupBufferViews()
@@ -68,7 +68,9 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .error:
             await setErrorMessage(message: "Unkown Error")
         case .ended:
-            await self.endCall()
+            Task { @MainActor in
+                await self.endCall()
+            }
         @unknown default:
             break
         }
