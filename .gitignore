@@ -1,6 +1,6 @@
 ### Unwanted repo directories and files
 azure-pipelines.yml
-CBAFusion.xcodeproj/project.pbxproj
+#CBAFusion.xcodeproj/project.pbxproj
 
 ### macOS ###
 # General
