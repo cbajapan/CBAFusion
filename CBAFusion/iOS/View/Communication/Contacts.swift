@@ -29,47 +29,54 @@ struct Contacts: View {
         NavigationView {
             ZStack {
                 List {
-                    ForEach(self.contactService.contacts ?? [], id: \.id) { contact in
-                       
-                        NavigationLink(destination: ContactCard(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing, contact: contact)) {
-                            HStack {
-                                ZStack{
-                                    if #available(iOS 15.0, *) {
-                                        Circle()
-                                            .fill(Color.cyan)
-                                            .frame(width: 30, height: 30, alignment: .leading)
-                                    } else {
-                                        Circle()
-                                            .fill(Color.blue)
-                                            .frame(width: 30, height: 30, alignment: .leading)
+                    if #available(iOS 15, *) {
+                        ForEach(self.contactService.contacts ?? [], id: \.id) { contact in
+                            
+                            NavigationLink(destination: ContactCard(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, isOutgoing: self.$fcsdkCallService.isOutgoing, contact: contact)) {
+                                HStack {
+                                    ZStack{
+                                        if #available(iOS 15.0, *) {
+                                            Circle()
+                                                .fill(Color.cyan)
+                                                .frame(width: 30, height: 30, alignment: .leading)
+                                        } else {
+                                            Circle()
+                                                .fill(Color.blue)
+                                                .frame(width: 30, height: 30, alignment: .leading)
+                                        }
+                                    }
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Text(contact.username)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(colorScheme == .dark ? .white : .black)
+                                        Text(contact.number)
+                                            .fontWeight(.light)
+                                            .padding(.leading, 10)
+                                            .foregroundColor(colorScheme == .dark ? .white : .black)
                                     }
                                 }
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text(contact.username)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                                    Text(contact.number)
-                                        .fontWeight(.light)
-                                        .padding(.leading, 10)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                                
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button("Delete") {
+                                    self.removeContact(contact)
                                 }
+                                .tint(.red)
                             }
-
-                        }
-                        .swipeActions(edge: .trailing) {
-                            Button("Delete") {
-                                self.removeContact(contact)
+                            .swipeActions(edge: .leading) {
+                                Button("Edit") {
+                                    self.editContact(contact)
+                                }
+                                .tint(.green)
                             }
-                            .tint(.red)
                         }
-                        .swipeActions(edge: .leading) {
-                            Button("Edit") {
-                                self.editContact(contact)
-                            }
-                            .tint(.green)
-                        }
+                        .navigationTitle("Contacts")
+                    } else {
+                        
+                        
+                        
                     }
-                    .navigationTitle("Contacts")
+
                 }
                 .background(colorScheme == .dark ? .black : Color(uiColor: .systemGray2))
                    if !self.authenticationService.sessionExists {
@@ -99,9 +106,17 @@ struct Contacts: View {
                 }
             })
         }
-        .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
-            Button("OK", role: .cancel) { }
+        .alert(isPresented: self.$fcsdkCallService.doNotDisturb, content: {
+            Alert(
+                title: Text("Do Not Disturb is On"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                })
+            )
         })
+//        .alert("Do Not Disturb is On", isPresented: self.$fcsdkCallService.doNotDisturb, actions: {
+//            Button("OK", role: .cancel) { }
+//        })
         .fullScreenCover(isPresented: self.$fcsdkCallService.presentCommunication, content: {
             Communication(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo)
                 .environmentObject(authenticationService)

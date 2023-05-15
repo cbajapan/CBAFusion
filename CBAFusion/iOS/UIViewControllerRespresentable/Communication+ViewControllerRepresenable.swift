@@ -13,7 +13,6 @@ import AVFoundation
 
 struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
-    @Binding var pip: Bool
     @Binding var removePip: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -31,7 +30,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var resumeAudioID: UUID?
     @Binding var muteVideoID: UUID?
     @Binding var resumeVideoID: UUID?
-    @Binding var pipClickedID: UUID?
     @Binding var hasStartedConnectingID: UUID?
     @Binding var ringingID: UUID?
     @Binding var hasConnectedID: UUID?
@@ -40,9 +38,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var contactService: ContactService
+    @EnvironmentObject var pipStateObject: PipStateObject
     var logger: Logger?
     
-    @AppStorage("AudioOption") var selectedAudio = AudioOptions.ear
+    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
     @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
     @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     
@@ -54,7 +53,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             contactService: self.contactService,
             destination: self.destination,
             hasVideo: self.hasVideo,
-            acbuc: self.authenticationService.acbuc!,
+            acbuc: authenticationService.acbuc!,
             isOutgoing: self.isOutgoing
         )
         
@@ -72,7 +71,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
-        uiViewController.acbuc = self.authenticationService.acbuc!
         let call = self.fcsdkCallService
         
         if call.hasStartedConnecting {
@@ -99,12 +97,13 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
-                Task {
+                Task { @MainActor in
+                    guard let newView = fcsdkCallService.fcsdkCall?.communicationView else { return }
+                    uiViewController.view = newView
+                    
 #if !targetEnvironment(simulator)
-                    if #available(iOS 15.0.0, *) {
-                        guard let remoteView = self.fcsdkCall?.remoteView else { return }
-                        guard let previewView = self.fcsdkCall?.previewView else { return }
-                        await uiViewController.updateRemoteViewForBuffer(remote: remoteView, local: previewView)
+                    if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
+                        await uiViewController.layoutPipLayer()
                     }
 #endif
                     await uiViewController.currentState(state: .hasConnected)
@@ -120,12 +119,13 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousHasConnectedID = hasConnectedID
         }
         
-        
-        if pipClickedID != context.coordinator.previousPipClickedID {
-            Task {
-                await uiViewController.showPip(show: self.pip)
+        if #available(iOS 15, *) {
+            if pipStateObject.pipClickedID != context.coordinator.previousPipClickedID {
+                Task {
+                    await uiViewController.showPip(show: pipStateObject.pip)
+                }
+                context.coordinator.previousPipClickedID = pipStateObject.pipClickedID
             }
-            context.coordinator.previousPipClickedID = pipClickedID
         }
         
         if holdID != context.coordinator.previousHoldID {
@@ -194,16 +194,16 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if closeClickID != context.coordinator.previousCloseClickID {
-            Task {
+            Task.detached {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                    self.logger?.error("Error ending call - Error: \(error)")
+                    await self.logger?.error("Error ending call - Error: \(error)")
                 }
                 await setServiceHasEnded()
                 await uiViewController.currentState(state: .hasEnded)
-                if self.isOutgoing {
-                    self.fcsdkCallService.stopRing()
+                if await self.isOutgoing {
+                    await self.fcsdkCallService.stopRing()
                 }
             }
             context.coordinator.previousCloseClickID = closeClickID
@@ -237,18 +237,15 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             self.parent.fcsdkCall = call
         }
         
-        func passViewsToService(preview: UIView, remoteView: UIView) async {
-            await self.parent.fcsdkCall?.previewView = preview
-            await self.parent.fcsdkCall?.remoteView = remoteView
+        @MainActor
+        func passViewsToService(communicationView: CommunicationView) async {
+           self.parent.fcsdkCall?.communicationView = communicationView
         }
     }
     
     @MainActor
     func setServiceHasEnded() async {
-        if !self.fcsdkCallService.hasEnded {
-            self.fcsdkCallService.hasEnded = true
-            self.fcsdkCallService.connectDate = nil
-        }
+        self.fcsdkCallService.connectDate = nil
     }
     
     func makeCoordinator() -> Coordinator {
@@ -259,7 +256,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
 
 protocol FCSDKCallDelegate: AnyObject {
     func passCallToService(_ call: FCSDKCall) async
-    func passViewsToService(preview: UIView, remoteView: UIView) async
+    func passViewsToService(communicationView: CommunicationView) async
 }
 
 enum OurErrors: String, Swift.Error {

@@ -8,16 +8,18 @@
 import Foundation
 import Network
 import AVFoundation
-import Logging
-
+import OSLog
+import Combine
 
 class NetworkMonitor: ObservableObject {
     
     let monitor: NWPathMonitor
     var logger: Logger
+    var stateCancellable: Cancellable?
+    let pathState = NWPathState()
     
     init(type: RequiredInterfaceType) {
-        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Network Monitor - ")
+        self.logger = Logger(subsystem: "\(Constants.BUNDLE_IDENTIFIER)", category: "Network Monitor")
         switch type {
         case .cell:
             self.monitor = NWPathMonitor(requiredInterfaceType: .cellular)
@@ -30,40 +32,35 @@ class NetworkMonitor: ObservableObject {
         }
         
         
-        monitor.pathUpdateHandler = { [weak self] path in
+        stateCancellable = pathState.publisher(for: \.pathStatus) as? Cancellable
+        monitor.pathUpdateHandler = { [weak self] state in
             guard let strongSelf = self else { return }
-            switch path.status {
-            case .satisfied:
-                guard let strongSelf = self else { return }
-                strongSelf.logger.info("We're connected!")
-            case .unsatisfied:
-                    guard let strongSelf = self else { return }
-                    strongSelf.logger.info("No connection. \(path)")
+            switch state.status {
             case .requiresConnection:
-                guard let strongSelf = self else { return }
-                strongSelf.logger.info("Connection Needed")
-            @unknown default:
+                strongSelf.logger.trace("Requires Connection")
+            case .satisfied:
+                strongSelf.logger.trace("Connection satisfied")
+            case .unsatisfied:
+                strongSelf.logger.trace("Connection unsatisfied")
+            default:
                 break
             }
-            strongSelf.logger.info("Available interface: - \(path.availableInterfaces)")
-            strongSelf.logger.info("Path is Expensive - \(path.isExpensive)")
-            strongSelf.logger.info("Gateways \(path.gateways)")
-            strongSelf.logger.info("In low data mode \(path.isConstrained)")
-            strongSelf.logger.info("Local Endpoint \(String(describing: path.localEndpoint))")
-            strongSelf.logger.info("Remote Endpoint \(String(describing: path.remoteEndpoint))")
-            strongSelf.logger.info("Supports DNS \(path.supportsDNS)")
-            strongSelf.logger.info("Supports IPv4 \(path.supportsIPv4)")
-            strongSelf.logger.info("Supports IPv6 \(path.supportsIPv6)")
+            strongSelf.pathState.pathStatus = state.status
         }
-        
         let queue = DispatchQueue(label: "NWPathMonitor")
         monitor.start(queue: queue)
     }
     
+    deinit {
+        stateCancellable = nil
+    }
+    
     func networkStatus() -> Bool {
         if monitor.currentPath.status == .satisfied {
+            logger.info("Connected")
             return true
         } else {
+            logger.info("Disconnected")
             return false
         }
     }
@@ -74,4 +71,9 @@ enum RequiredInterfaceType {
     case wired
     case wireless
     case all
+}
+
+
+class NWPathState: NSObject, ObservableObject {
+    @Published var pathStatus: NWPath.Status?
 }

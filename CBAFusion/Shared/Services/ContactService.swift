@@ -92,7 +92,7 @@ class ContactService: ObservableObject {
         }
     }
     
-    
+    @MainActor
     func clearToDismiss() async {
         username = ""
         number = ""
@@ -133,7 +133,7 @@ class ContactService: ObservableObject {
         }
     }
     
-    
+    @MainActor
     func setCallsForContact(_ contact: ContactModel) async {
         self.calls = contact.calls
     }
@@ -174,6 +174,7 @@ class ContactService: ObservableObject {
         }
     }
     
+    @MainActor
     func deleteCalls() async {
         self.showProgress = true
         let result = try? await self.delegate?.removeCalls()
@@ -188,11 +189,13 @@ class ContactService: ObservableObject {
         }
     }
     
-    @MainActor
     func editCall(fcsdkCall: FCSDKCall) async {
         do {
             guard let contact = fcsdkCall.contact else { throw OurErrors.noContactID }
-            self.contacts = try await self.delegate?.updateCall(contact, fcsdkCall: fcsdkCall)
+            let updated = try await self.delegate?.updateCall(contact, fcsdkCall: fcsdkCall)
+            Task { @MainActor in
+                self.contacts = updated
+            }
         } catch {
             self.logger.error("Error Editing Call: \(error)")
         }

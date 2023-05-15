@@ -15,44 +15,60 @@ extension FCSDKCallService: ACBClientCallDelegate {
     
     @MainActor private func endCall() async {
         self.hasEnded = true
+        if isBuffer {
+            await self.fcsdkCall?.call?.removeBufferView()
+            await self.fcsdkCall?.call?.removeLocalBufferView()
+        }
     }
     
-    func call(_ call: ACBClientCall, didChange status: ACBClientCallStatus) {
+    @MainActor
+    func setupBufferViews() async {
+        fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView()
+        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView()
+        fcsdkCall?.communicationView?.setupUI()
+        fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
+        fcsdkCall?.communicationView?.captureSession = await fcsdkCall?.call?.captureSession()
+        if let backgroundImage = backgroundImage {
+            let mode = virtualBackgroundMode
+            await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: mode)
+        }
+    }
+    
+    @MainActor
+    func notifyInCall() async {
+        await self.inCall()
+        isStreaming = true
+    }
+    
+    func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
+        Task { @MainActor in
+            self.callStatus = status.rawValue
+        }
         switch status {
         case .setup:
             break
+        case .preparingBufferViews:
+            if isBuffer {
+                await setupBufferViews()
+            }
         case .alerting:
-            Task {
-                await self.alerting()
-            }
+            await self.alerting()
         case .ringing:
-            Task {
-                await ringing()
-            }
+            await ringing()
         case .mediaPending:
             break
         case .inCall:
-            Task {
-                await self.inCall()
-            }
+            await notifyInCall()
         case .timedOut:
-            Task {
-                await setErrorMessage(message: "Call timed out")
-            }
+            await setErrorMessage(message: "Call timed out")
         case .busy:
-            Task {
-                await setErrorMessage(message: "User is Busy")
-            }
+            await setErrorMessage(message: "User is Busy")
         case .notFound:
-            Task {
-                await setErrorMessage(message: "Could not find user")
-            }
+            await setErrorMessage(message: "Could not find user")
         case .error:
-            Task {
-                await setErrorMessage(message: "Unkown Error")
-            }
+            await setErrorMessage(message: "Unkown Error")
         case .ended:
-            Task {
+            Task { @MainActor in
                 await self.endCall()
             }
         @unknown default:
@@ -85,10 +101,10 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.errorMessage = message
     }
     
-    func call(_ call: ACBClientCall, didReceiveSessionInterruption message: String) {
+    func didReceiveSessionInterruption(_ message: String, call: ACBClientCall) async {
         if message == "Session interrupted" {
             if  self.fcsdkCall?.call != nil {
-                if  self.fcsdkCall?.call?.status == .inCall {
+                if self.fcsdkCall?.call?.status == .inCall {
                     if !self.isOnHold {
                         call.hold()
                         self.isOnHold = true
@@ -98,32 +114,25 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    func call(_ call: ACBClientCall, didReceiveCallFailureWithError error: Error) {
-        Task {
-            await MainActor.run {
-                self.sendErrorMessage = true
-                self.errorMessage = error.localizedDescription
-            }
+    func didReceiveCallFailure(with error: Error, call: ACBClientCall) async {
+        await MainActor.run {
+            self.sendErrorMessage = true
+            self.errorMessage = error.localizedDescription
         }
     }
     
     
-    
-    func call(_ call: ACBClientCall, didReceiveDialFailureWithError error: Error) {
-        Task {
-            await MainActor.run {
-                self.sendErrorMessage = true
-                self.errorMessage = error.localizedDescription
-            }
+    func didReceiveDialFailure(with error: Error, call: ACBClientCall) async {
+        await MainActor.run {
+            self.sendErrorMessage = true
+            self.errorMessage = error.localizedDescription
         }
     }
     
-    func call(_ call: ACBClientCall?, didReceiveCallRecordingPermissionFailure message: String) {
-        Task {
-            await MainActor.run {
-                self.sendErrorMessage = true
-                self.errorMessage = message
-            }
+    func didReceiveCallRecordingPermissionFailure(_ message: String, call: ACBClientCall?) async {
+        await MainActor.run {
+            self.sendErrorMessage = true
+            self.errorMessage = message
         }
     }
     
@@ -135,10 +144,12 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.logger.info("Call Quality: \(inboundQuality)")
     }
     
-    func callDidReceiveMediaChangeRequest(_ call: ACBClientCall) {
+    func didReceiveMediaChangeRequest(_ call: ACBClientCall) async {
+        let audio = call.hasRemoteAudio
+        let video = call.hasRemoteVideo
+        self.logger.info("HAS AUDIO \(audio)")
+        self.logger.info("HAS VIDEO \(video)")
     }
-    
-    
 }
 
 

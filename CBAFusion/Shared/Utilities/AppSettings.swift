@@ -17,16 +17,16 @@ enum MediaValue: String {
 
 struct AppSettings {
     
-    static let media = ACBMediaDirection.sendAndReceive
+    static var media = ACBMediaDirection.sendAndReceive
 
-    static func registerDefaults() {
-        UserDefaults.standard.set(ACBMediaDirection.sendAndReceive.rawValue, forKey: MediaValue.keyAudioDirection.rawValue)
-        UserDefaults.standard.set(ACBMediaDirection.sendAndReceive.rawValue, forKey: MediaValue.keyVideoDirection.rawValue)
+    static func registerDefaults(_ video: ACBMediaDirection, audio: ACBMediaDirection) {
+        UserDefaults.standard.set(audio.rawValue, forKey: MediaValue.keyAudioDirection.rawValue)
+        UserDefaults.standard.set(video.rawValue, forKey: MediaValue.keyVideoDirection.rawValue)
     }
     
     
    static func mediaDirection(for string: String) -> ACBMediaDirection {
-       switch AppSettings.media {
+       switch ACBMediaDirection(rawValue: string) ?? .none {
         case .sendAndReceive:
             return ACBMediaDirection.sendAndReceive
         case .sendOnly:

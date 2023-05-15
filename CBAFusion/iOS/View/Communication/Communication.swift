@@ -9,6 +9,13 @@ import SwiftUI
 import FCSDKiOS
 import AVKit
 
+final class PipStateObject: ObservableObject {
+    static let shared = PipStateObject()
+    
+    @Published var pip: Bool = false
+    @Published var pipClickedID: UUID?
+}
+
 struct Communication: View {
     
     @State var inCall: Bool = true
@@ -20,7 +27,6 @@ struct Communication: View {
     @State var resumeVideo: Bool = false
     @State var hold: Bool = false
     @State var resume: Bool = false
-    @State var pip: Bool = false
     @State var removePip: Bool = false
     @State var passDestination: String = ""
     @State var passVideo: Bool = false
@@ -34,13 +40,17 @@ struct Communication: View {
     @State var resumeAudioID: UUID? = nil
     @State var muteVideoID: UUID? = nil
     @State var resumeVideoID: UUID? = nil
-    @State var pipClickedID: UUID? = nil
     @State var hasStartedConnectingID: UUID? = nil
     @State var ringingID: UUID? = nil
     @State var hasConnectedID: UUID? = nil
     @State private var formattedCallDuration: Text?
     @Binding var destination: String
     @Binding var hasVideo: Bool
+    @EnvironmentObject var pipStateObject: PipStateObject
+    
+    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
+    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
+    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {
@@ -58,13 +68,11 @@ struct Communication: View {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
     
-
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
+                
                 CommunicationViewControllerRepresentable(
-                    pip: self.$pip,
                     removePip: self.$removePip,
                     destination: self.$passDestination,
                     hasVideo: self.$passVideo,
@@ -82,13 +90,24 @@ struct Communication: View {
                     resumeAudioID: self.$resumeAudioID,
                     muteVideoID: self.$muteVideoID,
                     resumeVideoID: self.$resumeVideoID,
-                    pipClickedID: self.$pipClickedID,
                     hasStartedConnectingID: self.$hasStartedConnectingID,
                     ringingID: self.$ringingID,
                     hasConnectedID: self.$hasConnectedID
                 )
-                    .ignoresSafeArea(.all)
-                
+                .ignoresSafeArea(.all)
+                ZStack {
+                    HStack {
+                        Spacer()
+                        self.formattedCallDuration
+                            .multilineTextAlignment(.trailing)
+                            .foregroundColor(Color.white)
+                            .padding()
+                            .onReceive(Communication.timer) { _ in
+                                self.updateFormattedCallDuration()
+                            }
+                        Spacer()
+                    }
+                }
                 VStack(alignment: .trailing) {
                     HStack(alignment: .top) {
                         VStack {
@@ -102,38 +121,28 @@ struct Communication: View {
                                     .frame(width: 25, height: 25)
                                     .padding()
                             }
-                            #if !targetEnvironment(simulator)
-                                                        if #available(iOS 15.0.0, *) {
-                                                            if UIDevice.current.userInterfaceIdiom == .phone {
-                                                                Button {
-                                                                    self.pip.toggle()
-                                                                    self.pipClickedID = UUID()
-                                                                } label: {
-                                                                    ZStack {
-                                                                        Circle()
-                                                                            .fill(self.pip ? Color.white : Color.gray)
-                                                                            .frame(width: 30, height: 30)
-                                                                        Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                                                                            .resizable()
-                                                                            .multilineTextAlignment(.trailing)
-                                                                            .foregroundColor(Color.black)
-                                                                            .frame(width: 20, height: 20)
-                                                                            .padding()
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                            #endif
-                        }
-                        Spacer()
-                        ZStack {
-                            self.formattedCallDuration
-                                .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.white)
-                                .padding()
-                                .onReceive(Communication.timer) { _ in
-                                    self.updateFormattedCallDuration()
+#if !targetEnvironment(simulator)
+                            if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
+                                if UIDevice.current.userInterfaceIdiom == .phone {
+                                    Button {
+                                        self.pipStateObject.pip.toggle()
+                                        self.pipStateObject.pipClickedID = UUID()
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(self.pipStateObject.pip ? Color.white : Color.gray)
+                                                .frame(width: 30, height: 30)
+                                            Image(systemName:self.pipStateObject.pip ? "pip.exit" : "pip.enter")
+                                                .resizable()
+                                                .multilineTextAlignment(.trailing)
+                                                .foregroundColor(Color.black)
+                                                .frame(width: 20, height: 20)
+                                                .padding()
+                                        }
+                                    }
                                 }
+                            }
+#endif
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
@@ -149,6 +158,8 @@ struct Communication: View {
                                     .font(.title2)
                                     .bold()
                             }
+                            Text(fcsdkCallService.callStatus)
+                                .font(.caption)
                         }
                         .padding()
                     }
@@ -156,28 +167,28 @@ struct Communication: View {
                     HStack(alignment: .center) {
                         if self.fcsdkCallService.hasConnected {
                             Spacer()
-                            //#if !targetEnvironment(simulator)
-                            //                            if #available(iOS 15.0.0, *) {
-                            //                                if UIDevice.current.userInterfaceIdiom == .pad {
-                            //                                    Button {
-                            //                                        self.pip.toggle()
-                            //                                        self.pipClickedID = UUID()
-                            //                                    } label: {
-                            //                                        ZStack {
-                            //                                            Circle()
-                            //                                                .fill(self.pip ? Color.white : Color.gray)
-                            //                                                .frame(width: 50, height: 50)
-                            //                                            Image(systemName:self.pip ? "pip.exit" : "pip.enter")
-                            //                                                .resizable()
-                            //                                                .multilineTextAlignment(.trailing)
-                            //                                                .foregroundColor(Color.black)
-                            //                                                .frame(width: 25, height: 25)
-                            //                                                .padding()
-                            //                                        }
-                            //                                    }
-                            //                                }
-                            //                            }
-                            //#endif
+#if !targetEnvironment(simulator)
+                            if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
+                                if UIDevice.current.userInterfaceIdiom == .pad {
+                                    Button {
+                                        self.pipStateObject.pip.toggle()
+                                        self.pipStateObject.pipClickedID = UUID()
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(self.pipStateObject.pip ? Color.white : Color.gray)
+                                                .frame(width: 50, height: 50)
+                                            Image(systemName:self.pipStateObject.pip ? "pip.exit" : "pip.enter")
+                                                .resizable()
+                                                .multilineTextAlignment(.trailing)
+                                                .foregroundColor(Color.black)
+                                                .frame(width: 25, height: 25)
+                                                .padding()
+                                        }
+                                    }
+                                }
+                            }
+#endif
                             Button {
                                 self.hold.toggle()
                                 if self.hold {
@@ -263,7 +274,7 @@ struct Communication: View {
                         }
                         
                         Button {
-                            self.closeClickedID = UUID()
+                            self.fcsdkCallService.hasEnded = true
                         } label: {
                             ZStack {
                                 Circle()
@@ -294,20 +305,33 @@ struct Communication: View {
             self.hasConnectedID = UUID()
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
+            Task.detached {
+                await self.fcsdkCallService.startAudioSession()
+            }
         }
-        .onChange(of: self.fcsdkCallService.hasEnded) { newValue in
-            if newValue {
+        
+        .onReceive(self.fcsdkCallService.$isStreaming, perform: { output in
+            if output {
+                    self.fcsdkCallService.selectResolution(res: self.selectedResolution)
+                    self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
+                    self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+            }
+        })
+        .onReceive(self.fcsdkCallService.$hasEnded, perform: { output in
+            if output {
                 self.authenticationService.showSettingsSheet = false
                 self.fcsdkCallService.presentCommunication = false
                 self.closeClickedID = UUID()
+                self.fcsdkCallService.hasEnded = false
             }
-        }
+        })
         .onDisappear(perform: {
-            Task {
-                try await self.contactService.fetchContactCalls(self.destination)
-            }
             self.fcsdkCallService.hasEnded = false
             self.fcsdkCallService.hasConnected = false
+            self.fcsdkCallService.isStreaming = false
+            Task.detached {
+                try await self.contactService.fetchContactCalls(self.destination)
+            }
         })
         .sheet(isPresented: self.$authenticationService.showSettingsSheet, content: {
             SettingsSheet()
@@ -320,12 +344,21 @@ struct Communication: View {
                 DTMFSheet()
             }
         }
-        .alert(self.fcsdkCallService.errorMessage, isPresented: self.$fcsdkCallService.sendErrorMessage) {
-            Button("OK", role: .cancel) {
-                self.fcsdkCallService.sendErrorMessage = false
-                self.fcsdkCallService.hasEnded = true
+        .fullScreenCover(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, content: {
+            if #available(iOS 15, *) {
+                BackgroundSelector()
             }
-        }
+        })
+        .alert(isPresented: self.$fcsdkCallService.sendErrorMessage, content: {
+            Alert(
+                title: Text("\(self.fcsdkCallService.errorMessage)"),
+                message: Text(""),
+                dismissButton: .cancel(Text("Okay"), action: {
+                    self.fcsdkCallService.sendErrorMessage = false
+                    self.fcsdkCallService.hasEnded = true
+                })
+            )
+        })
     }
     
     /// Updates the the formatted call duration Text view for an active call's current duration, otherwise sets it to `nil`.

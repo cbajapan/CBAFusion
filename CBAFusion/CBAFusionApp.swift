@@ -16,7 +16,6 @@ import Logging
 @main
 struct CBAFusionApp: App {
     
-    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @Environment(\.scenePhase) var scenePhase
     @StateObject private var authenticationService = AuthenticationService()
@@ -25,9 +24,11 @@ struct CBAFusionApp: App {
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
+    @StateObject private var backgrounds = Backgrounds()
+    @StateObject private var pipStateObject = PipStateObject.shared
     
     @State var providerDelegate: ProviderDelegate?
-    @State var exists = SQLiteStore.exists()
+//    @State var exists = SQLiteStore.exists()
     @State var callIntent = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
@@ -52,13 +53,44 @@ struct CBAFusionApp: App {
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contactService)
                 .environmentObject(aedService)
-            
+                .environmentObject(backgrounds)
+                .environmentObject(pipStateObject)
+                .task {
+                    
+                    async let image1 = backgrounds.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image2 = backgrounds.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image3 = backgrounds.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image4 = backgrounds.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image5 = backgrounds.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image6 = backgrounds.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image7 = backgrounds.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image8 = backgrounds.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image9 = backgrounds.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image10 = backgrounds.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    async let image11 = backgrounds.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                    _ = await [
+                        image1,
+                        image2,
+                        image3,
+                        image4,
+                        image5,
+                        image6,
+                        image7,
+                        image8,
+                        image9,
+                        image10,
+                        image11
+                    ]
+                    backgrounds.displayImage = await image1
+                }
                 .onAppear {
                     fcsdkCallService.delegate = authenticationService
                     fcsdkCallService.appDelegate = delegate
                     fcsdkCallService.contactService = contactService
                     delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
-                    AppSettings.registerDefaults()
+                    if (UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) == nil), (UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) == nil) {
+                        AppSettings.registerDefaults(.sendAndReceive, audio: .sendAndReceive)
+                    }
                 }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
                     
@@ -77,14 +109,12 @@ struct CBAFusionApp: App {
                 .onChange(of: scenePhase) { (phase) in
                     switch phase {
                     case .active:
-                        self.logger.info("ScenePhase: active, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
                         Task {
                             await self.requestMicrophoneAndCameraPermissionFromAppSettings()
                             if self.authenticationService.acbuc?.connection == false {
                                 self.authenticationService.sessionExists = false
                             }
                             
-                            // When our scene becomes active if we are not connected to the socket and we have a sessionID we want to connect back to the service, set the UC object and phone delegate
                             if !callIntent {
                                 if self.authenticationService.acbuc == nil && !self.authenticationService.sessionID.isEmpty,
                                    servername != "" && username != "" {
@@ -98,7 +128,7 @@ struct CBAFusionApp: App {
                             
                         }
                     case .background:
-                        self.logger.info("ScenePhase: background, Are we Connected to the Socket?: \(String(describing: self.authenticationService.acbuc?.connection))")
+                        break
                     case .inactive:
                         self.logger.info("ScenePhase: inactive")
                     @unknown default:
@@ -110,7 +140,8 @@ struct CBAFusionApp: App {
     func reAuthFlow() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-        self.fcsdkCallService.setPhoneDelegate()
+        guard let uc = self.fcsdkCallService.acbuc else { return }
+        await self.fcsdkCallService.setPhoneDelegate(uc)
     }
     
     func reAuthFlowWithCallIntent() async {

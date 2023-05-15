@@ -24,7 +24,5 @@
 		<string>fetch</string>
 		<string>voip</string>
 	</array>
-	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleDarkContent</string>
 </dict>
 </plist>

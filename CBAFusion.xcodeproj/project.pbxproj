@@ -9,6 +9,19 @@
 /* Begin PBXBuildFile section */
 		0908679E26E75AAE00A83602 /* ringring.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0908679D26E75AAE00A83602 /* ringring.wav */; };
 		0910D8FA279E450900A3E288 /* Simulator.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0910D8F9279E450900A3E288 /* Simulator.mp4 */; };
+		0915D1652A12E7900027A8E5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1642A12E7900027A8E5 /* Constants.swift */; };
+		0915D16F2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */; };
+		0915D1702A12E7D60027A8E5 /* CommunicationViewController+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */; };
+		0915D1712A12E7D60027A8E5 /* CommunicationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */; };
+		0915D1732A12E8400027A8E5 /* BackgroundSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */; };
+		0915D17E2A12E8720027A8E5 /* DisplayImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1752A12E8720027A8E5 /* DisplayImage.swift */; };
+		0915D17F2A12E8720027A8E5 /* BackgroundItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */; };
+		0915D1802A12E8720027A8E5 /* BackgroundHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */; };
+		0915D1812A12E8720027A8E5 /* ImageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D1792A12E8720027A8E5 /* ImageModel.swift */; };
+		0915D1822A12E8720027A8E5 /* VirtualBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */; };
+		0915D1832A12E8720027A8E5 /* BackgroundViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */; };
+		0915D1842A12E8720027A8E5 /* CollectionViewSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */; };
+		0915D1852A12E8720027A8E5 /* VirtualBackgroundController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */; };
 		092007EE27F5D160005FEDB9 /* NIOTransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = 092007ED27F5D160005FEDB9 /* NIOTransportServices */; };
 		092007F127F5D1D6005FEDB9 /* FluentSQLiteDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 092007F027F5D1D6005FEDB9 /* FluentSQLiteDriver */; };
 		0921A5522761791E0069F324 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5042761791E0069F324 /* Assets.xcassets */; };
@@ -21,9 +34,6 @@
 		0921A55B2761791E0069F324 /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5142761791E0069F324 /* CallKitManager.swift */; };
 		0921A55C2761791E0069F324 /* ProviderDelegate+Calls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5152761791E0069F324 /* ProviderDelegate+Calls.swift */; };
 		0921A55D2761791E0069F324 /* ProviderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5162761791E0069F324 /* ProviderDelegate.swift */; };
-		0921A55E2761791E0069F324 /* CommunicationViewController+PiPDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5182761791E0069F324 /* CommunicationViewController+PiPDelegate.swift */; };
-		0921A55F2761791E0069F324 /* CommunicationViewConroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5192761791E0069F324 /* CommunicationViewConroller.swift */; };
-		0921A5602761791E0069F324 /* CommunicationViewController+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51A2761791E0069F324 /* CommunicationViewController+Delegate.swift */; };
 		0921A5612761791E0069F324 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51C2761791E0069F324 /* NetworkManager.swift */; };
 		0921A5622761791E0069F324 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A51D2761791E0069F324 /* View+Extension.swift */; };
 		0921A5642761791E0069F324 /* CommunicationViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0921A5202761791E0069F324 /* CommunicationViewControllerDelegate.swift */; };
@@ -68,15 +78,13 @@
 		09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886B27850AC7007FE276 /* LocalNotification.swift */; };
 		09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886D27851BBB007FE276 /* ContactCard.swift */; };
 		09BAD46527A0FE3D008F034A /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09BAD46427A0FE3D008F034A /* IntentHandler.swift */; };
-		09BAD46927A0FE3D008F034A /* IntentsExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 09BAD46127A0FE3D008F034A /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		09BAD46927A0FE3D008F034A /* IntentsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 09BAD46127A0FE3D008F034A /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		09CB2EA827A8CD9D003653BF /* AppIntentVocabulary.plist in Resources */ = {isa = PBXBuildFile; fileRef = 09CB2EA727A8CD9D003653BF /* AppIntentVocabulary.plist */; };
 		09CB2EAB27A8CE9E003653BF /* CommunicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CB2EAA27A8CE9E003653BF /* CommunicationView.swift */; };
-		09CB2EAD27A8D56B003653BF /* CommunicationViewController+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CB2EAC27A8D56B003653BF /* CommunicationViewController+State.swift */; };
 		09CB2EBB27AA1950003653BF /* UIApplication+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CB2EBA27AA1950003653BF /* UIApplication+Extension.swift */; };
 		09D956EB28111E3D00EC1798 /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09D956EA28111E3D00EC1798 /* FCSDKiOS */; };
 		09E668BD2807A696000479C4 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095A1EAC2782968E002D5805 /* Intents.framework */; };
 		09E6D78A278C2A2100948065 /* _CallsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E6D789278C2A2100948065 /* _CallsModel.swift */; };
-		09E6D790278E5E7C00948065 /* Contants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E6D78F278E5E7C00948065 /* Contants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,15 +112,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		095A1ECC2782968E002D5805 /* Embed App Extensions */ = {
+		095A1ECC2782968E002D5805 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				09BAD46927A0FE3D008F034A /* IntentsExtension.appex in Embed App Extensions */,
+				09BAD46927A0FE3D008F034A /* IntentsExtension.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		095C4B3C272158D200A0BCEB /* Embed Frameworks */ = {
@@ -130,6 +138,19 @@
 /* Begin PBXFileReference section */
 		0908679D26E75AAE00A83602 /* ringring.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringring.wav; sourceTree = "<group>"; };
 		0910D8F9279E450900A3E288 /* Simulator.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = Simulator.mp4; sourceTree = "<group>"; };
+		0915D1642A12E7900027A8E5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CommunicationViewController+PiPDelegate.swift"; path = "CBAFusion/iOS/UIKit/CommunicationViewController+PiPDelegate.swift"; sourceTree = SOURCE_ROOT; };
+		0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CommunicationViewController+State.swift"; path = "CBAFusion/iOS/UIKit/CommunicationViewController+State.swift"; sourceTree = SOURCE_ROOT; };
+		0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommunicationViewController.swift; path = CBAFusion/iOS/UIKit/CommunicationViewController.swift; sourceTree = SOURCE_ROOT; };
+		0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BackgroundSelector.swift; path = "../../../../../../Private/swift-fcsdk-cbafusion/CBAFusion/iOS/View/Communication/BackgroundSelector.swift"; sourceTree = "<group>"; };
+		0915D1752A12E8720027A8E5 /* DisplayImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DisplayImage.swift; sourceTree = "<group>"; };
+		0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundItemCell.swift; sourceTree = "<group>"; };
+		0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundHeader.swift; sourceTree = "<group>"; };
+		0915D1792A12E8720027A8E5 /* ImageModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageModel.swift; sourceTree = "<group>"; };
+		0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundViewController.swift; sourceTree = "<group>"; };
+		0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundViewModel.swift; sourceTree = "<group>"; };
+		0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionViewSections.swift; sourceTree = "<group>"; };
+		0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualBackgroundController.swift; sourceTree = "<group>"; };
 		0921A4FD2761791E0069F324 /* CBAFusion.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CBAFusion.entitlements; sourceTree = "<group>"; };
 		0921A5042761791E0069F324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0921A5092761791E0069F324 /* ContactModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactModel.swift; sourceTree = "<group>"; };
@@ -141,9 +162,6 @@
 		0921A5142761791E0069F324 /* CallKitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
 		0921A5152761791E0069F324 /* ProviderDelegate+Calls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ProviderDelegate+Calls.swift"; sourceTree = "<group>"; };
 		0921A5162761791E0069F324 /* ProviderDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderDelegate.swift; sourceTree = "<group>"; };
-		0921A5182761791E0069F324 /* CommunicationViewController+PiPDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+PiPDelegate.swift"; sourceTree = "<group>"; };
-		0921A5192761791E0069F324 /* CommunicationViewConroller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommunicationViewConroller.swift; sourceTree = "<group>"; };
-		0921A51A2761791E0069F324 /* CommunicationViewController+Delegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+Delegate.swift"; sourceTree = "<group>"; };
 		0921A51C2761791E0069F324 /* NetworkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		0921A51D2761791E0069F324 /* View+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		0921A5202761791E0069F324 /* CommunicationViewControllerDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommunicationViewControllerDelegate.swift; sourceTree = "<group>"; };
@@ -199,10 +217,8 @@
 		09BAD46627A0FE3D008F034A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		09CB2EA727A8CD9D003653BF /* AppIntentVocabulary.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = AppIntentVocabulary.plist; sourceTree = "<group>"; };
 		09CB2EAA27A8CE9E003653BF /* CommunicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationView.swift; sourceTree = "<group>"; };
-		09CB2EAC27A8D56B003653BF /* CommunicationViewController+State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommunicationViewController+State.swift"; sourceTree = "<group>"; };
 		09CB2EBA27AA1950003653BF /* UIApplication+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Extension.swift"; sourceTree = "<group>"; };
 		09E6D789278C2A2100948065 /* _CallsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _CallsModel.swift; sourceTree = "<group>"; };
-		09E6D78F278E5E7C00948065 /* Contants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +258,30 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0915D1742A12E8720027A8E5 /* VirtualBackground */ = {
+			isa = PBXGroup;
+			children = (
+				0915D1752A12E8720027A8E5 /* DisplayImage.swift */,
+				0915D1762A12E8720027A8E5 /* CollectionViewCells */,
+				0915D1792A12E8720027A8E5 /* ImageModel.swift */,
+				0915D17A2A12E8720027A8E5 /* VirtualBackgroundViewController.swift */,
+				0915D17B2A12E8720027A8E5 /* BackgroundViewModel.swift */,
+				0915D17C2A12E8720027A8E5 /* CollectionViewSections.swift */,
+				0915D17D2A12E8720027A8E5 /* VirtualBackgroundController.swift */,
+			);
+			name = VirtualBackground;
+			path = "../../../../../Private/swift-fcsdk-cbafusion/CBAFusion/iOS/UIKit/VirtualBackground";
+			sourceTree = "<group>";
+		};
+		0915D1762A12E8720027A8E5 /* CollectionViewCells */ = {
+			isa = PBXGroup;
+			children = (
+				0915D1772A12E8720027A8E5 /* BackgroundItemCell.swift */,
+				0915D1782A12E8720027A8E5 /* BackgroundHeader.swift */,
+			);
+			path = CollectionViewCells;
+			sourceTree = "<group>";
+		};
 		0921A4FC2761791E0069F324 /* CBAFusion */ = {
 			isa = PBXGroup;
 			children = (
@@ -254,25 +294,9 @@
 				0921A5052761791E0069F324 /* Shared */,
 				0921A5482761791E0069F324 /* Preview Content */,
 				0921A54A2761791E0069F324 /* iOS */,
-				0921A5002761791E0069F324 /* macOS */,
 				0921A5DA27618C650069F324 /* Settings.bundle */,
 			);
 			path = CBAFusion;
-			sourceTree = "<group>";
-		};
-		0921A5002761791E0069F324 /* macOS */ = {
-			isa = PBXGroup;
-			children = (
-				0921A5012761791E0069F324 /* View */,
-			);
-			path = macOS;
-			sourceTree = "<group>";
-		};
-		0921A5012761791E0069F324 /* View */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = View;
 			sourceTree = "<group>";
 		};
 		0921A5052761791E0069F324 /* Shared */ = {
@@ -284,7 +308,6 @@
 				0921A50A2761791E0069F324 /* Response */,
 				0921A53D2761791E0069F324 /* Request */,
 				0921A5282761791E0069F324 /* Entities */,
-				0921A52C2761791E0069F324 /* View */,
 				0921A53F2761791E0069F324 /* Services */,
 				0921A51B2761791E0069F324 /* Extensions */,
 				0921A5212761791E0069F324 /* Utilities */,
@@ -350,11 +373,11 @@
 		0921A5172761791E0069F324 /* UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				0915D1742A12E8720027A8E5 /* VirtualBackground */,
+				0915D16E2A12E7D60027A8E5 /* CommunicationViewController.swift */,
+				0915D16C2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift */,
+				0915D16D2A12E7D60027A8E5 /* CommunicationViewController+State.swift */,
 				09CB2EA927A8CE7B003653BF /* View */,
-				0921A5182761791E0069F324 /* CommunicationViewController+PiPDelegate.swift */,
-				0921A5192761791E0069F324 /* CommunicationViewConroller.swift */,
-				09CB2EAC27A8D56B003653BF /* CommunicationViewController+State.swift */,
-				0921A51A2761791E0069F324 /* CommunicationViewController+Delegate.swift */,
 			);
 			path = UIKit;
 			sourceTree = "<group>";
@@ -382,11 +405,11 @@
 			children = (
 				0921A5222761791E0069F324 /* AppSettings.swift */,
 				0921A51C2761791E0069F324 /* NetworkManager.swift */,
+				0915D1642A12E7900027A8E5 /* Constants.swift */,
 				0921A5232761791E0069F324 /* NetworkRepository.swift */,
 				0921A5242761791E0069F324 /* Keychain.swift */,
 				0921A5252761791E0069F324 /* NetworkMonitor.swift */,
 				09B0886B27850AC7007FE276 /* LocalNotification.swift */,
-				09E6D78F278E5E7C00948065 /* Contants.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -408,13 +431,6 @@
 			path = Entities;
 			sourceTree = "<group>";
 		};
-		0921A52C2761791E0069F324 /* View */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = View;
-			sourceTree = "<group>";
-		};
 		0921A5302761791E0069F324 /* AED */ = {
 			isa = PBXGroup;
 			children = (
@@ -430,6 +446,7 @@
 			children = (
 				0921A5352761791E0069F324 /* AddContact.swift */,
 				0921A5372761791E0069F324 /* SettingsSheet.swift */,
+				0915D1722A12E8400027A8E5 /* BackgroundSelector.swift */,
 				0921A5382761791E0069F324 /* DialPad.swift */,
 				0921A5392761791E0069F324 /* DTMFSheet.swift */,
 				0921A53A2761791E0069F324 /* Contacts.swift */,
@@ -626,7 +643,7 @@
 				094EE2FE26DCE211008C1637 /* Frameworks */,
 				094EE2FF26DCE211008C1637 /* Resources */,
 				095C4B3C272158D200A0BCEB /* Embed Frameworks */,
-				095A1ECC2782968E002D5805 /* Embed App Extensions */,
+				095A1ECC2782968E002D5805 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -669,7 +686,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1320;
-				LastUpgradeCheck = 1330;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					0921A5C1276185D80069F324 = {
 						CreatedOnToolsVersion = 13.1;
@@ -775,26 +792,27 @@
 				094C606D278BB50600617691 /* DateFormatter.swift in Sources */,
 				0921A5682761791E0069F324 /* NetworkMonitor.swift in Sources */,
 				0921A5812761791E0069F324 /* FCSDKCallService.swift in Sources */,
+				0915D1802A12E8720027A8E5 /* BackgroundHeader.swift in Sources */,
 				09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */,
 				09CB2EBB27AA1950003653BF /* UIApplication+Extension.swift in Sources */,
 				0921A5552761791E0069F324 /* ContactModel.swift in Sources */,
+				0915D17E2A12E8720027A8E5 /* DisplayImage.swift in Sources */,
 				0921A5652761791E0069F324 /* AppSettings.swift in Sources */,
 				0921A5772761791E0069F324 /* DTMFSheet.swift in Sources */,
 				0921A55C2761791E0069F324 /* ProviderDelegate+Calls.swift in Sources */,
 				0921A5582761791E0069F324 /* URL+Extension.swift in Sources */,
+				0915D1842A12E8720027A8E5 /* CollectionViewSections.swift in Sources */,
 				09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */,
 				09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */,
 				0921A5612761791E0069F324 /* NetworkManager.swift in Sources */,
 				09E6D78A278C2A2100948065 /* _CallsModel.swift in Sources */,
 				0921A5562761791E0069F324 /* LoginResponse.swift in Sources */,
-				09CB2EAD27A8D56B003653BF /* CommunicationViewController+State.swift in Sources */,
+				0915D1702A12E7D60027A8E5 /* CommunicationViewController+State.swift in Sources */,
 				0921A55D2761791E0069F324 /* ProviderDelegate.swift in Sources */,
+				0915D1812A12E8720027A8E5 /* ImageModel.swift in Sources */,
 				0921A57A2761791E0069F324 /* CallSheet.swift in Sources */,
-				0921A55F2761791E0069F324 /* CommunicationViewConroller.swift in Sources */,
 				0921A5842761791E0069F324 /* ContentView.swift in Sources */,
-				09E6D790278E5E7C00948065 /* Contants.swift in Sources */,
 				09CB2EAB27A8CE9E003653BF /* CommunicationView.swift in Sources */,
-				0921A5602761791E0069F324 /* CommunicationViewController+Delegate.swift in Sources */,
 				0921A5732761791E0069F324 /* AddContact.swift in Sources */,
 				0921A5822761791E0069F324 /* SQLiteStore.swift in Sources */,
 				0921A57B2761791E0069F324 /* LoginRequest.swift in Sources */,
@@ -805,16 +823,18 @@
 				0921A56B2761791E0069F324 /* _ContactModel.swift in Sources */,
 				0921A5662761791E0069F324 /* NetworkRepository.swift in Sources */,
 				0921A55B2761791E0069F324 /* CallKitManager.swift in Sources */,
+				0915D1732A12E8400027A8E5 /* BackgroundSelector.swift in Sources */,
 				0921A55A2761791E0069F324 /* NSUserActivity+Extension.swift in Sources */,
 				0921A5642761791E0069F324 /* CommunicationViewControllerDelegate.swift in Sources */,
 				0921A5592761791E0069F324 /* StartCallConvertible.swift in Sources */,
 				0921A56F2761791E0069F324 /* Welcome.swift in Sources */,
 				0921A56A2761791E0069F324 /* Login.swift in Sources */,
+				0915D16F2A12E7D60027A8E5 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				0921A57D2761791E0069F324 /* AEDService.swift in Sources */,
 				0921A57F2761791E0069F324 /* FCSDKCallService+ACBClientPhoneDelegate.swift in Sources */,
-				0921A55E2761791E0069F324 /* CommunicationViewController+PiPDelegate.swift in Sources */,
 				0921A5712761791E0069F324 /* AEDTopic.swift in Sources */,
 				0921A5672761791E0069F324 /* Keychain.swift in Sources */,
+				0915D1712A12E7D60027A8E5 /* CommunicationViewController.swift in Sources */,
 				0921A5802761791E0069F324 /* AuthenticationService.swift in Sources */,
 				0921A5762761791E0069F324 /* DialPad.swift in Sources */,
 				0921A5752761791E0069F324 /* SettingsSheet.swift in Sources */,
@@ -822,10 +842,15 @@
 				0921A5862761791E0069F324 /* AppDelegate.swift in Sources */,
 				0921A5622761791E0069F324 /* View+Extension.swift in Sources */,
 				0921A5782761791E0069F324 /* Contacts.swift in Sources */,
+				0915D1832A12E8720027A8E5 /* BackgroundViewModel.swift in Sources */,
+				0915D17F2A12E8720027A8E5 /* BackgroundItemCell.swift in Sources */,
 				0921A5722761791E0069F324 /* AED.swift in Sources */,
 				0921A5852761791E0069F324 /* CBAFusionApp.swift in Sources */,
 				0921A5702761791E0069F324 /* Console.swift in Sources */,
+				0915D1822A12E8720027A8E5 /* VirtualBackgroundViewController.swift in Sources */,
+				0915D1852A12E8720027A8E5 /* VirtualBackgroundController.swift in Sources */,
 				0921A5692761791E0069F324 /* Communication+ViewControllerRepresenable.swift in Sources */,
+				0915D1652A12E7900027A8E5 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -874,7 +899,6 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.cartisim.CBAFusionUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -901,7 +925,6 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.cartisim.CBAFusionUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -929,7 +952,6 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.cartisim.CBAFusionTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -957,7 +979,6 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.cartisim.CBAFusionTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -1096,15 +1117,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CBAFusion/CBAFusion.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: COMMUNICATION BUSINESS AVENUE INC. (6SMQB2LH3S)";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CBAFusion/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CBAFusion;
+				INFOPLIST_KEY_CFBundleDisplayName = "com-cba-japan.CBAFusion";
 				INFOPLIST_KEY_CFBundleExecutable = CBAFusion;
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
@@ -1124,10 +1144,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1143,15 +1161,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CBAFusion/CBAFusion.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: COMMUNICATION BUSINESS AVENUE INC. (6SMQB2LH3S)";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "CBAFusion/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CBAFusion/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CBAFusion;
+				INFOPLIST_KEY_CFBundleDisplayName = "com-cba-japan.CBAFusion";
 				INFOPLIST_KEY_CFBundleExecutable = CBAFusion;
 				INFOPLIST_KEY_CFBundleName = CBAFusion;
 				INFOPLIST_KEY_CFBundleVersion = 1;
@@ -1171,10 +1188,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1188,7 +1203,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1218,7 +1233,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;

@@ -11,7 +11,6 @@ import AVFoundation
 import FCSDKiOS
 import SwiftUI
 
-
 extension ProviderDelegate {
     
     @MainActor
@@ -61,8 +60,6 @@ extension ProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
-            try await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
-            self.fcsdkCallService.startAudioSession()
             await self.fcsdkCallService.answerFCSDKCall()
             action.fulfill()
             print("Answer Action Fullfilled")
@@ -81,8 +78,7 @@ extension ProviderDelegate {
                 callUpdate.supportsHolding = false
                 
                 guard let outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall else { return }
-                guard let preview = outgoingFCSDKCall.previewView else { return }
-                await self.fcsdkCallService.startCall(previewView: preview)
+                await self.fcsdkCallService.startCall(previewView: outgoingFCSDKCall.communicationView?.previewView)
                 acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
                 provider.reportCall(with: outgoingFCSDKCall.id, updated: callUpdate)
@@ -112,7 +108,7 @@ extension ProviderDelegate {
             print("Provider", provider)
         }
     }
-    
+
     //End Call
     //TODO: - When we end the call we want to check if we have any calls on hold if it is on hold then resume the call. We also want to make sure the correct call is ended while handling multiple calls.
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -126,6 +122,7 @@ extension ProviderDelegate {
                 }
                 do {
                     try await self.fcsdkCallService.endFCSDKCall(call)
+                    fcsdkCallService.stopAudioSession()
                     action.fulfill()
                 } catch {
                     self.logger.error("\(error)")
@@ -135,14 +132,21 @@ extension ProviderDelegate {
                 self.logger.info("No Call To End")
                 action.fail()
             }
+            await MainActor.run {
+                self.fcsdkCallService.hasEnded = false
+                self.fcsdkCallService.hasConnected = false
+                self.fcsdkCallService.isStreaming = false
+            }
         }
     }
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        self.logger.info("Provider - CXPlayDTMFCallAction")
-        let dtmfDigits:String = action.digits
+        Task {
+            self.logger.info("Provider - CXPlayDTMFCallAction")
+            let dtmfDigits:String = action.digits
         self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
-        action.fulfill()
+            action.fulfill()
+        }
     }
     
     //Provider Began
@@ -150,14 +154,15 @@ extension ProviderDelegate {
         self.logger.info("Provider began")
     }
 
-    @MainActor
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         self.logger.info("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
         self.logger.info("\(audioSession.sampleRate)")
+        ACBAudioDeviceManager.activeCallKitAudioSession(audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         self.logger.info("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
+        ACBAudioDeviceManager.deactiveCallKitAudioSession(audioSession)
     }
     
     // Here we can reset the provider to remove any stale callkit calls
