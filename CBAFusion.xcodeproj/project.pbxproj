@@ -74,7 +74,6 @@
 		0921A5DB27618C650069F324 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0921A5DA27618C650069F324 /* Settings.bundle */; };
 		094C606D278BB50600617691 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C606C278BB50600617691 /* DateFormatter.swift */; };
 		09681B442791508800DB6A69 /* FCSDKCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09681B432791508800DB6A69 /* FCSDKCall.swift */; };
-		09B0665C2949B86200BAB1EF /* FCSDKiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09B0665B2949B86200BAB1EF /* FCSDKiOS */; };
 		09B0886C27850AC7007FE276 /* LocalNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886B27850AC7007FE276 /* LocalNotification.swift */; };
 		09B0886E27851BBB007FE276 /* ContactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B0886D27851BBB007FE276 /* ContactCard.swift */; };
 		09BAD46527A0FE3D008F034A /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09BAD46427A0FE3D008F034A /* IntentHandler.swift */; };
@@ -242,7 +241,6 @@
 			files = (
 				092007F127F5D1D6005FEDB9 /* FluentSQLiteDriver in Frameworks */,
 				09D956EB28111E3D00EC1798 /* FCSDKiOS in Frameworks */,
-				09B0665C2949B86200BAB1EF /* FCSDKiOS in Frameworks */,
 				092007EE27F5D160005FEDB9 /* NIOTransportServices in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -655,7 +653,6 @@
 				092007ED27F5D160005FEDB9 /* NIOTransportServices */,
 				092007F027F5D1D6005FEDB9 /* FluentSQLiteDriver */,
 				09D956EA28111E3D00EC1798 /* FCSDKiOS */,
-				09B0665B2949B86200BAB1EF /* FCSDKiOS */,
 			);
 			productName = SwiftFCSDKSample;
 			productReference = 094EE30126DCE211008C1637 /* CBAFusion.app */;
@@ -1344,11 +1341,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 092007EF27F5D1D6005FEDB9 /* XCRemoteSwiftPackageReference "fluent-sqlite" */;
 			productName = FluentSQLiteDriver;
-		};
-		09B0665B2949B86200BAB1EF /* FCSDKiOS */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 09B0665A2949B86200BAB1EF /* XCRemoteSwiftPackageReference "swift-fcsdk-ios" */;
-			productName = FCSDKiOS;
 		};
 		09D956EA28111E3D00EC1798 /* FCSDKiOS */ = {
 			isa = XCSwiftPackageProductDependency;
