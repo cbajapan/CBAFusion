@@ -107,7 +107,7 @@ struct SettingsSheet: View {
                                         Text(item.rawValue.capitalized)
                                     }
                                 }
-                                .task {
+                                .onAppear {
                                     self.fcsdkCallService.selectDefaultAudio(audio: selectedDefaultAudio)
                                 }
                                 .onChange(of: self.selectedDefaultAudio, perform: { item in
@@ -165,8 +165,10 @@ struct SettingsSheet: View {
                         }
                         if switchedViewType {
                             Text("Sorry you can't change the Views during the call, but we will change it automatically on the next call")
-                                .task {
-                                    await removeViewTypeMessage()
+                                .onAppear {
+                                    Task {
+                                        await removeViewTypeMessage()
+                                    }
                                 }
                                 .animation(.easeInOut(duration: 20), value: 1)
                                 .transition(.slide)

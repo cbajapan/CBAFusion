@@ -37,45 +37,41 @@ class VirtualBackgroundViewController: UICollectionViewController {
     
     
     override func viewWillAppear(_ animated: Bool) {
-        Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
-            await strongSelf.configureHierarchy()
-            await strongSelf.configureDataSource()
-            await strongSelf.performQuery(with: "")
-        }
+        configureHierarchy()
+        configureDataSource()
+        performQuery(with: "")
     }
     
     override func viewDidDisappear(_ animated: Bool) {
-        Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
-            await strongSelf.deleteSnap()
-            strongSelf.backgrounds.backgroundsViewModel.removeAll()
+        deleteSnap() { [weak self] in
+            self?.backgrounds.backgroundsViewModel.removeAll()
         }
     }
     
-    func performQuery(with string: String) async {
-            var snapshot = NSDiffableDataSourceSnapshot<Sections, Backgrounds.BackgroundsViewModel>()
-            await dataSource.apply(snapshot)
-            
+    func performQuery(with string: String) {
+        var snapshot = NSDiffableDataSourceSnapshot<Sections, Backgrounds.BackgroundsViewModel>()
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
             let data = backgrounds.searchImages(with: string).sorted { $0.title < $1.title }
             if data.isEmpty {
                 snapshot.deleteSections([.inital])
                 snapshot.deleteItems(data)
-                await dataSource.apply(snapshot, animatingDifferences: false)
+                dataSource.apply(snapshot, animatingDifferences: false)
             } else {
                 snapshot.appendSections([.inital])
                 snapshot.appendItems(data, toSection: .inital)
-                await dataSource.apply(snapshot, animatingDifferences: false)
+                dataSource.apply(snapshot, animatingDifferences: false)
             }
         }
-    
-    func deleteSnap() async {
-        var snapshot = dataSource.snapshot()
-        snapshot.deleteAllItems()
-        await dataSource.apply(snapshot)
     }
     
-    func configureHierarchy() async {
+    func deleteSnap(completion: (() -> Void)?) {
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteAllItems()
+        dataSource.apply(snapshot, completion: completion)
+    }
+    
+    func configureHierarchy() {
         collectionView.register(BackgroundItemCell.self, forCellWithReuseIdentifier: BackgroundItemCell.reuseIdentifer)
         collectionView.register(BackgroundHeader.self, forSupplementaryViewOfKind: "section-header-element-kind", withReuseIdentifier: "section-header-element-kind-identifier")
     }
@@ -84,7 +80,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
         item?.posterImage.image = background.thumbnail
     }
     
-    func configureDataSource() async {
+    func configureDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Sections, Backgrounds.BackgroundsViewModel>(collectionView: collectionView) {
             (collectionView: UICollectionView, indexPath: IndexPath, identifier: Any) -> UICollectionViewCell? in
             let section = Sections(rawValue: indexPath.section)!
@@ -103,10 +99,10 @@ class VirtualBackgroundViewController: UICollectionViewController {
                 }
             }
         }
-       await supplementaryViewProvider()
+       supplementaryViewProvider()
     }
     
-    fileprivate func supplementaryViewProvider() async {
+    fileprivate func supplementaryViewProvider() {
         dataSource.supplementaryViewProvider = { [weak self]
             (collectionView: UICollectionView, kind: String, indexPath: IndexPath) -> UICollectionReusableView? in
             guard let strongSelf = self else {return nil}

@@ -251,12 +251,14 @@ extension FCSDKCallService {
     func removeAllCalls() async {
         await self.contactService?.deleteCalls()
     }
-    
+
+    @available(iOS 15, *)
     func removeBackground() async {
         await fcsdkCall?.call?.removeBackgroundImage()
     }
     
     @MainActor
+    @available(iOS 15, *)
     func setBackgroundImage(_ image: UIImage? = nil, mode: VirtualBackgroundMode = .image) async {
         if fcsdkCall?.call == nil {
             self.backgroundImage = image

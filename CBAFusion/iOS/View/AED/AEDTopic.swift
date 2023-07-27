@@ -20,7 +20,7 @@ struct AEDTopic: View {
     var body: some View {
         HStack{
             Text(name)
-                .task {
+                .onAppear {
                 self.name = topic.name
             }
             Spacer()

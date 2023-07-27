@@ -31,22 +31,26 @@ struct AED: View{
                                 .foregroundColor(colorScheme == .dark ? .gray : .black)) {
                         List {
                             ForEach(self.aedService.topicList, id: \.self) { topic in
-                                AEDTopic(topic: topic, console: self.$console)
-                                .swipeActions(edge: .trailing) {
-                                    Button("Delete") {
-                                        Task {
-                                            await self.disconnectOrDeleteTopic(topic, delete: true)
+                                if #available(iOS 15, *) {
+                                    AEDTopic(topic: topic, console: self.$console)
+                                    .swipeActions(edge: .trailing) {
+                                        Button("Delete") {
+                                            Task {
+                                                await self.disconnectOrDeleteTopic(topic, delete: true)
+                                            }
                                         }
+                                        .tint(.red)
                                     }
-                                    .tint(.red)
-                                }
-                                .swipeActions(edge: .leading) {
-                                    Button("Disconnect") {
-                                        Task {
-                                            await self.disconnectOrDeleteTopic(topic, delete: false)
+                                    .swipeActions(edge: .leading) {
+                                        Button("Disconnect") {
+                                            Task {
+                                                await self.disconnectOrDeleteTopic(topic, delete: false)
+                                            }
                                         }
+                                        .tint(.green)
                                     }
-                                    .tint(.green)
+                                } else {
+                                    AEDTopic(topic: topic, console: self.$console)
                                 }
                             }
                         }

@@ -55,33 +55,34 @@ struct CBAFusionApp: App {
                 .environmentObject(aedService)
                 .environmentObject(backgrounds)
                 .environmentObject(pipStateObject)
-                .task {
-                    
-                    async let image1 = backgrounds.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image2 = backgrounds.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image3 = backgrounds.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image4 = backgrounds.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image5 = backgrounds.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image6 = backgrounds.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image7 = backgrounds.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image8 = backgrounds.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image9 = backgrounds.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image10 = backgrounds.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image11 = backgrounds.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    _ = await [
-                        image1,
-                        image2,
-                        image3,
-                        image4,
-                        image5,
-                        image6,
-                        image7,
-                        image8,
-                        image9,
-                        image10,
-                        image11
-                    ]
-                    backgrounds.displayImage = await image1
+                .onAppear {
+                    Task {
+                        async let image1 = backgrounds.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image2 = backgrounds.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image3 = backgrounds.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image4 = backgrounds.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image5 = backgrounds.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image6 = backgrounds.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image7 = backgrounds.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image8 = backgrounds.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image9 = backgrounds.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image10 = backgrounds.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        async let image11 = backgrounds.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+                        _ = await [
+                            image1,
+                            image2,
+                            image3,
+                            image4,
+                            image5,
+                            image6,
+                            image7,
+                            image8,
+                            image9,
+                            image10,
+                            image11
+                        ]
+                        backgrounds.displayImage = await image1
+                    }
                 }
                 .onAppear {
                     fcsdkCallService.delegate = authenticationService

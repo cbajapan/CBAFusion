@@ -75,7 +75,8 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
             }
-            } else {
+        } else if #available(iOS 15.0, *) {
+
                 //If we are iOS 15
                 let sourceLayer = remoteView.layer as! AVSampleBufferDisplayLayer
                 let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
@@ -84,7 +85,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                 pipController.canStartPictureInPictureAutomaticallyFromInline = true
                 pipController.delegate = self
                 await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
-            }
+        }
     }
     
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {

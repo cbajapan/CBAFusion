@@ -22,6 +22,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
     }
     
     @MainActor
+    @available(iOS 15.0.0, *)
     func setupBufferViews() async {
         fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView()
         fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView()
@@ -48,7 +49,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .setup:
             break
         case .preparingBufferViews:
-            if isBuffer {
+            if #available(iOS 15.0.0, *), isBuffer {
                 await setupBufferViews()
             }
         case .alerting:
