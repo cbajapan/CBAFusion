@@ -38,6 +38,8 @@ struct Authentication: View {
                             Text("Server")
                                 .bold()
                             TextField("Enter Server Name...", text: $authenticationService.server)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
                             Text("Port")
                                 .bold()
                             TextField("8443...", text: $authenticationService.port)
