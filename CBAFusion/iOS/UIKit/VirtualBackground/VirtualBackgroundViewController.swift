@@ -56,6 +56,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
     func performQuery(with string: String) async {
             var snapshot = NSDiffableDataSourceSnapshot<Sections, Backgrounds.BackgroundsViewModel>()
             await dataSource.apply(snapshot)
+
             let data = backgrounds.searchImages(with: string).sorted { $0.title < $1.title }
             if data.isEmpty {
                 snapshot.deleteSections([.inital])
@@ -66,7 +67,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
                 snapshot.appendItems(data, toSection: .inital)
                 await dataSource.apply(snapshot, animatingDifferences: false)
             }
-    }
+        }
     
     func deleteSnap() async {
         var snapshot = dataSource.snapshot()
@@ -74,7 +75,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
         await dataSource.apply(snapshot)
     }
     
-    func configureHierarchy() {
+    func configureHierarchy() async {
         collectionView.register(BackgroundItemCell.self, forCellWithReuseIdentifier: BackgroundItemCell.reuseIdentifer)
         collectionView.register(BackgroundHeader.self, forSupplementaryViewOfKind: "section-header-element-kind", withReuseIdentifier: "section-header-element-kind-identifier")
     }
