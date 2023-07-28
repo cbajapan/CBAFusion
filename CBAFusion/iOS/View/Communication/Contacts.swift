@@ -122,6 +122,7 @@ struct Contacts: View {
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
+                .environmentObject(contactService)
         })
         .sheet(isPresented: self.$contactService.addSheet, content: {
             AddContact()
