@@ -8,6 +8,7 @@
 import UIKit
 import FCSDKiOS
 
+@available(iOS 15.0, *)
 class VirtualBackgroundViewController: UICollectionViewController {
 
     var dataSource: UICollectionViewDiffableDataSource<Sections, Backgrounds.BackgroundsViewModel>!

@@ -7,7 +7,7 @@
 import UIKit
 import SwiftUI
 
-
+@available(iOS 15.0, *)
 struct VirtualBackgroundController: UIViewControllerRepresentable {
     
     var compositionCollectionView: VirtualBackgroundViewController
