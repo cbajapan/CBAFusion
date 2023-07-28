@@ -153,15 +153,17 @@ struct SettingsSheet: View {
                                 }).padding()
                             }
                         }
-                        HStack {
-                            Spacer()
-                            Toggle(
-                                fcsdkCallService.isBuffer ? "Using Native Buffer Views/Layers" : "Using WebRTC Managed Views",
-                                isOn: $fcsdkCallService.isBuffer
-                            ).onChange(of: fcsdkCallService.isBuffer, perform: { newValue in
-                                switchedViewType = true
-                            })
-                            .padding()
+                        if #available(iOS 15.0, *) {
+                            HStack {
+                                Spacer()
+                                Toggle(
+                                    fcsdkCallService.isBuffer ? "Using Native Buffer Views/Layers" : "Using WebRTC Managed Views",
+                                    isOn: $fcsdkCallService.isBuffer
+                                ).onChange(of: fcsdkCallService.isBuffer, perform: { newValue in
+                                    switchedViewType = true
+                                })
+                                .padding()
+                            }
                         }
                         if switchedViewType {
                             Text("Sorry you can't change the Views during the call, but we will change it automatically on the next call")

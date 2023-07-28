@@ -72,10 +72,12 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.fcsdkCall?.call?.enableLocalVideo(true)
         
         Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
+            guard let self else { return }
             //We Pass the view up to the SDK when using metalKit View
-            if !strongSelf.isBuffer {
-                strongSelf.fcsdkCall?.call?.remoteView = strongSelf.fcsdkCall?.communicationView?.remoteView
+            if #available(iOS 15.0, *), isBuffer {
+                // Do nothing
+            } else {
+                self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.communicationView?.remoteView
             }
         }
         return self.fcsdkCall?.call
@@ -87,7 +89,9 @@ class FCSDKCallService: NSObject, ObservableObject {
         self.connectingDate = Date()
         guard let uc = self.fcsdkCall?.acbuc else { return }
         await setPhoneDelegate(uc)
-        if !isBuffer {
+        if #available(iOS 15.0, *), isBuffer {
+            // Do nothing
+        } else {
             //We Pass the view up to the SDK
             uc.phone.previewView = previewView
         }
@@ -106,13 +110,15 @@ class FCSDKCallService: NSObject, ObservableObject {
     func answerFCSDKCall() async {
         self.connectDate = Date()
         guard let fcsdkCall = self.fcsdkCall?.call else { return }
-            if !isBuffer {
-                fcsdkCall.remoteView = self.fcsdkCall?.communicationView?.remoteView
-                guard let view = self.fcsdkCall?.communicationView?.previewView else { return }
-                guard let uc = self.acbuc else { return }
-                //We Pass the view up to the SDK
-                uc.phone.previewView = view
-            }
+        if #available(iOS 15.0, *), isBuffer {
+            // Do nothing
+        } else {
+            fcsdkCall.remoteView = self.fcsdkCall?.communicationView?.remoteView
+            guard let view = self.fcsdkCall?.communicationView?.previewView else { return }
+            guard let uc = self.acbuc else { return }
+            //We Pass the view up to the SDK
+            uc.phone.previewView = view
+        }
         await answer(fcsdkCall)
     }
     

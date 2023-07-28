@@ -76,7 +76,9 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
             let communicationView = strongSelf.view as! CommunicationView
             if strongSelf.authenticationService?.connectedToSocket != nil {
                 strongSelf.configureVideo()
-                if !strongSelf.fcsdkCallService.isBuffer {
+                if #available(iOS 15.0, *), strongSelf.fcsdkCallService.isBuffer {
+                    // Do nothing
+                } else {
                     communicationView.remoteView = UIView()
                     communicationView.previewView = UIView()
                     communicationView.setupUI()
@@ -97,7 +99,7 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
             let communicationView = self.view as! CommunicationView
-            if fcsdkCallService.isBuffer {
+            if #available(iOS 15.0, *), fcsdkCallService.isBuffer {
                 communicationView.updateAnchors(UIDevice.current.orientation)
             }
         }
