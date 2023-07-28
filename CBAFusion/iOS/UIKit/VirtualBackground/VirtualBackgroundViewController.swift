@@ -56,7 +56,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
     func performQuery(with string: String) async {
             var snapshot = NSDiffableDataSourceSnapshot<Sections, Backgrounds.BackgroundsViewModel>()
             await dataSource.apply(snapshot)
-
+            
             let data = backgrounds.searchImages(with: string).sorted { $0.title < $1.title }
             if data.isEmpty {
                 snapshot.deleteSections([.inital])
