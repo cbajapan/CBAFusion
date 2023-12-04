@@ -12,9 +12,9 @@ import SwiftUI
 
 extension FCSDKCallService: ACBClientPhoneDelegate  {
     
-    
     //Receive calls with FCSDK
     func phone(_ phone: ACBClientPhone, received call: ACBClientCall) async {
+        call.delegate = self
         do {
             await MainActor.run {
                 self.isOutgoing = false
@@ -29,7 +29,8 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
                     username: call.remoteDisplayName,
                     number: call.remoteAddress,
                     calls: nil,
-                    blocked: false)
+                    blocked: false
+                )
                 try await self.contactService?.delegate?.createContact(contact)
                 await createCallObject(contact, call: call)
             }
@@ -54,7 +55,8 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             contact: contact.id,
             createdAt: Date(),
             updatedAt: nil,
-            deletedAt: nil)
+            deletedAt: nil
+        )
         do {
             try await processInboundCall(fcsdkCall: fcsdkCall)
         } catch {

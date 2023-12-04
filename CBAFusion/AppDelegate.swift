@@ -13,7 +13,7 @@ import FCSDKiOS
 import Logging
 import AVKit
 
-class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
+class AppDelegate: UIResponder, UIApplicationDelegate, ObservableObject {
     let pushRegistry = PKPushRegistry(queue: .main)
     let callKitManager = CallKitManager()
     var providerDelegate: ProviderDelegate?
@@ -21,10 +21,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     var logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - App Delegate - ")
     // MARK: - UIApplicationDelegate
     
+    
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    }
+
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+    }
+    
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        //We only can initialize the System's Logger Once
-        ACBUC.logToFile(.trace)
         //Sets WS Timeout
 //        FCSDKiOS.Constants.WEBSOCKET_CONNECTION_TIMEOUT = 20
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
@@ -116,7 +122,11 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
         
         let userInfo = notification.request.content.userInfo
         self.logger.info("willPresent ====== \(userInfo)")
-        completionHandler([.banner, .sound, .badge])
+        if #available(iOS 14, *) {
+            completionHandler([.banner, .sound, .badge])
+        } else {
+            completionHandler([.sound, .badge])
+        }
     }
         /// Display the incoming call to the user.
         func displayIncomingCall(fcsdkCall: FCSDKCall) async {

@@ -39,38 +39,46 @@ class SQLiteStore: FCSDKStore {
     public static func create(
         on eventLoop: EventLoop
     ) async throws -> SQLiteStore {
-        return try await self.create(withConfiguration: .file(makeSQLiteURL()), on: eventLoop).get()
+        try await withCheckedThrowingContinuation { continuation in
+            do {
+                let store = try self.create(withConfiguration: .file(makeSQLiteURL()), on: eventLoop).wait()
+                continuation.resume(returning: store)
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
     }
     
     static func create(
         withConfiguration configuration: SQLiteConfiguration,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<SQLiteStore> {
-        
-        let databases = Databases(
-            threadPool: NIOThreadPool(numberOfThreads: 1),
-            on: eventLoop
-        )
-        databases.threadPool.start()
-      
-        databases.use(.sqlite(configuration), as: .sqlite)
-        let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
-        
-        let migrations = Migrations()
-        migrations.add(CreateContactMigration())
-        migrations.add(CreateCallsMigration())
-        
-        let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoop)
-        return migrator.setupIfNeeded().flatMap {
-            migrator.prepareBatch()
-        }.recover { _ in }.map {
-            return SQLiteStore(
-                databases: databases,
-                database: databases.database(logger: logger, on: eventLoop)!
+        returningAsyncDispatch {
+            let databases = Databases(
+                threadPool: NIOThreadPool(numberOfThreads: 1),
+                on: eventLoop
             )
-        }.flatMapErrorThrowing { error in
-            databases.shutdown()
-            throw error
+            databases.threadPool.start()
+            
+            databases.use(.sqlite(configuration), as: .sqlite)
+            let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
+            
+            let migrations = Migrations()
+            migrations.add(CreateContactMigration())
+            migrations.add(CreateCallsMigration())
+            
+            let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoop)
+            return migrator.setupIfNeeded().flatMap {
+                migrator.prepareBatch()
+            }.recover { _ in }.map {
+                return SQLiteStore(
+                    databases: databases,
+                    database: databases.database(logger: logger, on: eventLoop)!
+                )
+            }.flatMapErrorThrowing { error in
+                databases.shutdown()
+                throw error
+            }
         }
     }
     
@@ -147,7 +155,7 @@ class SQLiteStore: FCSDKStore {
     
     func createCall(_ contactID: UUID?, call: _CallsModel) async throws -> [ContactModel]? {
         var contact: _ContactModel?
-        if #available(iOS 15.0.0, *) {
+        if #available(iOS 15.0, *) {
             let contacts = try await _ContactModel.query(on: database).all()
             contact = contacts.first(where: { $0.id == contactID } )
         } else {
@@ -263,4 +271,16 @@ fileprivate func makeSQLiteURL() -> String {
     }
     
     return url.path
+}
+
+
+@discardableResult func returningAsyncDispatch<T>(_ block: @escaping () -> T) -> T {
+    let queue = DispatchQueue.global(qos: .background)
+    let group = DispatchGroup()
+    var result: T?
+    group.enter()
+    queue.async(group: group) { result = block(); group.leave(); }
+    group.wait()
+
+    return result!
 }

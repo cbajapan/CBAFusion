@@ -39,11 +39,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var contactService: ContactService
     @EnvironmentObject var pipStateObject: PipStateObject
-    var logger: Logger?
     
-    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
-    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
-    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
+    var selectedAudio = UserDefaults.standard.string(forKey: "AudioOption")
+    var selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption")
+    var selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption")
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
         
@@ -110,9 +109,9 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
                     } else {
-                        self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
-                        self.fcsdkCallService.selectResolution(res: self.selectedResolution)
-                        self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+                        self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.selectedResolution ?? ResolutionOptions.auto.rawValue)!)
+                        self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.selectedFrameRate ?? FrameRateOptions.fro20.rawValue)!)
+                        self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: self.selectedAudio ?? ACBAudioDevice.speakerphone.rawValue)!)
                     }
                 }
             }
@@ -194,16 +193,16 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if closeClickID != context.coordinator.previousCloseClickID {
-            Task.detached {
+            Task {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                    await self.logger?.error("Error ending call - Error: \(error)")
+                   print("Error ending call - Error: \(error)")
                 }
                 await setServiceHasEnded()
                 await uiViewController.currentState(state: .hasEnded)
-                if await self.isOutgoing {
-                    await self.fcsdkCallService.stopRing()
+                if self.isOutgoing {
+                    self.fcsdkCallService.stopRing()
                 }
             }
             context.coordinator.previousCloseClickID = closeClickID
@@ -246,6 +245,10 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @MainActor
     func setServiceHasEnded() async {
         self.fcsdkCallService.connectDate = nil
+        self.fcsdkCallService.hasEnded = false
+        self.fcsdkCallService.presentCommunication = false
+        self.fcsdkCallService.hasConnected = false
+        self.fcsdkCallService.isStreaming = false
     }
     
     func makeCoordinator() -> Coordinator {

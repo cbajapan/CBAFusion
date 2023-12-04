@@ -8,7 +8,7 @@
 import UIKit
 
 
-enum Sections: Int, CaseIterable {
+enum BackgroundSections: Int, CaseIterable {
     case inital
 }
 
@@ -33,16 +33,16 @@ class CollectionViewSections: NSObject {
                                                heightDimension: .absolute(180))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
-        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                heightDimension: .absolute(40))
-        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
-            layoutSize: headerSize,
-            elementKind: "section-header-element-kind",
-            alignment: .topLeading)
-        
+//        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+//                                                heightDimension: .absolute(40))
+//        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+//            layoutSize: headerSize,
+//            elementKind: "section-header-element-kind",
+//            alignment: .topLeading)
+//
         let sectionIndex = NSCollectionLayoutSection(group: group)
-        sectionHeader.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 0)
-        sectionIndex.boundarySupplementaryItems = [sectionHeader]
+//        sectionHeader.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 0)
+//        sectionIndex.boundarySupplementaryItems = [sectionHeader]
         
         
         sectionIndex.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5)

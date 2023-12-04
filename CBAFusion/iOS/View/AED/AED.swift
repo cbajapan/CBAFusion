@@ -32,21 +32,26 @@ struct AED: View{
                         List {
                             ForEach(self.aedService.topicList, id: \.self) { topic in
                                 AEDTopic(topic: topic, console: self.$console)
-                                .swipeActions(edge: .trailing) {
-                                    Button("Delete") {
-                                        Task {
-                                            await self.disconnectOrDeleteTopic(topic, delete: true)
+                                if #available(iOS 15, *) {
+                                    AEDTopic(topic: topic, console: self.$console)
+                                    .swipeActions(edge: .trailing) {
+                                        Button("Delete") {
+                                            Task {
+                                                await self.disconnectOrDeleteTopic(topic, delete: true)
+                                            }
                                         }
+                                        .tint(.red)
                                     }
-                                    .tint(.red)
-                                }
-                                .swipeActions(edge: .leading) {
-                                    Button("Disconnect") {
-                                        Task {
-                                            await self.disconnectOrDeleteTopic(topic, delete: false)
+                                    .swipeActions(edge: .leading) {
+                                        Button("Disconnect") {
+                                            Task {
+                                                await self.disconnectOrDeleteTopic(topic, delete: false)
+                                            }
                                         }
+                                        .tint(.green)
                                     }
-                                    .tint(.green)
+                                } else {
+                                    AEDTopic(topic: topic, console: self.$console)
                                 }
                             }
                         }
@@ -118,13 +123,9 @@ struct AED: View{
                     }
                 }
                 .background(colorScheme == .dark ? .black : Color(uiColor: .systemGray2))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
-                    ToolbarItem(placement: .principal, content: {
-                        Text("Application Event Distribution")
-                    })})
+                .navigationTitle(title: "Application Event Distribution")
             }
-            .onChange(of: self.aedService.consoleMessage) { newValue in
+            .valueChanged(value: self.aedService.consoleMessage) { newValue in
                 self.console += "\n\(newValue)"
             }
             .alert(isPresented:  self.$authenticationService.showErrorAlert, content: {
@@ -136,11 +137,6 @@ struct AED: View{
                     })
                 )
             })
-//            .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
-//                Button("OK", role: .cancel) {
-//                    self.authenticationService.showErrorAlert = false
-//                }
-//            })
         }
         .onTapGesture(count: 2) {
             hideKeyboard()
@@ -234,7 +230,11 @@ struct AED: View{
 
 struct AED_Previews: PreviewProvider {
     static var previews: some View {
-        AED()
+        if #available(iOS 15.0, *) {
+            AED()
+        } else {
+            // Fallback on earlier versions
+        }
     }
 }
 

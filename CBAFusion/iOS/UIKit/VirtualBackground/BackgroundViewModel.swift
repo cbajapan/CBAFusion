@@ -7,52 +7,98 @@
 
 import UIKit
 
+struct BackgroundsViewModel: Hashable {
+    var id = UUID()
+    var title: String
+    var image: UIImage
+    var thumbnail: UIImage
+    
+    init(imageModel: ImageModel) {
+        self.title = imageModel.title
+        self.image = imageModel.image
+        self.thumbnail = imageModel.thumbnail
+    }
+    
+    
+    static func == (lhs: BackgroundsViewModel, rhs: BackgroundsViewModel) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    func search(_ filter: String?) -> Bool {
+        guard let filterText = filter else { return true }
+        if filterText.isEmpty { return true }
+        let lowercasedFilter = filterText.lowercased()
+        return title.lowercased().contains(lowercasedFilter)
+    }
+}
+
+struct DisplayImageObject: Equatable {
+    let id = UUID()
+    var image1: UIImage?
+    var image2: UIImage?
+}
+
 final class Backgrounds: ObservableObject {
     
-    @Published var displayImage: (UIImage, UIImage)?
+    static let shared = Backgrounds()
+    
+    @Published var displayImage: DisplayImageObject?
     var backgroundsViewModel = [BackgroundsViewModel]()
     
-    struct BackgroundsViewModel: Hashable, Identifiable {
-        var id: UUID?
-        var title: String
-        var image: UIImage
-        var thumbnail: UIImage
-        
-        init(imageModel: ImageModel) {
-            self.id = imageModel.id
-            self.title = imageModel.title
-            self.image = imageModel.image
-            self.thumbnail = imageModel.thumbnail
-        }
-        
-        
-        static func == (lhs: BackgroundsViewModel, rhs: BackgroundsViewModel) -> Bool {
-            return lhs.id == rhs.id
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(id)
-        }
-        
-        func search(_ filter: String?) -> Bool {
-            guard let filterText = filter else { return true }
-            if filterText.isEmpty { return true }
-            let lowercasedFilter = filterText.lowercased()
-            return title.lowercased().contains(lowercasedFilter)
+    init() {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            async let image1 = self.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image2 = self.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image3 = self.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image4 = self.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image5 = self.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image6 = self.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image7 = self.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image8 = self.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image9 = self.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image10 = self.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image11 = self.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            _ = await [
+                image1,
+                image2,
+                image3,
+                image4,
+                image5,
+                image6,
+                image7,
+                image8,
+                image9,
+                image10,
+                image11
+            ]
+            
+            displayImage = await DisplayImageObject(image1: image1?.0, image2: image2?.1)
         }
     }
+
     
     //We must run the image adding detached from the MainActor
     func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage)? {
-        let image = Task.detached { () -> (UIImage, UIImage)? in
             guard let resizedImage = await ImageProcessor.resize(image, to: size) else { return nil }
             guard let thumbnailImage = await ImageProcessor.resize(image, to: thumbnail) else { return nil }
             resizedImage.title = image
-            self.backgroundsViewModel.append(BackgroundsViewModel(imageModel: ImageModel(title: image, image: resizedImage, thumbnail: thumbnailImage)))
+            self.backgroundsViewModel.append(
+                BackgroundsViewModel(
+                    imageModel: ImageModel(
+                        title: image,
+                        image: resizedImage,
+                        thumbnail: thumbnailImage
+                    )
+                )
+            )
             return (resizedImage, thumbnailImage)
-        }
-        return await image.value
     }
+    
     
     
     func searchImages(with query: String?) -> [BackgroundsViewModel] {
@@ -92,7 +138,6 @@ final class Backgrounds: ObservableObject {
         }
         var error: vImage_Error
         var sourceBuffer = vImage_Buffer()
-        
         
         
         guard let inputCVImageFormat = vImageCVImageFormat.make(buffer: pixelBuffer) else { throw vImage.Error.invalidCVImageFormat }
@@ -166,7 +211,7 @@ final class Backgrounds: ObservableObject {
                 pixelAttributes,
                 &pixelBuffer
             )
-            let ciContext = CIContext(options: [.useSoftwareRenderer: false])
+            let ciContext = CIContext(options: [.useSoftwareRenderer: false, .cacheIntermediates: false])
             guard let pixelBuffer = pixelBuffer else { return nil }
             ciContext.render(image, to: pixelBuffer)
             return pixelBuffer

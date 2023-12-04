@@ -72,40 +72,40 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
         preferredContentSize = CGSize(width: 1080, height: 1920)
         NotificationCenter.default.addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
         Task { [weak self] in
-            guard let strongSelf = self else { return }
-            let communicationView = strongSelf.view as! CommunicationView
-            if strongSelf.authenticationService?.connectedToSocket != nil {
-                strongSelf.configureVideo()
-                if !strongSelf.fcsdkCallService.isBuffer {
+            guard let self else { return }
+            let communicationView = self.view as! CommunicationView
+            if self.authenticationService?.connectedToSocket != nil {
+                await self.configureVideo()
+                if !fcsdkCallService.isBuffer {
                     communicationView.remoteView = UIView()
                     communicationView.previewView = UIView()
                     communicationView.setupUI()
                     communicationView.updateAnchors(UIDevice.current.orientation)
                 }
-                if strongSelf.isOutgoing {
-                    await strongSelf.initiateCall()
+                if self.isOutgoing {
+                    await self.initiateCall()
                 } else {
-                        await strongSelf.fcsdkCallDelegate?.passViewsToService(communicationView: communicationView)
+                    await self.fcsdkCallDelegate?.passViewsToService(communicationView: communicationView)
                 }
             } else {
-                strongSelf.logger.info("Not Connected to Server")
+                self.logger.info("Not Connected to Server")
             }
-            strongSelf.gestures()
+            self.gestures()
+
         }
     }
-    
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
             let communicationView = self.view as! CommunicationView
-            if fcsdkCallService.isBuffer {
-                communicationView.updateAnchors(UIDevice.current.orientation)
+            if #available(iOS 15.0, *), fcsdkCallService.isBuffer {
+                communicationView.updateAnchors(UIDevice.current.orientation, flipped: communicationView.isFlipped)
             }
         }
     
     @objc func applicationDidBecomeActive(_ notification: Notification) {}
     
     func initiateCall() async {
-        
         do {
             try await self.contactService.fetchContacts()
             if let contact = self.contactService.contacts?.first(where: { $0.number == self.destination } )  {
@@ -116,8 +116,8 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
                     username: self.destination,
                     number: self.destination,
                     calls: nil,
-                    blocked: false)
-                
+                    blocked: false
+                )
                 try await self.contactService.delegate?.createContact(contact)
                 await createCallObject(contact: contact)
             }
@@ -155,17 +155,17 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     func muteVideo(isMute: Bool) async throws {
         if isMute {
-            self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(false)
+            await self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(false)
         } else {
-            self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(true)
+            await self.fcsdkCallService.fcsdkCall?.call?.enableLocalVideo(true)
         }
     }
     
     func muteAudio(isMute: Bool) async throws {
         if isMute {
-            self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(false)
+            await self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(false)
         } else {
-            self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(true)
+            await self.fcsdkCallService.fcsdkCall?.call?.enableLocalAudio(true)
         }
     }
     
@@ -177,12 +177,13 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
         previewView.addGestureRecognizer(panGesture)
     }
     
+    
     func onHoldView() async throws {
-        self.fcsdkCallService.fcsdkCall?.call?.hold()
+        await self.fcsdkCallService.fcsdkCall?.call?.hold()
     }
     
     func removeOnHold() async throws {
-        self.fcsdkCallService.fcsdkCall?.call?.resume()
+        await self.fcsdkCallService.fcsdkCall?.call?.resume()
     }
     
     func blurView() async {
@@ -204,31 +205,56 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) {
         Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
-            let communicationView = strongSelf.view as! CommunicationView
+            guard let self else { return }
+            let communicationView = self.view as! CommunicationView
             guard let previewView = communicationView.previewView else { return }
             communicationView.bringSubviewToFront(previewView)
-            let translation = sender.translation(in: strongSelf.view)
+            let translation = sender.translation(in: self.view)
             previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
-            sender.setTranslation(CGPoint.zero, in: strongSelf.view)
+            sender.setTranslation(CGPoint.zero, in: self.view)
         }
     }
     
-    func flipCamera(showFrontCamera: Bool) {
+    func flipCamera(showFrontCamera: Bool) async {
+        let communicationView = self.view as! CommunicationView
         if showFrontCamera {
             self.currentCamera = .front
         } else {
             self.currentCamera = .back
         }
-        self.acbuc.phone.setCamera(self.currentCamera)
+        
+        if #available(iOS 15, *) {
+            if fcsdkCallService.backgroundImage != nil, currentCamera == .back {
+            await self.acbuc.phone.currentCalls.last?.removeBackgroundImage()
+            await self.acbuc.phone.setCamera(self.currentCamera)
+        } else if let image = fcsdkCallService.backgroundImage {
+            await self.acbuc.phone.setCamera(self.currentCamera)
+            await self.acbuc.phone.currentCalls.last?.feedBackgroundImage(image, mode: image.title == "blur" ? .blur : .image)
+        } else {
+            await self.acbuc.phone.setCamera(self.currentCamera)
+        }
+        } else {
+            await self.acbuc.phone.setCamera(self.currentCamera)
+        }
+            
+        if FCSDKCallService.shared.swapViews {
+            if showFrontCamera {
+                FCSDKCallService.shared.acbuc?.phone.previewView = communicationView.previewView
+                FCSDKCallService.shared.fcsdkCall?.call?.remoteView = communicationView.remoteView
+            } else {
+                FCSDKCallService.shared.acbuc?.phone.previewView  = communicationView.remoteView
+                FCSDKCallService.shared.fcsdkCall?.call?.remoteView = communicationView.previewView
+            }
+        }
     }
     
-    func configureVideo() {
+
+    func configureVideo() async {
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
         
-        try? self.configureResolutionOptions()
-        try? self.configureFramerateOptions()
+        try? await self.configureResolutionOptions()
+        try? await self.configureFramerateOptions()
         
         self.currentCamera = .front
     }
@@ -242,11 +268,11 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     }
     
     /// Configurations for Capture
-    func configureResolutionOptions() throws {
-        _ = self.acbuc.phone.recommendedCaptureSettings()
+    func configureResolutionOptions() async throws {
+        _ = await self.acbuc.phone.recommendedCaptureSettings()
     }
     
-    func configureFramerateOptions() throws {
-        _ = acbuc.phone.recommendedCaptureSettings()
+    func configureFramerateOptions() async throws {
+        _ = await acbuc.phone.recommendedCaptureSettings()
     }
 }

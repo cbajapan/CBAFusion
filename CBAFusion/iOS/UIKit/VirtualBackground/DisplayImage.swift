@@ -17,10 +17,10 @@ struct DisplayImage: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> UIImageView {
-        UIImageView(image: backgrounds.displayImage?.1)
+        UIImageView(image: backgrounds.displayImage?.image1)
     }
     func updateUIView(_ uiView: UIImageView, context: Context) {
-        uiView.image = backgrounds.displayImage?.1
+        uiView.image = backgrounds.displayImage?.image2
     }
     
     class Coordinator: NSObject {

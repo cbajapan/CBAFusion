@@ -16,6 +16,10 @@ protocol AuthenticationProtocol: AnyObject {
     func loginUser(networkStatus: Bool) async
 }
 
+@globalActor actor AuthenticationActor {
+    static let shared = AuthenticationActor()
+}
+
 class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol {
     
     var logger: Logger
@@ -31,7 +35,7 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     }
     
     func requestLoginObject() -> LoginRequest {
-        return LoginRequest(username: self.username, password: self.password)
+        return LoginRequest(username: username, password: password)
     }
     
     @Published var username = UserDefaults.standard.string(forKey: "Username") ?? ""
@@ -41,13 +45,19 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     @Published var secureSwitch = UserDefaults.standard.bool(forKey: "Secure")
     @Published var useCookies = UserDefaults.standard.bool(forKey: "Cookies")
     @Published var acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Trust")
+    @Published var alwaysRetryConnection = UserDefaults.standard.bool(forKey: "Retry")
     @Published var sessionID = KeychainItem.getSessionID
     @Published var connectedToSocket = false
+    @Published var showStartedSession = false
+    @Published var showSystemFailed = false
+    @Published var showFailedSession = false
+    @Published var showDidLoseConnection = false
+    @Published var showReestablishedConnection = false
     var connection = false {
         didSet {
             Task { @MainActor [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf.connectedToSocket = strongSelf.connection
+                guard let self else { return }
+                self.connectedToSocket = self.connection
             }
         }
     }
@@ -56,8 +66,8 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     var uc: ACBUC? {
         didSet {
             Task { @MainActor [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf.acbuc = strongSelf.uc
+                guard let self else { return }
+                self.acbuc = self.uc
             }
         }
     }
@@ -67,9 +77,9 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
     @Published var selectedParentIndex: Int = 0
     @Published var currentTabIndex = 0
     @Published var showProgress: Bool = false
-
+    
     /// Authenticate the User
-    @MainActor
+    @AuthenticationActor
     func loginUser(networkStatus: Bool) async {
         let loginCredentials = Login(
             username: username,
@@ -88,16 +98,19 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
         UserDefaults.standard.set(secureSwitch, forKey: "Secure")
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
-        
+        UserDefaults.standard.set(alwaysRetryConnection, forKey: "Retry")
         do {
             guard let repository = networkRepository.networkRepositoryDelegate else {return}
             let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
             let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
             await fireStatus(response: response)
             
-            self.sessionID = payload.sessionid
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.sessionID = payload.sessionid
+            }
             await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-        
+            
             if KeychainItem.getSessionID == "" {
                 KeychainItem.saveSessionID(sessionid: sessionID)
             }
@@ -153,19 +166,26 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
         self.uc?.acceptAnyCertificate(acceptUntrustedCertificates)
         let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
         self.uc?.useCookies = useCookies
-        await self.uc?.startSession()
+        let shouldAlwaysRetry = UserDefaults.standard.bool(forKey: "Retry")
+        if shouldAlwaysRetry == true {
+            await self.uc?.startSession(triggerReconnect: true)
+        } else {
+            await self.uc?.startSession()
+        }
         self.connection = self.uc?.connection != nil
-        await MainActor.run {
+        
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             self.sessionExists = true
         }
     }
-
     
     /// Logout and stop the session
     func logout() async {
         self.logger.info("Logging out of server: \(server) with: \(username)")
-        await MainActor.run {
-        self.showProgress = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.showProgress = true
         }
         let loginCredentials = Login(
             username: username,
@@ -183,7 +203,8 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
             await setSessionID(id: sessionID)
             
             await fireStatus(response: response)
-            await MainActor.run {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
                 self.sessionExists = false
                 self.acbuc = nil
             }
@@ -214,30 +235,84 @@ extension AuthenticationService: ACBUCDelegate {
     
     func didStartSession(_ uc: ACBUC) async {
         self.logger.info("Started Session \(String(describing: uc))")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.showStartedSession = true
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            }
+            self.showStartedSession = false
+        }
     }
     
     func didFail(toStartSession uc: ACBUC) async {
         self.logger.info("Failed to start Session \(String(describing: uc))")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.showFailedSession = true
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            }
+            self.showFailedSession = false
+        }
     }
     
     func didReceiveSystemFailure(_ uc: ACBUC) async {
         self.logger.info("Received system failure \(String(describing: uc))")
-    }
-    
-    func didLoseConnection(_ uc: ACBUC) async {
-        self.logger.info("Did lose connection \(String(describing: uc))")
-    }
-    
-    func uc(_ uc: ACBUC, willRetryConnection attemptNumber: Int, in delay: TimeInterval) async {
-        self.logger.info("We are trying to reconnect to the network \(uc), \(attemptNumber), \(delay)")
-            await self.uc?.startSession()
-            await MainActor.run {
-            self.sessionExists = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.showSystemFailed = true
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            }
+            self.showSystemFailed = false
         }
     }
     
-    func ucDidReestablishConnection(_ uc: ACBUC) {
-        self.logger.info("We restablished Network Connectivity \(uc)")
+    func didLoseConnection(_ uc: ACBUC) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Did lose connection \(String(describing: uc))")
+            self.showDidLoseConnection = true
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            }
+            self.showDidLoseConnection = false
+        }
+    }
+    
+    func uc(_ uc: ACBUC, willRetryConnection attemptNumber: Int, in delay: TimeInterval) async {
+        self.logger.info("\n We are trying to reconnect to the network\n UC: \(uc)\n Attempt: \(attemptNumber)\n Delay: \(delay)")
+        if attemptNumber == 7 {
+            await self.uc?.startSession()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.sessionExists = true
+            }
+        }
+    }
+    
+    func didReestablishConnection(_ uc: ACBUC) async {
+        self.logger.info("\n We restablished Network Connectivity\n UC: \(uc)")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.showReestablishedConnection = true
+            
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            }
+            self.showReestablishedConnection = false
+        }
     }
     
 }

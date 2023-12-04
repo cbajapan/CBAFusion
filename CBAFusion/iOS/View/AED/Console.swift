@@ -82,7 +82,7 @@ struct Console: View {
                 await self.connectToTopic()
             }
         }
-        .onChange(of: self.aedService.consoleMessage) { newValue in
+        .valueChanged(value: self.aedService.consoleMessage) { newValue in
             self.console += "\n\(newValue)"
         }
     }

@@ -19,9 +19,16 @@ struct AEDTopic: View {
     
     var body: some View {
         HStack{
-            Text(name)
-                .task {
-                self.name = topic.name
+            if #available(iOS 15, *) {
+                Text(name)
+                    .onAppear {
+                                self.name = topic.name
+                            }
+            } else {
+                Text(name)
+                    .valueChanged(value: topic.name) { newValue in
+                        self.name = newValue
+                    }
             }
             Spacer()
             if self.checked {

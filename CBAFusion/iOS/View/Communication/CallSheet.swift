@@ -70,22 +70,13 @@ struct CallSheet: View {
                 })
             )
         })
-//        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
-//            Button("OK", role: .cancel) {
-//                processNotLoggedIn()
-//            }
-//        })
     }
     
     func setupCall(hasVideo: Bool) {
-//        if authenticationService.acbuc != nil {
             self.fcsdkCallService.isOutgoing = true
             self.fcsdkCallService.hasVideo = hasVideo
             self.showCommunication = true
             self.presentationMode.wrappedValue.dismiss()
-//        } else {
-//            
-//        }
     }
     
     func processNotLoggedIn() async {

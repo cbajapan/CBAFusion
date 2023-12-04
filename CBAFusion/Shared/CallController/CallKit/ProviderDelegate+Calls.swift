@@ -132,11 +132,6 @@ extension ProviderDelegate {
                 self.logger.info("No Call To End")
                 action.fail()
             }
-            await MainActor.run {
-                self.fcsdkCallService.hasEnded = false
-                self.fcsdkCallService.hasConnected = false
-                self.fcsdkCallService.isStreaming = false
-            }
         }
     }
     //DTMF

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import NIOTransportServices
+import Network
 
 struct ContentView: View {
     
@@ -17,6 +18,9 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @State var animateCommunication = false
     @State var animateAED = false
+    @State private var tappedShowBackground = false
+    @State var currentStatus: NWPath.Status?
+    @State var currentType: NWInterface.InterfaceType?
     
     var body: some View {
         GeometryReader { proxy in
@@ -99,9 +103,13 @@ struct ContentView: View {
                     .background(Color(uiColor: .systemGray6))
                     .padding(.bottom, proxy.safeAreaInsets.bottom)
                     .edgesIgnoringSafeArea(.all)
-                    .sheet(isPresented: self.$authenticationService.showSettingsSheet) {
+                    .sheet(isPresented: self.$authenticationService.showSettingsSheet, onDismiss:  {
+                        if tappedShowBackground {
+                            self.fcsdkCallService.showBackgroundSelectorSheet = true
+                        }
+                    }, content: {
                         if self.authenticationService.sessionID != "" {
-                            SettingsSheet()
+                            SettingsSheet(tappedShowBackground: $tappedShowBackground)
                                 .environmentObject(authenticationService)
                                 .environmentObject(fcsdkCallService)
                                 .environmentObject(contactService)
@@ -111,8 +119,10 @@ struct ContentView: View {
                                 .environmentObject(monitor)
                                 .environmentObject(contactService)
                         }
-                    }
-                    .fullScreenCover(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, content: {
+                    })
+                    .fullScreenSheet(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, onDismiss: {
+                        self.fcsdkCallService.showBackgroundSelectorSheet = false
+                    }, content: {
                         if #available(iOS 15, *) {
                             BackgroundSelector()
                         }
@@ -145,6 +155,56 @@ struct ContentView: View {
                 }.edgesIgnoringSafeArea(.bottom)
             }.edgesIgnoringSafeArea(.all)
         }
+        .onReceive(monitor.pathState.$pathStatus) { newStatus in
+            if let newStatus = newStatus {
+                if currentStatus != newStatus {
+                    currentStatus = newStatus
+                    switch newStatus {
+                    case .requiresConnection:
+                        break
+                    case .satisfied:
+                        break
+                    case .unsatisfied:
+                        break
+                    default:
+                        break
+                    }
+//                    authenticationService.acbuc?.setNetworkReachable(false)
+                }
+            }
+        }
+        .onReceive(monitor.pathState.$pathType) { type in
+            if let type = type {
+                if currentType != type {
+                    currentType = type
+                    Task {
+                        switch type {
+                        case .other:
+                            break
+                        case .wifi:
+                            if monitor.networkStatus() {
+                                await setReachability()
+                            }
+                        case .cellular:
+                            if monitor.networkStatus() {
+                                await setReachability()
+                            }
+                        case .wiredEthernet:
+                            break
+                        case .loopback:
+                            break
+                        @unknown default:
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    func setReachability() async {
+//        await authenticationService.acbuc?.setNetworkReachable(false)
+//        await authenticationService.acbuc?.setNetworkReachable(true)
     }
 }
 

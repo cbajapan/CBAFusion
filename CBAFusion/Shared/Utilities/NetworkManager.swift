@@ -19,22 +19,16 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         case jsonConversionFailure(String)
     }
     
-    var logger: Logger
     
     override init() {
-//        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Network Manager - ")
-        self.logger = Logger(subsystem: "\(Constants.BUNDLE_IDENTIFIER)", category: "Network Manager")
         super.init()
     }
     
     deinit {
-        self.logger.info("Reclaiming memory in NetworkManager")
+         print("Reclaiming memory in NetworkManager")
     }
     
-//    @available(iOS 14.0.0, *)
-    func
-    
-    asyncCodableNetworkWrapper<T: Codable>(
+    func asyncCodableNetworkWrapper<T: Codable>(
         type: T.Type,
         urlString: String,
         httpMethod: String,
@@ -104,7 +98,7 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 #endif
         return (setData, setResponse)
     }
-//    @available(iOS 14.0.0, *)
+    
     func asyncNetworkWrapper(
         urlString: String,
         httpMethod: String,
@@ -164,7 +158,7 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
             throw NetworkErrors.responseUnsuccessful("status code \(httpResponse.statusCode)")
         }
 #if DEBUG
-        self.logger.info("Response_______ \(httpResponse)")
+        print("Response_______ \(httpResponse)")
 #endif
         return httpResponse
     }
@@ -189,7 +183,7 @@ class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 extension Data {
     func printJSON() {
         if let JSONString = String(data: self, encoding: String.Encoding.utf8) {
-            Logger(subsystem: "\(Constants.BUNDLE_IDENTIFIER)",  category:"DATA Extension").info("\(JSONString)")
+            print("\(JSONString)")
         }
     }
 }
