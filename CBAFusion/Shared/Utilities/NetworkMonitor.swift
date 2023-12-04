@@ -14,12 +14,10 @@ import Combine
 class NetworkMonitor: ObservableObject {
     
     let monitor: NWPathMonitor
-    var logger: Logger
     var stateCancellable: Cancellable?
     let pathState = NWPathState()
     
     init(type: RequiredInterfaceType) {
-        self.logger = Logger(subsystem: "\(Constants.BUNDLE_IDENTIFIER)", category: "Network Monitor")
         switch type {
         case .cell:
             self.monitor = NWPathMonitor(requiredInterfaceType: .cellular)
@@ -34,18 +32,21 @@ class NetworkMonitor: ObservableObject {
         
         stateCancellable = pathState.publisher(for: \.pathStatus) as? Cancellable
         monitor.pathUpdateHandler = { [weak self] state in
-            guard let strongSelf = self else { return }
+            guard let self else { return }
             switch state.status {
             case .requiresConnection:
-                strongSelf.logger.trace("Requires Connection")
+                print("Requires Connection")
             case .satisfied:
-                strongSelf.logger.trace("Connection satisfied")
+                print("Network satisfied")
             case .unsatisfied:
-                strongSelf.logger.trace("Connection unsatisfied")
+                print("Network unsatisfied")
             default:
                 break
             }
-            strongSelf.pathState.pathStatus = state.status
+            DispatchQueue.main.async {
+                self.pathState.pathStatus = state.status
+                self.pathState.pathType = self.checkInterfaceType(state)
+            }
         }
         let queue = DispatchQueue(label: "NWPathMonitor")
         monitor.start(queue: queue)
@@ -55,12 +56,26 @@ class NetworkMonitor: ObservableObject {
         stateCancellable = nil
     }
     
+    private func checkInterfaceType(_ path: NWPath) -> NWInterface.InterfaceType {
+        if path.usesInterfaceType(.wifi) {
+            return .wifi
+        } else if path.usesInterfaceType(.cellular) {
+            return .cellular
+        } else if path.usesInterfaceType(.loopback) {
+            return .loopback
+        } else if path.usesInterfaceType(.wiredEthernet) {
+            return .wiredEthernet
+        }
+        return .other
+    }
+    
+    
     func networkStatus() -> Bool {
         if monitor.currentPath.status == .satisfied {
-            logger.info("Connected")
+            print("Connected")
             return true
         } else {
-            logger.info("Disconnected")
+            print("Disconnected")
             return false
         }
     }
@@ -76,4 +91,5 @@ enum RequiredInterfaceType {
 
 class NWPathState: NSObject, ObservableObject {
     @Published var pathStatus: NWPath.Status?
+    @Published var pathType: NWInterface.InterfaceType?
 }

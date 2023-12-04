@@ -22,7 +22,7 @@ struct ContactCard: View {
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
     
-    var body: some View {
+    @ViewBuilder @MainActor var content: some View {
         ZStack {
             VStack(alignment: .leading) {
                 ScrollView {
@@ -61,66 +61,109 @@ struct ContactCard: View {
                 }.padding(.top)
             }
         }
-        .navigationTitle(self.contactService.selectedContact?.username ?? "")
-        .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack {
-                    Button {
-                        setupCall(hasVideo: true)
-                    } label: {
-                        Image(systemName: "video")
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-        })
-        .alert(isPresented: self.$contactService.alert, content: {
-            Alert(
-                title: Text("We are sorry you don't seem to be logged in"),
-                message: Text(""),
-                dismissButton: .cancel(Text("Okay"), action: {
-                    Task {
-                      await processNotLoggedIn()
+    }
+    
+    var body: some View {
+        if #available(iOS 14, *) {
+            content
+                .navigationTitle(self.contactService.selectedContact?.username ?? "")
+                .toolbar(content: {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        HStack {
+                            Button {
+                                setupCall(hasVideo: true)
+                            } label: {
+                                Image(systemName: "video")
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                 })
-            )
-        })
-//        .alert("We are sorry you don't seem to be logged in", isPresented: self.$notLoggedIn, actions: {
-//            Button("OK", role: .cancel) {
-//                processNotLoggedIn()
-//            }
-//        })
-        .onAppear {
-            Task {
-                try await self.contactService.fetchContactCalls(destination)
-                self.calls = self.contactService.calls
-                self.contactService.selectedContact = self.contact
-                self.fcsdkCallService.destination = self.contact?.number ?? ""
-                await self.contactService.setCallsForContact(self.contact!)
+                .alert(isPresented: self.$contactService.alert, content: {
+                    Alert(
+                        title: Text("We are sorry you don't seem to be logged in"),
+                        message: Text(""),
+                        dismissButton: .cancel(Text("Okay"), action: {
+                            Task {
+                                await processNotLoggedIn()
+                            }
+                        })
+                    )
+                })
+                .onAppear {
+                    Task {
+                        try await self.contactService.fetchContactCalls(destination)
+                        self.calls = self.contactService.calls
+                        self.contactService.selectedContact = self.contact
+                        self.fcsdkCallService.destination = self.contact?.number ?? ""
+                        await self.contactService.setCallsForContact(self.contact!)
+                    }
+                }
+                .valueChanged(value: self.contactService.calls) { newValue in
+                    self.calls = newValue
+                }
+        } else {
+            HStack {
+                Spacer()
+                Button {
+                    setupCall(hasVideo: true)
+                } label: {
+                    Image(systemName: "video")
+                        .foregroundColor(.blue)
+                }
+                .padding()
             }
-        }
-        .onChange(of: self.contactService.calls) { newValue in
-            self.calls = newValue
+            HStack {
+                Text(self.contactService.selectedContact?.username ?? "")
+                    .font(.title)
+                    .bold()
+                    .padding()
+                Spacer()
+            }
+            content
+                .alert(isPresented: self.$contactService.alert, content: {
+                    Alert(
+                        title: Text("We are sorry you don't seem to be logged in"),
+                        message: Text(""),
+                        dismissButton: .cancel(Text("Okay"), action: {
+                            Task {
+                                await processNotLoggedIn()
+                            }
+                        })
+                    )
+                })
+                .onAppear {
+                    Task {
+                        try await self.contactService.fetchContactCalls(destination)
+                        self.calls = self.contactService.calls
+                        self.contactService.selectedContact = self.contact
+                        self.fcsdkCallService.destination = self.contact?.number ?? ""
+                        await self.contactService.setCallsForContact(self.contact!)
+                    }
+                }
+                .valueChanged(value: self.contactService.calls) { newValue in
+                    self.calls = newValue
+                }
         }
     }
     
     func setupCall(hasVideo: Bool) {
-           if self.authenticationService.connectedToSocket,
+        if self.authenticationService.connectedToSocket,
            self.authenticationService.sessionExists {
             self.fcsdkCallService.presentCommunication = true
             self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
             self.fcsdkCallService.hasVideo = hasVideo
             self.fcsdkCallService.isOutgoing = true
         } else {
-//            notLoggedIn = true
+            //            notLoggedIn = true
         }
     }
     
     func processNotLoggedIn() async {
-            await self.authenticationService.logout()
-            KeychainItem.deleteSessionID()
-            self.authenticationService.sessionID = KeychainItem.getSessionID
-        }
+        await self.authenticationService.logout()
+        KeychainItem.deleteSessionID()
+        self.authenticationService.sessionID = KeychainItem.getSessionID
     }
+}
 
 

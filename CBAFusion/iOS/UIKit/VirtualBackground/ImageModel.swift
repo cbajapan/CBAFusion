@@ -7,9 +7,13 @@
 
 import UIKit
 
-struct ImageModel: Identifiable {
+struct ImageModel: Identifiable, Hashable {
     let id = UUID()
     var title: String
     var image: UIImage
     var thumbnail: UIImage
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }

@@ -7,7 +7,7 @@
 
 import UIKit
 import SwiftUI
-
+import Combine
 
 #if canImport(UIKit)
 extension View {
@@ -60,3 +60,78 @@ struct DeviceRotationViewModifier: ViewModifier {
 }
 #endif
 
+extension View {
+    /// A backwards compatible wrapper for iOS 14 `onChange`
+    @ViewBuilder func valueChanged<T: Equatable>(value: T, onChange: @escaping (T) -> Void) -> some View {
+        if #available(iOS 14.0, *) {
+            self.onChange(of: value, perform: onChange)
+        } else {
+            self.onReceive(Just(value)) { (value) in
+                onChange(value)
+            }
+        }
+    }
+    
+    
+    @ViewBuilder func navigationTitle(title: String) -> some View {
+        if #available(iOS 14.0, *) {
+            self.navigationTitle(title)
+        } else {
+            self.navigationBarTitle(Text(title), displayMode: .inline)
+        }
+    }
+    
+    @ViewBuilder func fullScreenSheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
+        if #available(iOS 14.0, *) {
+            self.fullScreenCover(isPresented: isPresented, onDismiss: onDismiss, content: content)
+        } else {
+            self.sheet(isPresented: isPresented, onDismiss: onDismiss, content: content)
+        }
+    }
+}
+
+
+
+// Toolbar.swift
+import SwiftUI
+import UIKit
+import Foundation
+
+struct Toolbar: UIViewRepresentable {
+    typealias UIViewType = UIToolbar
+    var items: [UIBarButtonItem]
+    var toolbar: UIToolbar
+    
+    init(items: [UIBarButtonItem]) {
+        self.toolbar = UIToolbar()
+        self.items = items
+    }
+
+    func makeUIView(context: UIViewRepresentableContext<Toolbar>) -> UIToolbar {
+        toolbar.setItems(self.items, animated: true)
+        toolbar.barStyle = .default
+        toolbar.sizeToFit()
+        return toolbar
+    }
+    
+    func updateUIView(_ uiView: UIToolbar, context: UIViewRepresentableContext<Toolbar>) {
+    }
+    
+    func makeCoordinator() -> Toolbar.Coordinator {
+        Coordinator(self)
+    }
+    
+    final class Coordinator: NSObject, UIToolbarDelegate, UIBarPositioning {
+        var toolbar: Toolbar
+        var barPosition: UIBarPosition
+        
+        init(_ toolbar: Toolbar) {
+            self.toolbar = toolbar
+            self.barPosition = .top
+        }
+        
+        private func position(for: UIToolbar) -> UIBarPosition {
+            return .top
+        }
+    }
+}

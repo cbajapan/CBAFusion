@@ -85,9 +85,9 @@ extension CommunicationViewController {
                 self.logger.error("\(error)")
             }
         case .cameraFront:
-            self.flipCamera(showFrontCamera: false)
+            await self.flipCamera(showFrontCamera: false)
         case .cameraBack:
-            self.flipCamera(showFrontCamera: true)
+            await self.flipCamera(showFrontCamera: true)
         }
     }
 }

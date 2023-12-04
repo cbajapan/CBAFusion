@@ -34,7 +34,7 @@ struct AppSettings {
         case .receiveOnly:
             return ACBMediaDirection.receiveOnly
         case .none:
-            return ACBMediaDirection.none
+           return ACBMediaDirection.none
         default:
             return ACBMediaDirection.sendAndReceive
         }

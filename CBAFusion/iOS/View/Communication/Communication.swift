@@ -44,13 +44,17 @@ struct Communication: View {
     @State var ringingID: UUID? = nil
     @State var hasConnectedID: UUID? = nil
     @State private var formattedCallDuration: Text?
+    @State private var tappedShowBackground = false
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @EnvironmentObject var pipStateObject: PipStateObject
     
-    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
-    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
-    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
+    var selectedAudio = UserDefaults.standard.string(forKey: "AudioOption")
+    var selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption")
+    var selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption")
+    //    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
+    //    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
+    //    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {
@@ -71,30 +75,54 @@ struct Communication: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
-                
-                CommunicationViewControllerRepresentable(
-                    removePip: self.$removePip,
-                    destination: self.$passDestination,
-                    hasVideo: self.$passVideo,
-                    muteVideo: self.$muteVideo,
-                    muteAudio: self.$muteAudio,
-                    hold: self.$hold,
-                    isOutgoing: self.$fcsdkCallService.isOutgoing,
-                    fcsdkCall: self.$fcsdkCallService.fcsdkCall,
-                    closeClickID: self.$closeClickedID,
-                    cameraFrontID: self.$cameraFrontID,
-                    cameraBackID: self.$cameraBackID,
-                    holdID: self.$holdID,
-                    resumeID: self.$resumeID,
-                    muteAudioID: self.$muteAudioID,
-                    resumeAudioID: self.$resumeAudioID,
-                    muteVideoID: self.$muteVideoID,
-                    resumeVideoID: self.$resumeVideoID,
-                    hasStartedConnectingID: self.$hasStartedConnectingID,
-                    ringingID: self.$ringingID,
-                    hasConnectedID: self.$hasConnectedID
-                )
-                .ignoresSafeArea(.all)
+                if #available(iOS 14, *) {
+                    CommunicationViewControllerRepresentable(
+                        removePip: self.$removePip,
+                        destination: self.$passDestination,
+                        hasVideo: self.$passVideo,
+                        muteVideo: self.$muteVideo,
+                        muteAudio: self.$muteAudio,
+                        hold: self.$hold,
+                        isOutgoing: self.$fcsdkCallService.isOutgoing,
+                        fcsdkCall: self.$fcsdkCallService.fcsdkCall,
+                        closeClickID: self.$closeClickedID,
+                        cameraFrontID: self.$cameraFrontID,
+                        cameraBackID: self.$cameraBackID,
+                        holdID: self.$holdID,
+                        resumeID: self.$resumeID,
+                        muteAudioID: self.$muteAudioID,
+                        resumeAudioID: self.$resumeAudioID,
+                        muteVideoID: self.$muteVideoID,
+                        resumeVideoID: self.$resumeVideoID,
+                        hasStartedConnectingID: self.$hasStartedConnectingID,
+                        ringingID: self.$ringingID,
+                        hasConnectedID: self.$hasConnectedID
+                    )
+                    .ignoresSafeArea(.all)
+                } else {
+                    CommunicationViewControllerRepresentable(
+                        removePip: self.$removePip,
+                        destination: self.$passDestination,
+                        hasVideo: self.$passVideo,
+                        muteVideo: self.$muteVideo,
+                        muteAudio: self.$muteAudio,
+                        hold: self.$hold,
+                        isOutgoing: self.$fcsdkCallService.isOutgoing,
+                        fcsdkCall: self.$fcsdkCallService.fcsdkCall,
+                        closeClickID: self.$closeClickedID,
+                        cameraFrontID: self.$cameraFrontID,
+                        cameraBackID: self.$cameraBackID,
+                        holdID: self.$holdID,
+                        resumeID: self.$resumeID,
+                        muteAudioID: self.$muteAudioID,
+                        resumeAudioID: self.$resumeAudioID,
+                        muteVideoID: self.$muteVideoID,
+                        resumeVideoID: self.$resumeVideoID,
+                        hasStartedConnectingID: self.$hasStartedConnectingID,
+                        ringingID: self.$ringingID,
+                        hasConnectedID: self.$hasConnectedID
+                    )
+                }
                 ZStack {
                     HStack {
                         Spacer()
@@ -111,39 +139,75 @@ struct Communication: View {
                 VStack(alignment: .trailing) {
                     HStack(alignment: .top) {
                         VStack {
-                            Button {
-                                self.authenticationService.showSettingsSheet = true
-                            } label: {
-                                Image(systemName: "gear")
-                                    .resizable()
-                                    .multilineTextAlignment(.trailing)
-                                    .foregroundColor(self.authenticationService.showSettingsSheet ? Color.white : Color.blue)
-                                    .frame(width: 25, height: 25)
-                                    .padding()
-                            }
-#if !targetEnvironment(simulator)
-                            if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
-                                if UIDevice.current.userInterfaceIdiom == .phone {
+                            HStack {
+                                VStack {
                                     Button {
-                                        self.pipStateObject.pip.toggle()
-                                        self.pipStateObject.pipClickedID = UUID()
+                                        self.authenticationService.showSettingsSheet = true
                                     } label: {
-                                        ZStack {
-                                            Circle()
-                                                .fill(self.pipStateObject.pip ? Color.white : Color.gray)
-                                                .frame(width: 30, height: 30)
-                                            Image(systemName:self.pipStateObject.pip ? "pip.exit" : "pip.enter")
-                                                .resizable()
-                                                .multilineTextAlignment(.trailing)
-                                                .foregroundColor(Color.black)
-                                                .frame(width: 20, height: 20)
-                                                .padding()
+                                        Image(systemName: "gear")
+                                            .resizable()
+                                            .multilineTextAlignment(.trailing)
+                                            .foregroundColor(self.authenticationService.showSettingsSheet ? Color.white : Color.blue)
+                                            .frame(width: 25, height: 25)
+                                            .padding()
+                                    }
+#if !targetEnvironment(simulator)
+                                    if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
+                                        if UIDevice.current.userInterfaceIdiom == .phone {
+                                            Button {
+                                                self.pipStateObject.pip.toggle()
+                                                self.pipStateObject.pipClickedID = UUID()
+                                            } label: {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(self.pipStateObject.pip ? Color.white : Color.gray)
+                                                        .frame(width: 30, height: 30)
+                                                    Image(systemName:self.pipStateObject.pip ? "pip.exit" : "pip.enter")
+                                                        .resizable()
+                                                        .multilineTextAlignment(.trailing)
+                                                        .foregroundColor(Color.black)
+                                                        .frame(width: 20, height: 20)
+                                                        .padding()
+                                                }
+                                            }
                                         }
                                     }
-                                }
-                            }
 #endif
+                                }
+                                Spacer()
+                            }
+                            HStack {
+                                if authenticationService.showSystemFailed {
+                                    Text("System Failed")
+                                        .font(.caption)
+                                        .foregroundColor(Color.red)
+                                }
+                                if authenticationService.showFailedSession {
+                                    Text("Failed Session")
+                                        .font(.caption)
+                                        .foregroundColor(Color.red)
+                                }
+                                if authenticationService.showStartedSession {
+                                    Text("Started Session")
+                                        .font(.caption)
+                                        .foregroundColor(Color.red)
+                                }
+                                if authenticationService.showReestablishedConnection {
+                                    Text("Re-established Connection")
+                                        .font(.caption)
+                                        .foregroundColor(Color.red)
+                                }
+                                if authenticationService.showDidLoseConnection {
+                                    Text("Did Lose Connection")
+                                        .font(.caption)
+                                        .foregroundColor(Color.red)
+                                }
+                                Spacer()
+                            }
+                            .padding()
                         }
+                        
+                        
                         Spacer()
                         VStack(alignment: .trailing) {
                             Text(self.fcsdkCallService.fcsdkCall?.call?.remoteDisplayName ?? "")
@@ -155,11 +219,17 @@ struct Communication: View {
                                 }
                             } label: {
                                 self.fcsdkCallService.hasConnected ? Text("Send DTMF") : Text("")
-                                    .font(.title2)
+                                    .font(.title)
                                     .bold()
                             }
-                            Text(fcsdkCallService.callStatus)
-                                .font(.caption)
+                            if #available(iOS 14, *) {
+                                Text(fcsdkCallService.callStatus)
+                                    .font(.caption)
+                            } else {
+                                Text(fcsdkCallService.callStatus)
+                                    .font(.caption)
+                                    .padding(EdgeInsets(top: 30, leading: 0, bottom: 0, trailing: 0))
+                            }
                         }
                         .padding()
                     }
@@ -274,7 +344,7 @@ struct Communication: View {
                         }
                         
                         Button {
-                            self.fcsdkCallService.hasEnded = true
+                            self.fcsdkCallService.endPressed = true
                         } label: {
                             ZStack {
                                 Circle()
@@ -293,6 +363,10 @@ struct Communication: View {
                         }
                         
                     }
+                    HStack {
+                        InCallQualityView()
+                        Spacer()
+                    }
                 }
             }
         }
@@ -305,36 +379,35 @@ struct Communication: View {
             self.hasConnectedID = UUID()
             self.passDestination = self.destination
             self.passVideo = self.hasVideo
-            Task.detached {
+            Task {
                 await self.fcsdkCallService.startAudioSession()
             }
         }
         
         .onReceive(self.fcsdkCallService.$isStreaming, perform: { output in
             if output {
-                    self.fcsdkCallService.selectResolution(res: self.selectedResolution)
-                    self.fcsdkCallService.selectFramerate(rate: self.selectedFrameRate)
-                    self.fcsdkCallService.selectAudio(audio: self.selectedAudio)
+                self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.selectedResolution ?? ResolutionOptions.auto.rawValue)!)
+                self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.selectedFrameRate ?? FrameRateOptions.fro20.rawValue)!)
+                self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: self.selectedAudio ?? ACBAudioDevice.speakerphone.rawValue)!)
             }
         })
         .onReceive(self.fcsdkCallService.$hasEnded, perform: { output in
             if output {
                 self.authenticationService.showSettingsSheet = false
-                self.fcsdkCallService.presentCommunication = false
                 self.closeClickedID = UUID()
-                self.fcsdkCallService.hasEnded = false
             }
         })
         .onDisappear(perform: {
-            self.fcsdkCallService.hasEnded = false
-            self.fcsdkCallService.hasConnected = false
-            self.fcsdkCallService.isStreaming = false
-            Task.detached {
+            Task {
                 try await self.contactService.fetchContactCalls(self.destination)
             }
         })
-        .sheet(isPresented: self.$authenticationService.showSettingsSheet, content: {
-            SettingsSheet()
+        .sheet(isPresented: self.$authenticationService.showSettingsSheet, onDismiss:  {
+            if tappedShowBackground {
+                self.fcsdkCallService.showBackgroundSelectorSheet = true
+            }
+        }, content: {
+            SettingsSheet(tappedShowBackground: $tappedShowBackground)
                 .environmentObject(authenticationService)
                 .environmentObject(fcsdkCallService)
                 .environmentObject(contactService)
@@ -344,7 +417,9 @@ struct Communication: View {
                 DTMFSheet()
             }
         }
-        .fullScreenCover(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, content: {
+        .fullScreenSheet(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, onDismiss: {
+            self.fcsdkCallService.showBackgroundSelectorSheet = false
+        }, content: {
             if #available(iOS 15, *) {
                 BackgroundSelector()
             }

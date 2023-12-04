@@ -8,15 +8,14 @@
 import UIKit
 import FCSDKiOS
 
+@available(iOS 15.0, *)
 class VirtualBackgroundViewController: UICollectionViewController {
-
-    var dataSource: UICollectionViewDiffableDataSource<Sections, Backgrounds.BackgroundsViewModel>!
-    var backgrounds: Backgrounds
     
-
-    init(backgrounds: Backgrounds) {
-        self.backgrounds = backgrounds
-            super.init(collectionViewLayout: VirtualBackgroundViewController.createLayout())
+    var dataSource: UICollectionViewDiffableDataSource<BackgroundSections, BackgroundsViewModel>!
+    
+    init() {
+        let layout = VirtualBackgroundViewController.createLayout()
+        super.init(collectionViewLayout: layout)
     }
     
     deinit {
@@ -32,121 +31,99 @@ class VirtualBackgroundViewController: UICollectionViewController {
         collectionView.delegate = self
         collectionView.allowsSelection = true
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        self.configureHierarchy()
+        self.configureDataSource()
+        self.performQuery(with: "")
     }
     
     
     
     override func viewWillAppear(_ animated: Bool) {
-        Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
-            await strongSelf.configureHierarchy()
-            await strongSelf.configureDataSource()
-            await strongSelf.performQuery(with: "")
-        }
     }
     
     override func viewDidDisappear(_ animated: Bool) {
-        Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
-            await strongSelf.deleteSnap()
-            strongSelf.backgrounds.backgroundsViewModel.removeAll()
+        deleteSnap()
+    }
+    
+    func performQuery(with string: String) {
+        var snapshot = NSDiffableDataSourceSnapshot<BackgroundSections, BackgroundsViewModel>()
+        dataSource.apply(snapshot)
+        
+        let data = Backgrounds.shared.searchImages(with: string).sorted { $0.title < $1.title }
+
+        if data.isEmpty {
+            snapshot.deleteSections([.inital])
+            snapshot.deleteItems(data)
+            dataSource.apply(snapshot, animatingDifferences: false)
+        } else {
+            snapshot.appendSections([.inital])
+            snapshot.appendItems(data, toSection: .inital)
+            dataSource.apply(snapshot, animatingDifferences: false)
         }
     }
     
-    func performQuery(with string: String) async {
-            var snapshot = NSDiffableDataSourceSnapshot<Sections, Backgrounds.BackgroundsViewModel>()
-            await dataSource.apply(snapshot)
-            
-            let data = backgrounds.searchImages(with: string).sorted { $0.title < $1.title }
-            if data.isEmpty {
-                snapshot.deleteSections([.inital])
-                snapshot.deleteItems(data)
-                await dataSource.apply(snapshot, animatingDifferences: false)
-            } else {
-                snapshot.appendSections([.inital])
-                snapshot.appendItems(data, toSection: .inital)
-                await dataSource.apply(snapshot, animatingDifferences: false)
-            }
-        }
-    
-    func deleteSnap() async {
+    func deleteSnap() {
         var snapshot = dataSource.snapshot()
         snapshot.deleteAllItems()
-        await dataSource.apply(snapshot)
+        dataSource.apply(snapshot)
     }
     
-    func configureHierarchy() async {
+    func configureHierarchy() {
         collectionView.register(BackgroundItemCell.self, forCellWithReuseIdentifier: BackgroundItemCell.reuseIdentifer)
         collectionView.register(BackgroundHeader.self, forSupplementaryViewOfKind: "section-header-element-kind", withReuseIdentifier: "section-header-element-kind-identifier")
     }
     
-    fileprivate func setCollectionViewItem(item: BackgroundItemCell? = nil, background: Backgrounds.BackgroundsViewModel) async {
+    fileprivate func setCollectionViewItem(item: BackgroundItemCell? = nil, background: BackgroundsViewModel) {
         item?.posterImage.image = background.thumbnail
     }
     
-    func configureDataSource() async {
-        dataSource = UICollectionViewDiffableDataSource<Sections, Backgrounds.BackgroundsViewModel>(collectionView: collectionView) {
-            (collectionView: UICollectionView, indexPath: IndexPath, identifier: Any) -> UICollectionViewCell? in
-            let section = Sections(rawValue: indexPath.section)!
+    func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<BackgroundSections, BackgroundsViewModel>(collectionView: collectionView) { [weak self]
+            (collectionView: UICollectionView, indexPath: IndexPath, model: BackgroundsViewModel) -> UICollectionViewCell? in
+            guard let self else { return nil }
+            let section = BackgroundSections(rawValue: indexPath.section)!
             switch section {
             case .inital:
                 if let item = collectionView.dequeueReusableCell(withReuseIdentifier: BackgroundItemCell.reuseIdentifer, for: indexPath) as? BackgroundItemCell {
-                    if let background = identifier as? Backgrounds.BackgroundsViewModel {
-                        Task { @MainActor [weak self] in
-                            guard let strongSelf = self else { return }
-                            await strongSelf.setCollectionViewItem(item: item, background: background)
-                        }
-                    }
+                    self.setCollectionViewItem(item: item, background: model)
                     return item
                 } else {
                     fatalError("Cannot create other item")
                 }
             }
         }
-       await supplementaryViewProvider()
+        supplementaryViewProvider()
     }
     
-    fileprivate func supplementaryViewProvider() async {
+    fileprivate func supplementaryViewProvider() {
         dataSource.supplementaryViewProvider = { [weak self]
             (collectionView: UICollectionView, kind: String, indexPath: IndexPath) -> UICollectionReusableView? in
             guard let strongSelf = self else {return nil}
-                if let supplementaryView = collectionView.dequeueReusableSupplementaryView(
-                    ofKind: "section-header-element-kind",
-                    withReuseIdentifier: "section-header-element-kind-identifier",
-                    for: indexPath) as? BackgroundHeader {
-
-
-
-                    if let object = strongSelf.dataSource.itemIdentifier(for: indexPath) {
-                        if let section = strongSelf.dataSource.snapshot()
-                            .sectionIdentifier(containingItem: object) {
-                            switch section {
-                            case .inital:
-                                supplementaryView.label.font = .systemFont(ofSize: 14)
-                                supplementaryView.label.text = "Select an Image"
-                            }
+            if let supplementaryView = collectionView.dequeueReusableSupplementaryView(
+                ofKind: "section-header-element-kind",
+                withReuseIdentifier: "section-header-element-kind-identifier",
+                for: indexPath) as? BackgroundHeader {
+                
+                
+                
+                if let object = strongSelf.dataSource.itemIdentifier(for: indexPath) {
+                    if let section = strongSelf.dataSource.snapshot()
+                        .sectionIdentifier(containingItem: object) {
+                        switch section {
+                        case .inital:
+                            supplementaryView.label.font = .systemFont(ofSize: 14)
+                            supplementaryView.label.text = "Select an Image"
                         }
                     }
-                    return supplementaryView
-                } else {
-                    fatalError("Cannot create new supplementary")
                 }
+                return supplementaryView
+            } else {
+                fatalError("Cannot create new supplementary")
+            }
         }
     }
     
-    
-   static func createLayout() -> UICollectionViewCompositionalLayout {
-        
-        let layout = UICollectionViewCompositionalLayout {
-            (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection in
-            switch sectionIndex {
-            case 0:
-                return CollectionViewSections.shared.backgroundSection()
-            default:
-                return CollectionViewSections.shared.defaultSection()
-            }
-        }
-        return layout
-        
+    static func createLayout() -> UICollectionViewCompositionalLayout {
+        return UICollectionViewCompositionalLayout(section: CollectionViewSections.shared.backgroundSection())
     }
 }

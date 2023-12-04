@@ -13,22 +13,37 @@ import Intents
 import Logging
 
 
+
 @main
-struct CBAFusionApp: App {
+struct CBAFusionApp {
+    static func main() {
+        if #available(iOS 14.0, *) {
+            CBAFusion.main()
+        } else {
+            UIApplicationMain(
+                CommandLine.argc,
+                CommandLine.unsafeArgv,
+                nil,
+                NSStringFromClass(AppDelegate.self))
+        }
+    }
+}
+
+@available(iOS 14.0, *)
+struct CBAFusion: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @Environment(\.scenePhase) var scenePhase
     @StateObject private var authenticationService = AuthenticationService()
-    @StateObject private var fcsdkCallService = FCSDKCallService()
+    @StateObject private var fcsdkCallService = FCSDKCallService.shared
     @StateObject private var monitor = NetworkMonitor(type: .all)
     @StateObject private var callKitManager = CallKitManager()
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
-    @StateObject private var backgrounds = Backgrounds()
+    @StateObject private var backgrounds = Backgrounds.shared
     @StateObject private var pipStateObject = PipStateObject.shared
     
     @State var providerDelegate: ProviderDelegate?
-//    @State var exists = SQLiteStore.exists()
     @State var callIntent = false
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
@@ -55,34 +70,6 @@ struct CBAFusionApp: App {
                 .environmentObject(aedService)
                 .environmentObject(backgrounds)
                 .environmentObject(pipStateObject)
-                .task {
-                    
-                    async let image1 = backgrounds.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image2 = backgrounds.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image3 = backgrounds.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image4 = backgrounds.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image5 = backgrounds.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image6 = backgrounds.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image7 = backgrounds.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image8 = backgrounds.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image9 = backgrounds.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image10 = backgrounds.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    async let image11 = backgrounds.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-                    _ = await [
-                        image1,
-                        image2,
-                        image3,
-                        image4,
-                        image5,
-                        image6,
-                        image7,
-                        image8,
-                        image9,
-                        image10,
-                        image11
-                    ]
-                    backgrounds.displayImage = await image1
-                }
                 .onAppear {
                     fcsdkCallService.delegate = authenticationService
                     fcsdkCallService.appDelegate = delegate
@@ -106,7 +93,7 @@ struct CBAFusionApp: App {
                         await reAuthFlowWithCallIntent()
                     }
                 }
-                .onChange(of: scenePhase) { (phase) in
+                .valueChanged(value: scenePhase) { phase in
                     switch phase {
                     case .active:
                         Task {
@@ -154,5 +141,42 @@ struct CBAFusionApp: App {
                 }
             }
         } while (self.authenticationService.acbuc?.connection == false)  
+    }
+}
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?
+
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        let contentView = ContentView() // Add another view with content Text("From iOS 13") to test both block runs
+
+        if let windowScene = scene as? UIWindowScene {
+            let window = UIWindow(windowScene: windowScene)
+            window.rootViewController = UIHostingController(rootView: contentView)
+            self.window = window
+            window.makeKeyAndVisible()
+        }
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {
+        //
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        //
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+       //
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+       //
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        //
     }
 }

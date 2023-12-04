@@ -35,7 +35,13 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
     }
     
     static let providerConfiguration: CXProviderConfiguration = {
-        let config = CXProviderConfiguration()
+        var config: CXProviderConfiguration?
+        if #available(iOS 14.0, *) {
+            config = CXProviderConfiguration()
+        } else {
+            config = CXProviderConfiguration(localizedName: "CBA_CXProviderConfiguration")
+        }
+        guard let config = config else { fatalError() }
         config.supportsVideo = true
         config.maximumCallsPerCallGroup = 1
         config.supportedHandleTypes = [.generic, .phoneNumber]

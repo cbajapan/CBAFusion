@@ -22,7 +22,7 @@ struct DTMFSheet: View {
                     Text(self.storedKey)
                     TextField("Press For DTMF", text: self.$key)
                         .keyboardType(.numberPad)
-                        .navigationTitle("DTMF Sheet")
+                        .navigationTitle(title: "DTMF Sheet")
                     Spacer()
                 }
             }.padding()
@@ -33,7 +33,7 @@ struct DTMFSheet: View {
         .onDisappear {
             self.fcsdkCallService.showDTMFSheet = false
         }
-        .onChange(of: key) { newValue in
+        .valueChanged(value: key) { newValue in
             if key != "" {
                 Task {
                     if self.fcsdkCallService.fcsdkCall?.call != nil {

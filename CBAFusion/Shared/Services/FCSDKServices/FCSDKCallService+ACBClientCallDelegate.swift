@@ -14,24 +14,50 @@ extension FCSDKCallService: ACBClientCallDelegate {
     
     
     @MainActor private func endCall() async {
-        self.hasEnded = true
-        if isBuffer {
-            await self.fcsdkCall?.call?.removeBufferView()
-            await self.fcsdkCall?.call?.removeLocalBufferView()
+        if !endPressed {
+            self.hasEnded = true
         }
+        if #available(iOS 15.0, *), isBuffer {
+                await self.fcsdkCall?.call?.removeBufferView()
+                await self.fcsdkCall?.call?.removeLocalBufferView()
+                
+                fcsdkCall?.communicationView?.remoteView = nil
+                fcsdkCall?.communicationView?.previewView = nil
+                
+            } else {
+                // Fallback on earlier versions
+            }
+        self.endPressed = false
     }
     
     @MainActor
     func setupBufferViews() async {
-        fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView()
-        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView()
-        fcsdkCall?.communicationView?.setupUI()
-        fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
-        fcsdkCall?.communicationView?.captureSession = await fcsdkCall?.call?.captureSession()
-        if let backgroundImage = backgroundImage {
-            let mode = virtualBackgroundMode
-            await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: mode)
+        let localVideoScale = UserDefaults.standard.integer(forKey: "localVideoScale")
+        let remoteVideoScale = UserDefaults.standard.integer(forKey: "remoteVideoScale")
+        let scaleWithOrientation = UserDefaults.standard.bool(forKey: "scaleWithOrientation")
+        
+        fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView(
+            scaleMode: VideoScaleMode(rawValue: remoteVideoScale) ?? .horizontal,
+            shouldScaleWithOrientation: scaleWithOrientation
+        )
+        
+        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView(
+            scaleMode: VideoScaleMode(rawValue: localVideoScale) ?? .horizontal,
+            shouldScaleWithOrientation: scaleWithOrientation
+        )
+        
+        if #available(iOS 16, *) {
+            let session = await fcsdkCall?.call?.captureSession()
+            fcsdkCall?.communicationView?.captureSession = session
         }
+        
+        if #available(iOS 15, *) {
+            await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: virtualBackgroundMode)
+        }
+        
+            fcsdkCall?.communicationView?.setupUI()
+            fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
+            fcsdkCall?.communicationView?.gestures()
     }
     
     @MainActor
@@ -41,13 +67,20 @@ extension FCSDKCallService: ACBClientCallDelegate {
     }
     
     func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+        guard let self else { return }
             self.callStatus = status.rawValue
         }
         switch status {
         case .setup:
             break
         case .preparingBufferViews:
+            //Just wait a second if we are answering from callkit for the view
+            if #available(iOS 16.0, *) {
+                try? await Task.sleep(until: .now + .seconds(1), clock: .suspending)
+            } else {
+                try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
+            }
             if isBuffer {
                 await setupBufferViews()
             }
@@ -106,7 +139,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
             if  self.fcsdkCall?.call != nil {
                 if self.fcsdkCall?.call?.status == .inCall {
                     if !self.isOnHold {
-                        call.hold()
+                        await call.hold()
                         self.isOnHold = true
                     }
                 }
@@ -136,13 +169,17 @@ extension FCSDKCallService: ACBClientCallDelegate {
         }
     }
     
-    func call(_ call: ACBClientCall, didReceiveSSRCsForAudio audioSSRCs: [String], andVideo videoSSRCs: [String]) {
-        self.logger.info("Received SSRC information for AUDIO \(audioSSRCs) and VIDEO \(videoSSRCs)")
+    func didReceiveSSRCs(for audioSSRCs: [String], andVideo videoSSRCs: [String], call: ACBClientCall) async {
+        self.logger.info("Received SSRC information for\n AUDIO \(audioSSRCs)\n VIDEO \(videoSSRCs)")
     }
     
-    internal func call(_ call: ACBClientCall, didReportInboundQualityChange inboundQuality: Int) {
+    func didReportInboundQualityChange(_ inboundQuality: Int, with call: ACBClientCall) async {
         self.logger.info("Call Quality: \(inboundQuality)")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.callQuality = inboundQuality
     }
+}
     
     func didReceiveMediaChangeRequest(_ call: ACBClientCall) async {
         let audio = call.hasRemoteAudio
@@ -150,7 +187,11 @@ extension FCSDKCallService: ACBClientCallDelegate {
         self.logger.info("HAS AUDIO \(audio)")
         self.logger.info("HAS VIDEO \(video)")
     }
+    func didAddRemoteMediaStream(_ call: ACBClientCall) async {
+        print("\(#function)")
+    }
+    
+    func didAddLocalMediaStream(_ call: ACBClientCall) async {
+        print("\(#function)")
+    }
 }
-
-
-

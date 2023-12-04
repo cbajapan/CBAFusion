@@ -10,7 +10,7 @@ import AVKit
 
 @MainActor
 class CommunicationView: UIView {
-
+    
     
     var stackView: UIStackView = {
         let stk = UIStackView()
@@ -25,6 +25,7 @@ class CommunicationView: UIView {
     var captureSession: AVCaptureSession?
     let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
     var blurEffectView: UIVisualEffectView?
+    var isFlipped = false
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -34,85 +35,122 @@ class CommunicationView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func updateAnchors(_ orientation: UIDeviceOrientation) {
-        guard let previewView = previewView else { return }
-        guard let remoteView = remoteView else { return }
+    
+    func updateAnchors(_ orientation: UIDeviceOrientation, flipped: Bool = false, minimize: Bool = false) {
+        self.isFlipped = flipped
+        
         if UIApplication.shared.applicationState != .background {
             
-            var width: CGFloat = 0
-            var height: CGFloat = 0
+            var size: (CGFloat, CGFloat) = (0,0)
             
             switch orientation {
+            case .unknown, .faceUp, .faceDown:
+                if UIScreen.main.bounds.width < UIScreen.main.bounds.height {
+                    size = setSize(isLandscape: false, minimize: minimize)
+                } else {
+                    size = setSize(isLandscape: true, minimize: minimize)
+                }
             case .portrait, .portraitUpsideDown:
-                switch UIDevice.current.userInterfaceIdiom {
-                case .phone:
-                    width = 150
-                    height = 200
-                case .pad:
-                    width = 250
-                    height = 200
-                default:
-                    break
-                }
+                size = setSize(isLandscape: false, minimize: minimize)
             case .landscapeRight, .landscapeLeft:
-                switch UIDevice.current.userInterfaceIdiom {
-                case .phone:
-                    width = 200
-                    height = 150
-                case .pad:
-                    width = 200
-                    height = 250
-                default:
-                    break
-                }
+                size = setSize(isLandscape: true, minimize: minimize)
             default:
-                switch UIDevice.current.userInterfaceIdiom {
-                case .phone:
-                    width = 150
-                    height = 200
-                case .pad:
-                    width = 250
-                    height = 200
-                default:
-                    break
-                }
+                size = setSize(isLandscape: true, minimize: minimize)
             }
+            setConstraint(flipped: flipped, size: size)
+        }
+    }
+    
+    func setConstraint(flipped: Bool, size: (CGFloat, CGFloat)) {
+        guard let previewView = previewView else { return }
+        guard let remoteView = remoteView else { return }
+        for constraint in previewView.constraints {
+            if constraint.isActive {
+                constraint.isActive = false
+            }
+        }
+        
+        for constraint in remoteView.constraints {
+            if constraint.isActive {
+                constraint.isActive = false
+            }
+        }
+        
+        if flipped {
+            previewView.anchors(
+                top: topAnchor,
+                leading: leadingAnchor,
+                bottom: bottomAnchor,
+                trailing: trailingAnchor
+            )
+            remoteView.anchors(
+                bottom: bottomAnchor,
+                trailing: trailingAnchor,
+                bottomPadding: 110,
+                trailPadding: 20,
+                width: size.0,
+                height: size.1
+            )
             
- 
-            for constraint in previewView.constraints {
-                if constraint.isActive {
-                    constraint.isActive = false
-                }
-            }
-
-            for constraint in remoteView.constraints {
-                if constraint.isActive {
-                    constraint.isActive = false
-                }
-            }
-            
+        } else {
             remoteView.anchors(
                 top: topAnchor,
                 leading: leadingAnchor,
                 bottom: bottomAnchor,
                 trailing: trailingAnchor
             )
-
+            
             previewView.anchors(
                 bottom: bottomAnchor,
                 trailing: trailingAnchor,
-                bottomPadding: 110,
+                bottomPadding: 135,
                 trailPadding: 20,
-                width: width,
-                height: height
+                width: size.0,
+                height: size.1
             )
-
-            remoteView.frame = remoteView.bounds
-            previewView.frame = previewView.bounds
-            previewView.layer.cornerRadius = 10
-            previewView.layer.masksToBounds = true
-           
         }
+        remoteView.frame = remoteView.bounds
+        previewView.frame = previewView.bounds
+        previewView.layer.cornerRadius = 10
+        previewView.layer.masksToBounds = true
+    }
+    
+    internal func getAspectRatio(width: CGFloat, height: CGFloat) -> CGFloat {
+        if width > height {
+            return width / height
+        } else {
+            return height / width
+        }
+    }
+    
+    internal func setSize(isLandscape: Bool, minimize: Bool) -> (CGFloat, CGFloat) {
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+        
+        if isLandscape {
+            switch UIDevice.current.userInterfaceIdiom {
+            case .phone:
+                width = minimize ? (UIScreen.main.bounds.width / 4) : (UIScreen.main.bounds.width / 3)
+                height = minimize ? (UIScreen.main.bounds.width / 4) / getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) : (UIScreen.main.bounds.width / 3) / getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            case .pad:
+                width = minimize ?  UIScreen.main.bounds.width / 3 : UIScreen.main.bounds.width / 4
+                height = minimize ? (UIScreen.main.bounds.width / 3) / getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) : (UIScreen.main.bounds.width / 4) / getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            default:
+                break
+            }
+        } else {
+            switch UIDevice.current.userInterfaceIdiom {
+            case .phone:
+                width = minimize ? (UIScreen.main.bounds.width / 6.5) : UIScreen.main.bounds.height / 4.5
+                height = minimize ? (UIScreen.main.bounds.width / 6.5) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) : (UIScreen.main.bounds.height / 5.5) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            case .pad:
+                width = minimize ? UIScreen.main.bounds.height / 3 : UIScreen.main.bounds.height / 4
+                height = minimize ? (UIScreen.main.bounds.height / 3) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) : (UIScreen.main.bounds.height / 4) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            default:
+                break
+            }
+        }
+        return (width, height)
     }
     
     func setupUI() {
@@ -123,7 +161,7 @@ class CommunicationView: UIView {
             addSubview(previewView)
         }
     }
-
+    
     
     func breakDownView() {
         guard let previewView = previewView else { return }
@@ -131,7 +169,7 @@ class CommunicationView: UIView {
         remoteView.removeFromSuperview()
         previewView.removeFromSuperview()
     }
-
+    
     func connectingUI(isRinging: Bool) {
         numberLabel.font = .boldSystemFont(ofSize: 18)
         if isRinging {
@@ -154,7 +192,32 @@ class CommunicationView: UIView {
         }
     }
     
-
+    func gestures() {
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
+        guard let previewView = previewView else { return }
+        previewView.isUserInteractionEnabled = true
+        previewView.addGestureRecognizer(panGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapLocalView))
+        previewView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard let previewView = self.previewView else { return }
+            self.bringSubviewToFront(previewView)
+            let translation = sender.translation(in: self)
+            previewView.center = CGPoint(x: previewView.center.x + translation.x, y: previewView.center.y + translation.y)
+            sender.setTranslation(CGPoint.zero, in: self)
+        }
+    }
+    
+    var tapped = false
+    @objc func tapLocalView() {
+        tapped = !tapped
+        self.updateAnchors(UIDevice.current.orientation, minimize: self.tapped)
+    }
+    
     func removeConnectingUI() {
         stackView.removeFromSuperview()
     }

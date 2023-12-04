@@ -38,6 +38,8 @@ struct Authentication: View {
                             Text("Server")
                                 .bold()
                             TextField("Enter Server Name...", text: $authenticationService.server)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
                             Text("Port")
                                 .bold()
                             TextField("8443...", text: $authenticationService.port)
@@ -48,6 +50,7 @@ struct Authentication: View {
                             Toggle("Security", isOn: $authenticationService.secureSwitch)
                             Toggle("Use Cookies", isOn: $authenticationService.useCookies)
                             Toggle("Trust All Certs.", isOn: $authenticationService.acceptUntrustedCertificates)
+                            Toggle("Force retry socket connection", isOn: $authenticationService.alwaysRetryConnection)
                         }
                     }
                     Button {
@@ -62,9 +65,13 @@ struct Authentication: View {
                 }
                 
                 if self.loggingIn {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.5)
+                    if #available(iOS 14, *) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                    } else {
+                        Text("Loading.....")
+                    }
                 }
             }
             .navigationBarTitle("Authentication")
@@ -82,16 +89,10 @@ struct Authentication: View {
                 })
             )
         })
-//        .alert(self.authenticationService.errorMessage, isPresented: self.$authenticationService.showErrorAlert, actions: {
-//            Button("OK", role: .cancel) {
-//                self.authenticationService.showErrorAlert = false
-//                self.loggingIn = false
-//            }
-//        })
     }
     
     private func login() async {
-         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
         self.fcsdkCallService.acbuc = self.authenticationService.acbuc
         guard let uc = self.fcsdkCallService.acbuc else { return }
         await self.fcsdkCallService.setPhoneDelegate(uc)

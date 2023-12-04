@@ -13,6 +13,8 @@ import CallKit
 import Logging
 
 class FCSDKCallService: NSObject, ObservableObject {
+    static let shared = FCSDKCallService()
+    var cameraFront = true
     
     var appDelegate: AppDelegate?
     var contactService: ContactService?
@@ -36,6 +38,13 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var isRinging: Bool = false
     @Published var hasConnected: Bool = false
     @Published var isOnHold: Bool = false
+    @Published var endPressed: Bool = false {
+        didSet {
+            if endPressed {
+                hasEnded = true
+            }
+        }
+    }
     @Published var hasEnded: Bool = false
     @Published var presentCommunication: Bool = false
     @Published var connectDate: Date?
@@ -48,12 +57,19 @@ class FCSDKCallService: NSObject, ObservableObject {
     @Published var backgroundImage: UIImage?
     @Published var virtualBackgroundMode: VirtualBackgroundMode = .image
     @Published var isBuffer: Bool = true
+    @Published var swapViews: Bool = false
+    @Published var isMirroredFrontCamera: Bool = true
     @Published var defaultAudioDevice: ACBAudioDevice = .speakerphone
     @Published var callStatus: String = ""
+    @Published var callQuality: Int = 0
+    
     var audioDeviceManager: ACBAudioDeviceManager?
+    var captureSession: AVCaptureSession?
     
     override init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - FCSDKCall Service - ")
+        UserDefaults.standard.removeObject(forKey: "ResolutionOption")
+        UserDefaults.standard.removeObject(forKey: "RateOption")
     }
     
     deinit {
@@ -61,21 +77,27 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func initializeFCSDKCall() async throws -> ACBClientCall? {
+        let defaultAudio = UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) ?? "SendAndReceive"
+        let defaultVideo = UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) ?? "SendAndReceive"
+        
+        let audioDirection = AppSettings.mediaDirection(for: defaultAudio)
+        let videoDirection = AppSettings.mediaDirection(for: defaultVideo)
         guard let uc = self.fcsdkCall?.acbuc else { throw OurErrors.nilACBUC }
         let outboundCall = await uc.phone.createCall(
             toAddress: self.fcsdkCall?.handle ?? "",
-            withAudio: AppSettings.perferredAudioDirection(),
-            video: AppSettings.perferredVideoDirection(),
+            withAudio: audioDirection,
+            video: videoDirection,
             delegate: self
         )
+        uc.phone.mirrorFrontFacingCameraPreview = isMirroredFrontCamera
         self.fcsdkCall?.call = outboundCall
-        self.fcsdkCall?.call?.enableLocalVideo(true)
+        await self.fcsdkCall?.call?.enableLocalVideo(true)
         
         Task { @MainActor [weak self] in
-            guard let strongSelf = self else { return }
+            guard let self else { return }
             //We Pass the view up to the SDK when using metalKit View
-            if !strongSelf.isBuffer {
-                strongSelf.fcsdkCall?.call?.remoteView = strongSelf.fcsdkCall?.communicationView?.remoteView
+            if !self.isBuffer {
+                self.fcsdkCall?.call?.remoteView = self.fcsdkCall?.communicationView?.remoteView
             }
         }
         return self.fcsdkCall?.call
@@ -94,7 +116,15 @@ class FCSDKCallService: NSObject, ObservableObject {
     }
     
     func setPhoneDelegate(_ uc: ACBUC) async {
+        
+        let selectedAudio = UserDefaults.standard.string(forKey: "AudioOption") ?? ACBAudioDevice.speakerphone.rawValue
+        let selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption") ?? ResolutionOptions.auto.rawValue
+        let selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption") ?? FrameRateOptions.fro30.rawValue
+        
         uc.phone.delegate = self
+        self.selectResolution(res: ResolutionOptions(rawValue: selectedResolution) ?? ResolutionOptions.auto)
+        self.selectFramerate(rate:  FrameRateOptions(rawValue: selectedFrameRate) ?? FrameRateOptions.fro30)
+        self.selectAudio(audio: ACBAudioDevice(rawValue: selectedAudio) ?? ACBAudioDevice.speakerphone )
     }
     
     @MainActor
@@ -106,26 +136,33 @@ class FCSDKCallService: NSObject, ObservableObject {
     func answerFCSDKCall() async {
         self.connectDate = Date()
         guard let fcsdkCall = self.fcsdkCall?.call else { return }
-            if !isBuffer {
-                fcsdkCall.remoteView = self.fcsdkCall?.communicationView?.remoteView
-                guard let view = self.fcsdkCall?.communicationView?.previewView else { return }
-                guard let uc = self.acbuc else { return }
-                //We Pass the view up to the SDK
-                uc.phone.previewView = view
-            }
+        guard let uc = self.acbuc else { return }
+        if !isBuffer {
+            fcsdkCall.remoteView = self.fcsdkCall?.communicationView?.remoteView
+            guard let view = self.fcsdkCall?.communicationView?.previewView else { return }
+            //We Pass the view up to the SDK
+            uc.phone.previewView = view
+        }
         await answer(fcsdkCall)
     }
     
     func answer(_ fcsdkCall: ACBClientCall) async {
-        await fcsdkCall.answer(withAudio: AppSettings.perferredAudioDirection(), andVideo: AppSettings.perferredVideoDirection())
+        let defaultAudio = UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) ?? "SendAndReceive"
+        let defaultVideo = UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) ?? "SendAndReceive"
+        
+        let audioDirection = AppSettings.mediaDirection(for: defaultAudio)
+        let videoDirection = AppSettings.mediaDirection(for: defaultVideo)
+        await fcsdkCall.answer(
+            withAudio: audioDirection,
+            andVideo: videoDirection
+        )
+        guard let uc = self.acbuc else { return }
+        uc.phone.mirrorFrontFacingCameraPreview = isMirroredFrontCamera
     }
-
+    
     func endFCSDKCall(_ fcsdkCall: FCSDKCall) async throws {
         await fcsdkCall.call?.end()
         await self.removeCall(fcsdkCall: fcsdkCall)
-        await MainActor.run {
-            self.hasEnded = true
-        }
     }
     
     func hasStartedConnectingDidChange(provider: CXProvider, id: UUID, date: Date) async {
@@ -209,13 +246,16 @@ extension FCSDKCallService {
     func selectResolution(res: ResolutionOptions) {
         switch res {
         case .auto:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolutionAuto;
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolutionAuto
         case .res288p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288;
+            //4:3
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288
         case .res480p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution640x480;
+            //4:3
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution640x480
         case .res720p:
-            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720;
+            //16:9
+            self.acbuc?.phone.preferredCaptureResolution = ACBVideoCapture.resolution1280x720
         }
     }
     
@@ -225,6 +265,8 @@ extension FCSDKCallService {
             self.acbuc?.phone.preferredCaptureFrameRate = 20
         case .fro30:
             self.acbuc?.phone.preferredCaptureFrameRate = 30
+        case .fro60:
+            self.acbuc?.phone.preferredCaptureFrameRate = 60
         }
     }
 }
@@ -252,19 +294,22 @@ extension FCSDKCallService {
         await self.contactService?.deleteCalls()
     }
     
+    @available(iOS 15, *)
     func removeBackground() async {
+       Task { @MainActor [weak self] in
+           guard let self else { return }
+           self.backgroundImage = nil
+           self.virtualBackgroundMode = .image
+        }
         await fcsdkCall?.call?.removeBackgroundImage()
     }
     
     @MainActor
+    @available(iOS 15, *)
     func setBackgroundImage(_ image: UIImage? = nil, mode: VirtualBackgroundMode = .image) async {
-        if fcsdkCall?.call == nil {
             self.backgroundImage = image
             self.virtualBackgroundMode = mode
-        } else {
-            self.backgroundImage = image
-            self.virtualBackgroundMode = mode
-            await fcsdkCall?.call?.feedBackgroundImage(image, mode: mode)
-        }
+            await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: virtualBackgroundMode)
     }
 }
+
