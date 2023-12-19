@@ -419,6 +419,7 @@ struct Communication: View {
         }
         .fullScreenSheet(isPresented: self.$fcsdkCallService.showBackgroundSelectorSheet, onDismiss: {
             self.fcsdkCallService.showBackgroundSelectorSheet = false
+            self.tappedShowBackground = false
         }, content: {
             if #available(iOS 15, *) {
                 BackgroundSelector()
