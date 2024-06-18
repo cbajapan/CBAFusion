@@ -29,7 +29,6 @@ class NetworkMonitor: ObservableObject {
             self.monitor = NWPathMonitor()
         }
         
-        
         stateCancellable = pathState.publisher(for: \.pathStatus) as? Cancellable
         monitor.pathUpdateHandler = { [weak self] state in
             guard let self else { return }

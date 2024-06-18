@@ -47,22 +47,22 @@ final class Backgrounds: ObservableObject {
     static let shared = Backgrounds()
     
     @Published var displayImage: DisplayImageObject?
-    var backgroundsViewModel = [BackgroundsViewModel]()
+    let imageProcessor = ImageProcessor()
     
     init() {
         Task { @MainActor [weak self] in
             guard let self else { return }
-            async let image1 = self.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image2 = self.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image3 = self.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image4 = self.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image5 = self.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image6 = self.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image7 = self.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image8 = self.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image9 = self.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image10 = self.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image11 = self.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image1 = self.imageProcessor.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image2 = self.imageProcessor.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image3 = self.imageProcessor.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image4 = self.imageProcessor.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image5 = self.imageProcessor.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image6 = self.imageProcessor.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image7 = self.imageProcessor.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image8 = self.imageProcessor.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image9 = self.imageProcessor.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image10 = self.imageProcessor.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+            async let image11 = self.imageProcessor.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
             _ = await [
                 image1,
                 image2,
@@ -81,12 +81,28 @@ final class Backgrounds: ObservableObject {
         }
     }
     
+    func searchImages(with query: String?) async -> [BackgroundsViewModel] {
+        return await imageProcessor.backgroundsViewModel.filter ({ $0.search(query) })
+    }
+}
+
+
+internal actor ImageProcessor {
+    var backgroundsViewModel = [BackgroundsViewModel]()
+    func resize(_ name: String, to size: CGSize) async -> UIImage? {
+        guard let image = UIImage(named: name) else { return nil }
+        guard let ciimage = CIImage(image: image) else { return nil }
+        guard let pb = recreatePixelBuffer(from: ciimage) else { return nil }
+        guard let cgImage = try? createCGImage(from: pb, for: size) else { return nil }
+        return UIImage(cgImage: cgImage)
+    }
     
-    //We must run the image adding detached from the MainActor
     func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage)? {
-        guard let resizedImage = await ImageProcessor.resize(image, to: size) else { return nil }
-        guard let thumbnailImage = await ImageProcessor.resize(image, to: thumbnail) else { return nil }
-        resizedImage.title = image
+        guard let resizedImage = await self.resize(image, to: size) else { return nil }
+        guard let thumbnailImage = await self.resize(image, to: thumbnail) else { return nil }
+        await MainActor.run {
+            resizedImage.title = image
+        }
         self.backgroundsViewModel.append(
             BackgroundsViewModel(
                 imageModel: ImageModel(
@@ -97,23 +113,6 @@ final class Backgrounds: ObservableObject {
             )
         )
         return (resizedImage, thumbnailImage)
-    }
-    
-    
-    
-    func searchImages(with query: String?) -> [BackgroundsViewModel] {
-        return backgroundsViewModel.filter ({ $0.search(query) })
-    }
-}
-
-
-internal actor ImageProcessor {
-    static func resize(_ name: String, to size: CGSize) async -> UIImage? {
-        let image = UIImage(named: name)
-        guard let ciimage = CIImage(image: image!) else { return nil}
-        let pb = recreatePixelBuffer(from: ciimage)
-        let cgImage = try? createCGImage(from: pb!, for: size)
-        return UIImage(cgImage: cgImage!)
     }
 }
 
@@ -199,22 +198,22 @@ private let pixelAttributes = [
     ]
 ] as? CFDictionary
 
+let ciContext = CIContext(options: [.useSoftwareRenderer: false, .cacheIntermediates: false])
+
 internal func recreatePixelBuffer(from image: CIImage) -> CVPixelBuffer? {
-    autoreleasepool {
-        var pixelBuffer: CVPixelBuffer? = nil
-        
-        CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            Int(image.extent.width),
-            Int(image.extent.height),
-            kCVPixelFormatType_32BGRA,
-            pixelAttributes,
-            &pixelBuffer
-        )
-        let ciContext = CIContext(options: [.useSoftwareRenderer: false, .cacheIntermediates: false])
-        guard let pixelBuffer = pixelBuffer else { return nil }
-        ciContext.render(image, to: pixelBuffer)
-        return pixelBuffer
-    }
+    var pixelBuffer: CVPixelBuffer? = nil
+    
+    CVPixelBufferCreate(
+        kCFAllocatorDefault,
+        Int(image.extent.width),
+        Int(image.extent.height),
+        kCVPixelFormatType_32BGRA,
+        pixelAttributes,
+        &pixelBuffer
+    )
+    
+    guard let pixelBuffer = pixelBuffer else { return nil }
+    ciContext.render(image, to: pixelBuffer)
+    return pixelBuffer
 }
 

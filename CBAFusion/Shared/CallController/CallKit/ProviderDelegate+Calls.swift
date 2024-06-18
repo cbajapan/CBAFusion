@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import CallKit
+@preconcurrency import CallKit
 import AVFoundation
 import FCSDKiOS
 import SwiftUI
 
 extension ProviderDelegate {
     
-    @MainActor
     func reportIncomingCall(fcsdkCall: FCSDKCall) async {
         await MainActor.run {
             if self.authenticationService.showSettingsSheet {
@@ -30,13 +29,13 @@ extension ProviderDelegate {
             await MainActor.run {
                 self.fcsdkCallService.presentCommunication = true
             }
-
         } catch {
             let errorCode = (error as NSError).code
             
             //This error code means do no disturb is on
             if errorCode == 3 {
                 do {
+                    var fcsdkCall = fcsdkCall
                     fcsdkCall.activeCall = false
                     try await self.fcsdkCallService.endFCSDKCall(fcsdkCall)
                     
@@ -56,7 +55,6 @@ extension ProviderDelegate {
     
     
     // Answer Call after we get notified that we have an incoming call
-    @MainActor
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
@@ -69,15 +67,16 @@ extension ProviderDelegate {
     //Start Call
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         self.logger.info("Start call action")
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             var acbCall: ACBClientCall?
             do {
                 let callUpdate = CXCallUpdate()
                 callUpdate.supportsDTMF = true
-                callUpdate.hasVideo = fcsdkCallService.hasVideo
+                callUpdate.hasVideo = await fcsdkCallService.hasVideo
                 callUpdate.supportsHolding = false
                 
-                guard let outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall else { return }
+                guard var outgoingFCSDKCall = await self.fcsdkCallService.fcsdkCall else { return }
                 await self.fcsdkCallService.startCall(previewView: outgoingFCSDKCall.communicationView?.previewView)
                 acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
@@ -91,7 +90,7 @@ extension ProviderDelegate {
                                                                   date: self.fcsdkCallService.connectDate ?? Date())
                 await self.fcsdkCallService.addCall(fcsdkCall: outgoingFCSDKCall)
                 //We need to set the delegate initially because if the user is on another call we need to get notified through the delegate and end the call
-                self.fcsdkCallService.fcsdkCall?.call?.delegate = self.fcsdkCallService
+                await self.fcsdkCallService.fcsdkCall?.call?.delegate = self.fcsdkCallService
                 action.fulfill()
             } catch {
                 self.logger.error("\(error)")
@@ -108,21 +107,22 @@ extension ProviderDelegate {
             print("Provider", provider)
         }
     }
-
+    
     //End Call
     //TODO: - When we end the call we want to check if we have any calls on hold if it is on hold then resume the call. We also want to make sure the correct call is ended while handling multiple calls.
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             // if we are on a call end otherwise also end
-            if let call = self.fcsdkCallService.fcsdkCall {
-                if fcsdkCallService.hasConnected == false && call.outbound == false {
+            if var call = await self.fcsdkCallService.fcsdkCall {
+                if await fcsdkCallService.hasConnected == false && call.outbound == false {
                     call.missed = false
                     call.outbound = false
                     call.rejected = true
                 }
                 do {
                     try await self.fcsdkCallService.endFCSDKCall(call)
-                    fcsdkCallService.stopAudioSession()
+                    await fcsdkCallService.stopAudioSession()
                     action.fulfill()
                 } catch {
                     self.logger.error("\(error)")
@@ -136,10 +136,11 @@ extension ProviderDelegate {
     }
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             self.logger.info("Provider - CXPlayDTMFCallAction")
             let dtmfDigits:String = action.digits
-        self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
+            await self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
             action.fulfill()
         }
     }
@@ -148,7 +149,7 @@ extension ProviderDelegate {
     func providerDidBegin(_ provider: CXProvider) {
         self.logger.info("Provider began")
     }
-
+    
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         self.logger.info("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
         self.logger.info("\(audioSession.sampleRate)")

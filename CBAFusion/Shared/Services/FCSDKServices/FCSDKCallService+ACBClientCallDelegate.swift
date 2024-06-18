@@ -10,7 +10,7 @@ import FCSDKiOS
 import AVFoundation
 import UIKit
 
-extension FCSDKCallService: ACBClientCallDelegate {
+extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
     
     
     @MainActor private func endCall() async {
@@ -18,46 +18,48 @@ extension FCSDKCallService: ACBClientCallDelegate {
             self.hasEnded = true
         }
         if #available(iOS 15.0, *), isBuffer {
-                await self.fcsdkCall?.call?.removeBufferView()
-                await self.fcsdkCall?.call?.removeLocalBufferView()
-                
-                fcsdkCall?.communicationView?.remoteView = nil
-                fcsdkCall?.communicationView?.previewView = nil
-                
-            } else {
-                // Fallback on earlier versions
-            }
+            await self.fcsdkCall?.call?.removeBufferView()
+            await self.fcsdkCall?.call?.removeLocalBufferView()
+            
+            RemoteViews.shared.views.removeAll()
+            fcsdkCall?.communicationView?.previewView = nil
+            
+        } else {
+            // Fallback on earlier versions
+        }
         self.endPressed = false
     }
     
     @MainActor
-    func setupBufferViews() async {
-        let localVideoScale = UserDefaults.standard.integer(forKey: "localVideoScale")
-        let remoteVideoScale = UserDefaults.standard.integer(forKey: "remoteVideoScale")
-        let scaleWithOrientation = UserDefaults.standard.bool(forKey: "scaleWithOrientation")
+    func setupBufferViews(call: ACBClientCall) async {
+        let localVideoScale = UserDefaults.standard.string(forKey: "LocalScale")
+        let remoteVideoScale = UserDefaults.standard.string(forKey: "RemoteScale")
+        let scaleWithOrientation = UserDefaults.standard.bool(forKey: "ScaleWithOrientation")
         
-        fcsdkCall?.communicationView?.remoteView = await fcsdkCall?.call?.remoteBufferView(
-            scaleMode: VideoScaleMode(rawValue: remoteVideoScale) ?? .horizontal,
+        if let remoteView = await call.remoteBufferView(
+            scaleMode: VideoScaleMode(string: remoteVideoScale) ?? .horizontal,
             shouldScaleWithOrientation: scaleWithOrientation
-        )
-        
-        fcsdkCall?.communicationView?.previewView = await fcsdkCall?.call?.localBufferView(
-            scaleMode: VideoScaleMode(rawValue: localVideoScale) ?? .horizontal,
-            shouldScaleWithOrientation: scaleWithOrientation
-        )
-        
-        if #available(iOS 16, *) {
-            let session = await fcsdkCall?.call?.captureSession()
-            fcsdkCall?.communicationView?.captureSession = session
+        ) {
+            RemoteViews.shared.views.append(RemoteVideoViewModel(remoteVideoView: remoteView))
         }
-        
-        if #available(iOS 15, *) {
-            await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: virtualBackgroundMode)
-        }
-        
+        if fcsdkCall?.communicationView?.previewView == nil {
+            let c = VideoScaleMode(string: localVideoScale)
+            fcsdkCall?.communicationView?.previewView = await call.localBufferView(
+                scaleMode: VideoScaleMode(string: localVideoScale) ?? .horizontal,
+                shouldScaleWithOrientation: scaleWithOrientation
+            )
+            if #available(iOS 16, *), fcsdkCall?.communicationView?.captureSession == nil {
+                let session = await call.captureSession()
+                fcsdkCall?.communicationView?.captureSession = session
+            }
+            
+            if #available(iOS 15, *) {
+                await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: virtualBackgroundMode)
+            }
             fcsdkCall?.communicationView?.setupUI()
             fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
             fcsdkCall?.communicationView?.gestures()
+        }
     }
     
     @MainActor
@@ -67,8 +69,9 @@ extension FCSDKCallService: ACBClientCallDelegate {
     }
     
     func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
+        fcsdkCall?.call = call
         Task { @MainActor [weak self] in
-        guard let self else { return }
+            guard let self else { return }
             self.callStatus = status.rawValue
         }
         switch status {
@@ -82,7 +85,7 @@ extension FCSDKCallService: ACBClientCallDelegate {
                 try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
             }
             if isBuffer {
-                await setupBufferViews()
+                await setupBufferViews(call: call)
             }
         case .alerting:
             await self.alerting()
@@ -101,7 +104,8 @@ extension FCSDKCallService: ACBClientCallDelegate {
         case .error:
             await setErrorMessage(message: "Unkown Error")
         case .ended:
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
                 await self.endCall()
             }
         @unknown default:
@@ -175,11 +179,11 @@ extension FCSDKCallService: ACBClientCallDelegate {
     
     func didReportInboundQualityChange(_ inboundQuality: Int, with call: ACBClientCall) async {
         self.logger.info("Call Quality: \(inboundQuality)")
-        Task { @MainActor [weak self] in
+        await MainActor.run { [weak self] in
             guard let self else { return }
             self.callQuality = inboundQuality
+        }
     }
-}
     
     func didReceiveMediaChangeRequest(_ call: ACBClientCall) async {
         let audio = call.hasRemoteAudio
@@ -193,5 +197,22 @@ extension FCSDKCallService: ACBClientCallDelegate {
     
     func didAddLocalMediaStream(_ call: ACBClientCall) async {
         print("\(#function)")
+    }
+}
+
+
+extension VideoScaleMode {
+    init?(string: String?) {
+        if string == "Vertical" {
+            self.init(rawValue: 0)
+        } else if string == "Horizontal" {
+            self.init(rawValue: 1)
+        } else if string == "Fill" {
+            self.init(rawValue: 2)
+        } else if string == "None" {
+            self.init(rawValue: 3)
+        } else {
+            self.init(rawValue: 0)
+        }
     }
 }

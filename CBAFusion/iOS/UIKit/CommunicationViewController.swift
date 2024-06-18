@@ -12,8 +12,49 @@ import AVKit
 import Logging
 
 
+final class RemoteViews: ObservableObject {
+    
+    static let shared = RemoteViews()
+    
+    @Published var views = [RemoteVideoViewModel]()
+    
+    func getViews() async -> [RemoteVideoViewModel] {
+        return views
+    }
+}
 
-class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
+
+struct RemoteVideoViewModel: Hashable {
+    var id = UUID()
+    var remoteVideoView: UIView
+    
+    init(remoteVideoView: UIView) {
+        self.remoteVideoView = remoteVideoView
+    }
+    
+    static func == (lhs: RemoteVideoViewModel, rhs: RemoteVideoViewModel) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+class RemoteViewItemCell: UICollectionViewCell {
+    
+    static let reuseIdentifer = "remote-video-item-cell-reuse-identifier"
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class CommunicationViewController: UICollectionViewController {
     
     weak var fcsdkCallDelegate: FCSDKCallDelegate?
     var callKitManager: CallKitManager
@@ -32,6 +73,8 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     var pipController: AVPictureInPictureController?
     var vc: UIViewController?
     let videoDataOutput = AVCaptureVideoDataOutput()
+    var dataSource: UICollectionViewDiffableDataSource<ConferenceCallSections, RemoteVideoViewModel>!
+    let communicationView = CommunicationView()
     
     init(
         callKitManager: CallKitManager,
@@ -50,34 +93,27 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
         self.hasVideo = hasVideo
         self.acbuc = acbuc
         self.isOutgoing = isOutgoing
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    deinit {
-        authenticationService = nil
-        logger.info("Deinit VC")
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    override func loadView() {
-        view = CommunicationView()
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        let layout = CommunicationViewController.createLayout(sectionType: .fullscreen)
+        super.init(collectionViewLayout: layout)
+        
+        
         preferredContentSize = CGSize(width: 1080, height: 1920)
         NotificationCenter.default.addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
         Task { [weak self] in
             guard let self else { return }
-            let communicationView = self.view as! CommunicationView
+            view.addSubview(communicationView)
+            communicationView.anchors(
+                top: view.topAnchor,
+                leading: view.leadingAnchor,
+                bottom: view.bottomAnchor,
+                trailing: view.trailingAnchor
+            )
+            communicationView.previewView?.isUserInteractionEnabled = true
+            communicationView.backgroundColor = .clear
             if self.authenticationService?.connectedToSocket != nil {
                 await self.configureVideo()
                 if !fcsdkCallService.isBuffer {
-                    communicationView.remoteView = UIView()
+                    RemoteViews.shared.views.append(.init(remoteVideoView: UIView()))
                     communicationView.previewView = UIView()
                     communicationView.setupUI()
                     communicationView.updateAnchors(UIDevice.current.orientation)
@@ -91,17 +127,118 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
                 self.logger.info("Not Connected to Server")
             }
             self.gestures()
-
+            
         }
     }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-            let communicationView = self.view as! CommunicationView
-            if #available(iOS 15.0, *), fcsdkCallService.isBuffer {
-                communicationView.updateAnchors(UIDevice.current.orientation, flipped: communicationView.isFlipped)
+    
+    deinit {
+        RemoteViews.shared.views.removeAll()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        collectionView.isScrollEnabled = false
+        collectionView.delegate = self
+        collectionView.allowsSelection = true
+        collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        self.configureHierarchy()
+        self.configureDataSource()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.performQuery()
+        }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            deleteSnap()
+        }
+    }
+    
+    @MainActor
+    func performQuery() async {
+        var snapshot = NSDiffableDataSourceSnapshot<ConferenceCallSections, RemoteVideoViewModel>()
+        dataSource.apply(snapshot)
+        
+        let data = await RemoteViews.shared.getViews()
+        if data.isEmpty {
+            snapshot.deleteSections([.inital])
+            snapshot.deleteItems(data)
+            dataSource.apply(snapshot, animatingDifferences: false)
+        } else {
+            snapshot.appendSections([.inital])
+            snapshot.appendItems(data, toSection: .inital)
+            dataSource.apply(snapshot, animatingDifferences: true)
+        }
+    }
+    
+    @MainActor
+    func deleteSnap() {
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteAllItems()
+        dataSource.apply(snapshot)
+    }
+    
+    func configureHierarchy() {
+        collectionView.register(RemoteViewItemCell.self, forCellWithReuseIdentifier: RemoteViewItemCell.reuseIdentifer)
+    }
+    
+    fileprivate func setCollectionViewItem(item: RemoteViewItemCell? = nil, viewModel: RemoteVideoViewModel) {
+        guard let item = item else { return }
+        item.addSubview(viewModel.remoteVideoView)
+        viewModel.remoteVideoView.anchors(
+            top: item.topAnchor,
+            leading: item.leadingAnchor,
+            bottom: item.bottomAnchor,
+            trailing: item.trailingAnchor
+        )
+    }
+    
+    @MainActor
+    func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<ConferenceCallSections, RemoteVideoViewModel>(collectionView: collectionView) { [weak self]
+            (collectionView: UICollectionView, indexPath: IndexPath, model: RemoteVideoViewModel) -> UICollectionViewCell? in
+            guard let self else { return nil }
+            let section = ConferenceCallSections(rawValue: indexPath.section)!
+            switch section {
+            case .inital:
+                if let item = collectionView.dequeueReusableCell(withReuseIdentifier: RemoteViewItemCell.reuseIdentifer, for: indexPath) as? RemoteViewItemCell {
+                    self.setCollectionViewItem(item: item, viewModel: model)
+                    return item
+                } else {
+                    fatalError("Cannot create other item")
+                }
             }
         }
+    }
+    
+    enum SectionType: Sendable {
+        case fullscreen, conference
+    }
+    static func createLayout(sectionType: SectionType) -> UICollectionViewCompositionalLayout {
+        switch sectionType {
+        case .fullscreen:
+            return UICollectionViewCompositionalLayout(section: CollectionViewSections.shared.fullScreenItem())
+        case .conference:
+            return UICollectionViewCompositionalLayout(section: CollectionViewSections.shared.conferenceViewSection(itemCount: 2))
+        }
+    }
+}
+
+extension CommunicationViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        if #available(iOS 15.0, *), fcsdkCallService.isBuffer {
+            communicationView.updateAnchors(UIDevice.current.orientation, flipped: communicationView.isFlipped)
+        }
+    }
     
     @objc func applicationDidBecomeActive(_ notification: Notification) {}
     
@@ -115,7 +252,7 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
                     id: UUID(),
                     username: self.destination,
                     number: self.destination,
-                    calls: nil,
+                    calls: [],
                     blocked: false
                 )
                 try await self.contactService.delegate?.createContact(contact)
@@ -128,7 +265,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     //Feed buffer views if we are using buffers instead of the standard view
     func createCallObject(contact: ContactModel) async {
-        let communicationView = self.view as! CommunicationView
         let fcsdkCall = FCSDKCall(
             id: UUID(),
             handle: self.destination,
@@ -170,7 +306,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     }
     
     func gestures() {
-        let communicationView = self.view as! CommunicationView
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(draggedLocalView(_:)))
         guard let previewView = communicationView.previewView else { return }
         previewView.isUserInteractionEnabled = true
@@ -180,6 +315,11 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     func onHoldView() async throws {
         await self.fcsdkCallService.fcsdkCall?.call?.hold()
+        if #available(iOS 16, *) {
+            //            try await createScreenShot()
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func removeOnHold() async throws {
@@ -188,7 +328,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     func blurView() async {
         await MainActor.run {
-            let communicationView = self.view as! CommunicationView
             communicationView.blurEffectView = UIVisualEffectView(effect: communicationView.blurEffect)
             communicationView.blurEffectView?.frame = self.view.bounds
             communicationView.blurEffectView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -198,7 +337,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     
     func removeBlurView() async {
         await MainActor.run {
-            let communicationView = self.view as! CommunicationView
             communicationView.blurEffectView?.removeFromSuperview()
         }
     }
@@ -206,7 +344,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     @objc func draggedLocalView(_ sender:UIPanGestureRecognizer) {
         Task { @MainActor [weak self] in
             guard let self else { return }
-            let communicationView = self.view as! CommunicationView
             guard let previewView = communicationView.previewView else { return }
             communicationView.bringSubviewToFront(previewView)
             let translation = sender.translation(in: self.view)
@@ -216,7 +353,6 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
     }
     
     func flipCamera(showFrontCamera: Bool) async {
-        let communicationView = self.view as! CommunicationView
         if showFrontCamera {
             self.currentCamera = .front
         } else {
@@ -225,54 +361,48 @@ class CommunicationViewController: UIViewController, AVCaptureVideoDataOutputSam
         
         if #available(iOS 15, *) {
             if fcsdkCallService.backgroundImage != nil, currentCamera == .back {
-            await self.acbuc.phone.currentCalls.last?.removeBackgroundImage()
-            await self.acbuc.phone.setCamera(self.currentCamera)
-        } else if let image = fcsdkCallService.backgroundImage {
-            await self.acbuc.phone.setCamera(self.currentCamera)
-            await self.acbuc.phone.currentCalls.last?.feedBackgroundImage(image, mode: image.title == "blur" ? .blur : .image)
+                await self.acbuc.phone.currentCalls.last?.removeBackgroundImage()
+                await self.acbuc.phone.setCamera(self.currentCamera)
+            } else if let image = fcsdkCallService.backgroundImage {
+                await self.acbuc.phone.setCamera(self.currentCamera)
+                await self.acbuc.phone.currentCalls.last?.feedBackgroundImage(image, mode: image.title == "blur" ? .blur : .image)
+            } else {
+                await self.acbuc.phone.setCamera(self.currentCamera)
+            }
         } else {
             await self.acbuc.phone.setCamera(self.currentCamera)
         }
-        } else {
-            await self.acbuc.phone.setCamera(self.currentCamera)
-        }
-            
+        
         if FCSDKCallService.shared.swapViews {
             if showFrontCamera {
-                FCSDKCallService.shared.acbuc?.phone.previewView = communicationView.previewView
-                FCSDKCallService.shared.fcsdkCall?.call?.remoteView = communicationView.remoteView
+                FCSDKCallService.shared.delegate?.uc?.phone.previewView = communicationView.previewView
+                FCSDKCallService.shared.fcsdkCall?.call?.remoteView = RemoteViews.shared.views.first?.remoteVideoView
             } else {
-                FCSDKCallService.shared.acbuc?.phone.previewView  = communicationView.remoteView
+                FCSDKCallService.shared.delegate?.uc?.phone.previewView = RemoteViews.shared.views.first?.remoteVideoView
                 FCSDKCallService.shared.fcsdkCall?.call?.remoteView = communicationView.previewView
             }
         }
     }
     
-
+    
     func configureVideo() async {
         self.audioAllowed = AppSettings.perferredAudioDirection() == .receiveOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
         self.videoAllowed = AppSettings.perferredVideoDirection() == .receiveOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
         
-        try? await self.configureResolutionOptions()
-        try? await self.configureFramerateOptions()
+        try? await self.configureRecommendedSettings()
         
         self.currentCamera = .front
     }
-
+    
     func layoutPipLayer() async {
-        let communicationView = self.view as! CommunicationView
-        guard let remoteView = communicationView.remoteView else { return }
-        let layer = remoteView.layer as? AVSampleBufferDisplayLayer
-        communicationView.pipLayer = layer
+        guard let remoteView = RemoteViews.shared.views.first?.remoteVideoView else { return }
+        let sourceLayer = remoteView.sampleBufferLayer
+        communicationView.pipLayer = sourceLayer
         await setUpPip(communicationView)
     }
     
     /// Configurations for Capture
-    func configureResolutionOptions() async throws {
+    func configureRecommendedSettings() async throws {
         _ = await self.acbuc.phone.recommendedCaptureSettings()
-    }
-    
-    func configureFramerateOptions() async throws {
-        _ = await acbuc.phone.recommendedCaptureSettings()
     }
 }

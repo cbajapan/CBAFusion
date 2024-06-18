@@ -30,18 +30,20 @@ extension CommunicationViewController {
     
     @MainActor
     func currentState(state: CallState) async {
-        let communicationView = self.view as! CommunicationView
         switch state {
         case .setup:
             break
         case .hasStartedConnecting:
             communicationView.numberLabel.text = self.fcsdkCall?.call?.remoteAddress
             communicationView.connectingUI(isRinging: false)
+            break
         case .isRinging:
             communicationView.numberLabel.text = self.fcsdkCall?.call?.remoteAddress
             communicationView.connectingUI(isRinging: true)
+            break
         case .hasConnected:
             communicationView.removeConnectingUI()
+            await performQuery()
         case .isOutgoing:
             break
         case .hold:

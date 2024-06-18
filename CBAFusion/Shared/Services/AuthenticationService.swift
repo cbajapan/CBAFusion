@@ -12,7 +12,7 @@ import Logging
 
 
 protocol AuthenticationProtocol: AnyObject {
-    var acbuc: ACBUC? { get set }
+    var uc: ACBUC? { get set }
     func loginUser(networkStatus: Bool) async
 }
 
@@ -20,15 +20,13 @@ protocol AuthenticationProtocol: AnyObject {
     static let shared = AuthenticationActor()
 }
 
-class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol {
+final class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol, @unchecked Sendable {
     
-    var logger: Logger
-    var networkRepository: NetworkRepository
+    let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
+    let networkRepository = NetworkRepository()
     
     override init() {
-        self.networkRepository = NetworkRepository()
         self.networkRepository.networkRepositoryDelegate = networkRepository
-        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
     }
     
     deinit {
@@ -62,15 +60,7 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
         }
     }
     @Published var sessionExists = false
-    @Published var acbuc: ACBUC?
-    var uc: ACBUC? {
-        didSet {
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.acbuc = self.uc
-            }
-        }
-    }
+    var uc: ACBUC?
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
     @Published var showSettingsSheet = false
@@ -158,9 +148,17 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
         self.showErrorAlert = true
     }
     
+    
     /// Create the Session
     func createSession(sessionid: String, networkStatus: Bool) async {
-        self.uc = await ACBUC.uc(withConfiguration: sessionid, delegate: self)
+        self.uc = await ACBUC.uc(
+            withConfiguration: sessionid,
+            stunServers: [],
+            audioDSCPPriority: .high,
+            videoDSCPPriority: .high,
+            delegate: self
+        )
+        self.uc?.logLevel = .info
         await self.uc?.setNetworkReachable(networkStatus)
         let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
         self.uc?.acceptAnyCertificate(acceptUntrustedCertificates)
@@ -168,18 +166,22 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
         self.uc?.useCookies = useCookies
         let shouldAlwaysRetry = UserDefaults.standard.bool(forKey: "Retry")
         if shouldAlwaysRetry == true {
-            await self.uc?.startSession(triggerReconnect: true)
+            await self.uc?.startSession(triggerReconnect: true, timeout: 10)
         } else {
-            await self.uc?.startSession()
+            await self.uc?.startSession(timeout: 10)
         }
         self.connection = self.uc?.connection != nil
         
-        Task { @MainActor [weak self] in
+        await MainActor.run { [weak self] in
             guard let self else { return }
             self.sessionExists = true
         }
     }
     
+    @MainActor
+    func removeCall() async {
+        FCSDKCallService.shared.fcsdkCall = nil
+    }
     /// Logout and stop the session
     func logout() async {
         self.logger.info("Logging out of server: \(server) with: \(username)")
@@ -197,28 +199,35 @@ class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol 
             acceptUntrustedCertificates: acceptUntrustedCertificates
         )
         await stopSession()
+        self.uc = nil
+        await removeCall()
+        
         do {
             guard let repository = networkRepository.networkRepositoryDelegate else {return}
             let response = try await repository.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
-            await setSessionID(id: sessionID)
+            await setSessionID()
             
             await fireStatus(response: response)
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.sessionExists = false
-                self.acbuc = nil
             }
         } catch {
             await errorCaught(error: error)
             self.logger.error("\(error.localizedDescription)")
-            await MainActor.run {
+            UserDefaults.standard.set("", forKey: "Server")
+            await setSessionID()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.sessionExists = false
                 self.showProgress = false
+                self.showSettingsSheet = false
             }
         }
     }
     
     @MainActor
-    func setSessionID(id: String) async {
+    func setSessionID() async {
         self.connectedToSocket = self.uc?.connection != nil
         KeychainItem.deleteSessionID()
         sessionID = KeychainItem.getSessionID

@@ -6,26 +6,24 @@
 //
 
 import Foundation
-import CallKit
+@preconcurrency import CallKit
 import UIKit
 import AVFoundation
 import FCSDKiOS
 import Logging
 
-final class ProviderDelegate: NSObject, CXProviderDelegate {
+final class ProviderDelegate: NSObject, CXProviderDelegate, @unchecked Sendable {
     internal let provider: CXProvider?
     internal let callKitManager: CallKitManager
     internal let authenticationService: AuthenticationService
     internal let fcsdkCallService: FCSDKCallService
-    
-    var logger: Logger
+    let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
     
     init(
         callKitManager: CallKitManager,
         authenticationService: AuthenticationService,
         fcsdkCallService: FCSDKCallService
     ) {
-        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
         self.callKitManager = callKitManager
         self.authenticationService = authenticationService
         self.fcsdkCallService = fcsdkCallService
@@ -46,7 +44,7 @@ final class ProviderDelegate: NSObject, CXProviderDelegate {
         config.maximumCallsPerCallGroup = 1
         config.supportedHandleTypes = [.generic, .phoneNumber]
         //We want to default to the systems ringtone
-//        config.ringtoneSound = "ringring.wav"
+        //        config.ringtoneSound = "ringring.wav"
         config.iconTemplateImageData = #imageLiteral(resourceName: "cbaLogo").pngData()
         return config
     }()

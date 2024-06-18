@@ -51,9 +51,6 @@ struct AddContact: View {
                     })
                 )
             })
-//            .alert("Please fill in the Contact information", isPresented: self.$contactService.alert, actions: {
-//                Button("OK", role: .cancel) { }
-//            })
             .navigationBarTitle(self.contactService.isEdit ? "Edit Contact" : "Add Contact")
         }
     }

@@ -45,12 +45,6 @@ struct CallSheet: View {
             }
         }), trailing:
                                 HStack {
-//            Button {
-//                setupCall(hasVideo: false)
-//            } label: {
-//                Image(systemName: "phone")
-//                    .foregroundColor(.blue)
-//            }
             Button {
                 setupCall(hasVideo: true)
             } label: {
@@ -73,16 +67,16 @@ struct CallSheet: View {
     }
     
     func setupCall(hasVideo: Bool) {
-            self.fcsdkCallService.isOutgoing = true
-            self.fcsdkCallService.hasVideo = hasVideo
-            self.showCommunication = true
-            self.presentationMode.wrappedValue.dismiss()
+        self.fcsdkCallService.isOutgoing = true
+        self.fcsdkCallService.hasVideo = hasVideo
+        self.showCommunication = true
+        self.presentationMode.wrappedValue.dismiss()
     }
     
     func processNotLoggedIn() async {
-            await self.authenticationService.logout()
-            KeychainItem.deleteSessionID()
-            self.authenticationService.sessionID = KeychainItem.getSessionID
+        await self.authenticationService.logout()
+        KeychainItem.deleteSessionID()
+        self.authenticationService.sessionID = KeychainItem.getSessionID
     }
     
 }

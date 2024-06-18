@@ -40,9 +40,11 @@ struct BackgroundSelector: View {
                         if let hasImage = backgrounds.displayImage {
                             uiImage = hasImage.image2
                         } else {
-                            if let firstImage = backgrounds.backgroundsViewModel.first {
-                                uiImage = firstImage.image
-                                backgrounds.displayImage = DisplayImageObject(image1: firstImage.image, image2: firstImage.thumbnail)
+                            Task {
+                                if let firstImage = await backgrounds.imageProcessor.backgroundsViewModel.first {
+                                    uiImage = firstImage.image
+                                    backgrounds.displayImage = DisplayImageObject(image1: firstImage.image, image2: firstImage.thumbnail)
+                                }
                             }
                         }
                     })
@@ -75,31 +77,8 @@ struct BackgroundSelector: View {
             }
             
             Spacer()
-            //                    if #available(iOS 16.0, *) {
-            //                        ScrollView(.horizontal, showsIndicators: false) {
-            //                            Grid {
-            //                                GridRow {
-            //
-            //                                    ForEach(backgrounds.backgroundsViewModel) { model in
-            //
-            //                                        Button {
-            //                                            self.uiImage = model.thumbnail
-            //                                            backgrounds.displayImage = (model.image, model.thumbnail)
-            //                                        } label: {
-            //                                            Image(uiImage: model.thumbnail)
-            //                                                .resizable()
-            //                                                .frame(width: 225, height: 180)
-            //                                                .cornerRadius(12)
-            //                                        }
-            //                                    }
-            //                                }
-            //                            }
-            //                        }
-            //                    } else {
-            
             VirtualBackgroundController()
                 .padding(EdgeInsets(top: 40, leading: 20, bottom: 100, trailing: 0))
-//        }
         }
     }
 }

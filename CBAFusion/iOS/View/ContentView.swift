@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import NIOTransportServices
 import Network
 
 struct ContentView: View {
@@ -131,14 +130,17 @@ struct ContentView: View {
                     .onAppear {
                         self.authenticationService.currentTabIndex = 0
                         self.authenticationService.selectedParentIndex = 0
-                        let eventLoop = NIOTSEventLoopGroup().next()
                         Task {
-                            let store = try await SQLiteStore.create(on: eventLoop)
-                            contactService.delegate = store
+                            let store = try await Task.detached {
+                                try await SQLiteStore.create()
+                            }.value
+                         
+                            setStore(store: store)
                             try await contactService.fetchContacts()
                             // We want to make sure all calls are inactive on Appear
                                   for contact in self.contactService.contacts ?? [] {
-                                      for call in contact.calls ?? [] {
+                                      for call in contact.calls {
+                                          var call = call
                                           if call.activeCall == true {
                                               call.activeCall = false
                                               await self.contactService.editCall(fcsdkCall: call)
@@ -170,7 +172,6 @@ struct ContentView: View {
                     default:
                         break
                     }
-//                    authenticationService.acbuc?.setNetworkReachable(false)
                 }
             }
         }
@@ -184,11 +185,11 @@ struct ContentView: View {
                             break
                         case .wifi:
                             if monitor.networkStatus() {
-                                await setReachability()
+                              break
                             }
                         case .cellular:
                             if monitor.networkStatus() {
-                                await setReachability()
+                                break
                             }
                         case .wiredEthernet:
                             break
@@ -203,9 +204,10 @@ struct ContentView: View {
         }
 
     }
-    func setReachability() async {
-//        await authenticationService.acbuc?.setNetworkReachable(false)
-//        await authenticationService.acbuc?.setNetworkReachable(true)
+    
+    @MainActor
+    func setStore(store: SQLiteStore) {
+        contactService.delegate = store
     }
 }
 
