@@ -9,7 +9,7 @@ import FCSDKiOS
 import UIKit
 
 /// This Model is a call object that can be used in making FCSDK Calls with or with out CallKit
-final class FCSDKCall: Codable, Hashable {
+struct FCSDKCall: Codable, Hashable, Sendable {
     
     var id: UUID
     /// The destination to call
@@ -21,7 +21,7 @@ final class FCSDKCall: Codable, Hashable {
     /// Our ACBUC Object
     var acbuc: ACBUC? = nil
     /// The ACBClientCall associated with this CallObject
-    var call: ACBClientCall? = nil
+    weak var call: ACBClientCall? = nil
     /// A boolean value that determines if the call is an active call
     var activeCall: Bool? = false
     /// A boolean value indicating if the call is an outbound call

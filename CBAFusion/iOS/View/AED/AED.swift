@@ -183,7 +183,7 @@ struct AED: View{
     func connectToTopic() async {
         if !self.topicName.isEmpty{
             let expiry = Int(self.expiry) ?? 0
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
+            self.aedService.currentTopic = self.authenticationService.uc?.aed.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
             self.topicName = ""
             self.expiry = ""
         } else {

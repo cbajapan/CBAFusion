@@ -52,9 +52,6 @@ struct Communication: View {
     var selectedAudio = UserDefaults.standard.string(forKey: "AudioOption")
     var selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption")
     var selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption")
-    //    @AppStorage("AudioOption") var selectedAudio = ACBAudioDevice.earpiece
-    //    @AppStorage("ResolutionOption") var selectedResolution = ResolutionOptions.auto
-    //    @AppStorage("RateOption") var selectedFrameRate = FrameRateOptions.fro20
     
     static let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     static let callDurationFormatter: DateComponentsFormatter = {

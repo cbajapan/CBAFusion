@@ -13,11 +13,11 @@ protocol NetworkRepositoryDelegate: AnyObject {
 }
 
 class NetworkRepository: NetworkRepositoryDelegate {
-
+    
     let networkManager = NetworkManager()
     weak var networkRepositoryDelegate: NetworkRepositoryDelegate?
     
-    @available(iOS 13.0.0, *)
+    @available(iOS 13, *)
     func asyncLogin(loginReq: Login, reqObject: LoginRequest) async throws -> (Data, URLResponse) {
         let scheme = loginReq.secureSwitch ? "https" : "http"
         let url = "\(scheme)://\(loginReq.server):\(loginReq.port)/csdk-sample/SDK/login"
@@ -25,7 +25,7 @@ class NetworkRepository: NetworkRepositoryDelegate {
         return try await networkManager.asyncCodableNetworkWrapper(type: LoginResponse.self, urlString: url, httpMethod: "POST", httpBody: body)
     }
     
-    @available(iOS 13.0.0, *)
+    @available(iOS 13, *)
     func asyncLogout(logoutReq: Login, sessionid: String) async throws -> URLResponse {
         let scheme = logoutReq.secureSwitch ? "https" : "http"
         let url = "\(scheme)://\(logoutReq.server):\(logoutReq.port)/csdk-sample/SDK/login/id/\(sessionid)"

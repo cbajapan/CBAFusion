@@ -11,8 +11,9 @@ import FluentKit
 import SwiftUI
 import FCSDKiOS
 import Logging
+import NIOTransportServices
 
-class SQLiteStore: FCSDKStore {
+final class SQLiteStore: FCSDKStore, @unchecked Sendable {
     
     
     let databases: Databases
@@ -36,50 +37,43 @@ class SQLiteStore: FCSDKStore {
         Self.destroy()
     }
     
-    public static func create(
-        on eventLoop: EventLoop
-    ) async throws -> SQLiteStore {
-        try await withCheckedThrowingContinuation { continuation in
-            do {
-                let store = try self.create(withConfiguration: .file(makeSQLiteURL()), on: eventLoop).wait()
-                continuation.resume(returning: store)
-            } catch {
-                continuation.resume(throwing: error)
-            }
-        }
+    public static func create() async throws -> SQLiteStore {
+        try await self.create(withConfiguration: .file(makeSQLiteURL()), on: NIOTSEventLoopGroup().next())
     }
     
     static func create(
         withConfiguration configuration: SQLiteConfiguration,
         on eventLoop: EventLoop
-    ) -> EventLoopFuture<SQLiteStore> {
-        returningAsyncDispatch {
-            let databases = Databases(
-                threadPool: NIOThreadPool(numberOfThreads: 1),
-                on: eventLoop
-            )
-            databases.threadPool.start()
-            
-            databases.use(.sqlite(configuration), as: .sqlite)
-            let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
-            
-            let migrations = Migrations()
-            migrations.add(CreateContactMigration())
-            migrations.add(CreateCallsMigration())
-            
-            let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoop)
-            return migrator.setupIfNeeded().flatMap {
-                migrator.prepareBatch()
-            }.recover { _ in }.map {
-                return SQLiteStore(
-                    databases: databases,
-                    database: databases.database(logger: logger, on: eventLoop)!
-                )
-            }.flatMapErrorThrowing { error in
-                databases.shutdown()
-                throw error
-            }
+    ) async throws -> SQLiteStore {
+        //        returningAsyncDispatch {
+        let databases = Databases(
+            threadPool: NIOThreadPool(numberOfThreads: 1),
+            on: eventLoop
+        )
+        databases.threadPool.start()
+        
+        databases.use(.sqlite(configuration), as: .sqlite)
+        let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - SQLiteStore - ")
+        
+        let migrations = Migrations()
+        migrations.add(CreateContactMigration())
+        migrations.add(CreateCallsMigration())
+        
+        let migrator = Migrator(databases: databases, migrations: migrations, logger: logger, on: eventLoop)
+        return try await migrator.setupIfNeeded().flatMap {
+            migrator.prepareBatch()
         }
+        .recover { _ in }
+        .map {
+            return SQLiteStore(
+                databases: databases,
+                database: databases.database(logger: logger, on: eventLoop)!
+            )
+        }.flatMapErrorThrowing { error in
+            databases.shutdown()
+            throw error
+        }
+        .get()
     }
     
     func fetchContacts() async throws -> [ContactModel]? {
@@ -192,11 +186,7 @@ class SQLiteStore: FCSDKStore {
     
     func removeCalls() async throws -> (Bool, [FCSDKCall]?) {
         do {
-            if #available(iOS 15, *) {
-                _ = try await _CallsModel.query(on: self.database).delete(force: true)
-            } else {
-//                _ = _CallsModel.query(on: self.database).delete(force: true)
-            }
+            _ = try await _CallsModel.query(on: self.database).delete(force: true)
             let calls = try await self.fetchCalls()
             return (true, calls)
         } catch {
@@ -275,12 +265,12 @@ fileprivate func makeSQLiteURL() -> String {
 
 
 @discardableResult func returningAsyncDispatch<T>(_ block: @escaping () -> T) -> T {
-    let queue = DispatchQueue.global(qos: .background)
+    let queue = DispatchQueue.global(qos: .userInitiated)
     let group = DispatchGroup()
     var result: T?
     group.enter()
     queue.async(group: group) { result = block(); group.leave(); }
     group.wait()
-
+    
     return result!
 }

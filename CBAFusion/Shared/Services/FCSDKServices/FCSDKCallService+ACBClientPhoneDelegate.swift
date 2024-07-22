@@ -24,11 +24,11 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             if let contact = self.contactService?.contacts?.first(where: { $0.number == number } )  {
                 await createCallObject(contact, call: call)
             } else {
-                let contact = await ContactModel(
+                let contact = ContactModel(
                     id: UUID(),
                     username: call.remoteDisplayName,
                     number: call.remoteAddress,
-                    calls: nil,
+                    calls: [],
                     blocked: false
                 )
                 try await self.contactService?.delegate?.createContact(contact)
@@ -40,7 +40,7 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
     }
     
     func createCallObject(_ contact: ContactModel, call: ACBClientCall) async {
-        guard let uc = self.acbuc else { return }
+        guard let uc = delegate?.uc else { return }
         let fcsdkCall = FCSDKCall(
             id: UUID(),
             handle:  call.remoteAddress,
@@ -64,7 +64,22 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
         }
     }
     
+    @MainActor
+    private func setCall(fcsdkCall: FCSDKCall) {
+        self.fcsdkCall = fcsdkCall
+    }
+    
+    @MainActor
+    private func setProperties(from fcsdkCall: FCSDKCall) {
+        var fcsdkCall = fcsdkCall
+        fcsdkCall.missed = true
+        fcsdkCall.outbound = false
+        fcsdkCall.rejected = false
+        fcsdkCall.activeCall = false
+    }
+    
     func processInboundCall(fcsdkCall: FCSDKCall) async throws {
+        var fcsdkCall = fcsdkCall
         let call = await self.contactService?.fetchActiveCall()
         
         if call?.activeCall == nil {
@@ -76,20 +91,13 @@ extension FCSDKCallService: ACBClientPhoneDelegate  {
             fcsdkCall.rejected = false
             fcsdkCall.activeCall = true
             await self.addCall(fcsdkCall: fcsdkCall)
-            await MainActor.run {
-                self.fcsdkCall = fcsdkCall
-            }
+            self.setCall(fcsdkCall: fcsdkCall)
             guard let fcsdkCall = self.fcsdkCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: fcsdkCall)
         } else if call?.activeCall == true {
             await fcsdkCall.call?.end()
-            LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \( await fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
-            await MainActor.run {
-                fcsdkCall.missed = true
-                fcsdkCall.outbound = false
-                fcsdkCall.rejected = false
-                fcsdkCall.activeCall = false
-            }
+            LocalNotification.newMessageNotification(title: "Missed Call", subtitle: "\(fcsdkCall.handle)", body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")")
+            setProperties(from: fcsdkCall)
             await self.addCall(fcsdkCall: fcsdkCall)
         }
     }

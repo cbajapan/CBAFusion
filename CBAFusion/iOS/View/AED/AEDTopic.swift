@@ -49,7 +49,8 @@ struct AEDTopic: View {
    
     func didTapTopic(_ topic: ACBTopic) async {
         if !topic.name.isEmpty {
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: topic.name, delegate: self.aedService)
+            let uc = authenticationService.uc
+            self.aedService.currentTopic = uc?.aed.createTopic(withName: topic.name, delegate: self.aedService)
             let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
             self.console += "\n\(msg)"
         } else {

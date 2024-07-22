@@ -7,13 +7,16 @@
 
 import UIKit
 import FCSDKiOS
+import Combine
 
-@available(iOS 15.0, *)
+@available(iOS 15, *)
 class VirtualBackgroundViewController: UICollectionViewController {
     
     var dataSource: UICollectionViewDiffableDataSource<BackgroundSections, BackgroundsViewModel>!
+    let backgroundObserver: BackgroundObserver
     
-    init() {
+    init(backgroundObserver: BackgroundObserver) {
+        self.backgroundObserver = backgroundObserver
         let layout = VirtualBackgroundViewController.createLayout()
         super.init(collectionViewLayout: layout)
     }
@@ -25,7 +28,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+    private var cancellables = Set<AnyCancellable>()
     override func viewDidLoad() {
         super.viewDidLoad()
         collectionView.delegate = self
@@ -33,7 +36,15 @@ class VirtualBackgroundViewController: UICollectionViewController {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.configureHierarchy()
         self.configureDataSource()
-        self.performQuery(with: "")
+        
+        backgroundObserver.$backgroundsViewModel
+            .sink { value in
+                Task { [weak self] in
+                    guard let self else { return }
+                    await self.performQuery(with: "")
+                }
+            }
+            .store(in: &cancellables)
     }
     
     
@@ -42,26 +53,30 @@ class VirtualBackgroundViewController: UICollectionViewController {
     }
     
     override func viewDidDisappear(_ animated: Bool) {
-        deleteSnap()
-    }
-    
-    func performQuery(with string: String) {
-        var snapshot = NSDiffableDataSourceSnapshot<BackgroundSections, BackgroundsViewModel>()
-        dataSource.apply(snapshot)
-        
-        let data = Backgrounds.shared.searchImages(with: string).sorted { $0.title < $1.title }
-
-        if data.isEmpty {
-            snapshot.deleteSections([.inital])
-            snapshot.deleteItems(data)
-            dataSource.apply(snapshot, animatingDifferences: false)
-        } else {
-            snapshot.appendSections([.inital])
-            snapshot.appendItems(data, toSection: .inital)
-            dataSource.apply(snapshot, animatingDifferences: false)
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            deleteSnap()
+            cancellables.removeAll()
         }
     }
     
+    @MainActor
+    func performQuery(with string: String) async {
+        var snapshot = NSDiffableDataSourceSnapshot<BackgroundSections, BackgroundsViewModel>()
+        await dataSource.apply(snapshot)
+        let data = await backgroundObserver.searchImages(with: string).sorted { $0.title < $1.title }
+        if data.isEmpty {
+            snapshot.deleteSections([.inital])
+            snapshot.deleteItems(data)
+            await dataSource.apply(snapshot, animatingDifferences: false)
+        } else {
+            snapshot.appendSections([.inital])
+            snapshot.appendItems(data, toSection: .inital)
+            await dataSource.apply(snapshot, animatingDifferences: false)
+        }
+    }
+    
+    @MainActor
     func deleteSnap() {
         var snapshot = dataSource.snapshot()
         snapshot.deleteAllItems()
@@ -77,6 +92,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
         item?.posterImage.image = background.thumbnail
     }
     
+    @MainActor
     func configureDataSource() {
         dataSource = UICollectionViewDiffableDataSource<BackgroundSections, BackgroundsViewModel>(collectionView: collectionView) { [weak self]
             (collectionView: UICollectionView, indexPath: IndexPath, model: BackgroundsViewModel) -> UICollectionViewCell? in
@@ -124,6 +140,7 @@ class VirtualBackgroundViewController: UICollectionViewController {
     }
     
     static func createLayout() -> UICollectionViewCompositionalLayout {
-        return UICollectionViewCompositionalLayout(section: CollectionViewSections.shared.backgroundSection())
+        let sections = CollectionViewSections()
+        return UICollectionViewCompositionalLayout(section: sections.backgroundSection())
     }
 }

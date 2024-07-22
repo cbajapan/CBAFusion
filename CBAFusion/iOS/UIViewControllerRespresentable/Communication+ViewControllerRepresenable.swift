@@ -52,7 +52,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             contactService: self.contactService,
             destination: self.destination,
             hasVideo: self.hasVideo,
-            acbuc: authenticationService.acbuc!,
+            acbuc: authenticationService.uc!,
             isOutgoing: self.isOutgoing
         )
         
@@ -97,9 +97,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
                 Task { @MainActor in
-                    guard let newView = fcsdkCallService.fcsdkCall?.communicationView else { return }
-                    uiViewController.view = newView
-                    
 #if !targetEnvironment(simulator)
                     if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
                         await uiViewController.layoutPipLayer()
@@ -197,7 +194,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
                 do {
                     try await uiViewController.endCall()
                 } catch {
-                   print("Error ending call - Error: \(error)")
+                    print("Error ending call - Error: \(error)")
                 }
                 await setServiceHasEnded()
                 await uiViewController.currentState(state: .hasEnded)
@@ -238,7 +235,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         @MainActor
         func passViewsToService(communicationView: CommunicationView) async {
-           self.parent.fcsdkCall?.communicationView = communicationView
+            self.parent.fcsdkCall?.communicationView = communicationView
         }
     }
     
