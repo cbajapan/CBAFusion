@@ -12,7 +12,9 @@ extension UIImage {
           let image = UIGraphicsImageRenderer(size: size).image { _ in
             draw(in: CGRect(origin: .zero, size: size))
           }
-        image.title = title
+        DispatchQueue.main.async {
+            image.title = title
+        }
         return image
       }
 }

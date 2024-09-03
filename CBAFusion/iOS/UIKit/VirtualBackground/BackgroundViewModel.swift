@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import Metal
+import MetalKit
+import MetalPerformanceShaders
 
 struct BackgroundsViewModel: Hashable {
     var id = UUID()
@@ -42,179 +45,183 @@ struct DisplayImageObject: Equatable {
     var image2: UIImage?
 }
 
-final class Backgrounds: ObservableObject {
-    
-    static let shared = Backgrounds()
-    
+@MainActor
+final class BackgroundObserver: ObservableObject {
     @Published var displayImage: DisplayImageObject?
-    var backgroundsViewModel = [BackgroundsViewModel]()
+    @Published var backgroundsViewModel: [BackgroundsViewModel] = []
     
-    init() {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            async let image1 = self.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image2 = self.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image3 = self.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image4 = self.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image5 = self.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image6 = self.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image7 = self.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image8 = self.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image9 = self.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image10 = self.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            async let image11 = self.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-            _ = await [
-                image1,
-                image2,
-                image3,
-                image4,
-                image5,
-                image6,
-                image7,
-                image8,
-                image9,
-                image10,
-                image11
-            ]
-            
-            displayImage = await DisplayImageObject(image1: image1?.0, image2: image2?.1)
-        }
-    }
-    
-    
-    //We must run the image adding detached from the MainActor
-    func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage)? {
-        guard let resizedImage = await ImageProcessor.resize(image, to: size) else { return nil }
-        guard let thumbnailImage = await ImageProcessor.resize(image, to: thumbnail) else { return nil }
-        resizedImage.title = image
-        self.backgroundsViewModel.append(
-            BackgroundsViewModel(
-                imageModel: ImageModel(
-                    title: image,
-                    image: resizedImage,
-                    thumbnail: thumbnailImage
-                )
-            )
-        )
-        return (resizedImage, thumbnailImage)
-    }
-    
-    
-    
-    func searchImages(with query: String?) -> [BackgroundsViewModel] {
+    func searchImages(with query: String?) async -> [BackgroundsViewModel] {
         return backgroundsViewModel.filter ({ $0.search(query) })
     }
 }
 
+@MainActor
+internal final class ImageProcessor {
+    let backgroundObserver: BackgroundObserver
+    
+    deinit {
+        print("RECLAIMED MEMORY IN IMAGE PROCESSOR")
+    }
+    
+    init(backgroundObserver: BackgroundObserver) {
+        self.backgroundObserver = backgroundObserver
+    }
+    
+    func loadImages() async {
+        async let image1 = self.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image2 = self.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image3 = self.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image4 = self.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image5 = self.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image6 = self.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image7 = self.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image8 = self.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image9 = self.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image10 = self.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        async let image11 = self.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        _ = await [
+            image1,
+            image2,
+            image3,
+            image4,
+            image5,
+            image6,
+            image7,
+            image8,
+            image9,
+            image10,
+            image11
+        ]
+        await self.setImage(image: image1?.0, thumbnail: image1?.1)
+    }
+    
+    func removeImages() async {
+        backgroundObserver.displayImage = nil
+        backgroundObserver.backgroundsViewModel.removeAll()
+    }
 
-internal actor ImageProcessor {
-    static func resize(_ name: String, to size: CGSize) async -> UIImage? {
-        let image = UIImage(named: name)
-        guard let ciimage = CIImage(image: image!) else { return nil}
-        let pb = recreatePixelBuffer(from: ciimage)
-        let cgImage = try? createCGImage(from: pb!, for: size)
-        return UIImage(cgImage: cgImage!)
+    let metalManager = MetalManager()
+    func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage)? {
+        guard let resizedImage = await metalManager.processImageWithMetal(image: UIImage(named: image)!, newSize: size) else { return nil }
+        guard let thumbnailImage = await metalManager.processImageWithMetal(image: UIImage(named: image)!, newSize: thumbnail) else { return nil }
+            resizedImage.title = image
+            backgroundObserver.backgroundsViewModel.append(
+                BackgroundsViewModel(
+                    imageModel: ImageModel(
+                        title: image,
+                        image: resizedImage,
+                        thumbnail: thumbnailImage
+                    )
+                )
+            )
+            return (resizedImage, thumbnailImage)
+    }
+    
+    func setImage(image: UIImage?, thumbnail: UIImage?) {
+        backgroundObserver.displayImage = DisplayImageObject(image1: image, image2: thumbnail)
     }
 }
 
+struct MetalManager: @unchecked Sendable {
+    let device: MTLDevice
+    let commandQueue: MTLCommandQueue
+    let library: MTLLibrary!
+    let textureLoader: MTKTextureLoader
 
-import Accelerate
-internal func createCGImage(
-    from pixelBuffer: CVPixelBuffer,
-    for size: CGSize,
-    aspectRatio: CGFloat = 0,
-    scale: Bool = false
-) throws -> CGImage? {
-    
-    // Define the image format
-    guard var format = vImage_CGImageFormat(
-        bitsPerComponent: 8,
-        bitsPerPixel: 32,
-        colorSpace: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
-        renderingIntent: .defaultIntent
-    ) else {
-        throw vImage.Error.invalidImageFormat
+    init() {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            fatalError("Metal is not supported on this device")
+        }
+        self.device = device
+        library = device.makeDefaultLibrary()
+        self.commandQueue = device.makeCommandQueue()!
+        self.textureLoader = MTKTextureLoader(device: device)
     }
-    var error: vImage_Error
-    var sourceBuffer = vImage_Buffer()
-    
-    
-    guard let inputCVImageFormat = vImageCVImageFormat.make(buffer: pixelBuffer) else { throw vImage.Error.invalidCVImageFormat }
-    vImageCVImageFormat_SetColorSpace(inputCVImageFormat, CGColorSpaceCreateDeviceRGB())
-    
-    error = vImageBuffer_InitWithCVPixelBuffer(
-        &sourceBuffer,
-        &format,
-        pixelBuffer,
-        inputCVImageFormat,
-        nil,
-        vImage_Flags(kvImageNoFlags)
-    )
-    
-    guard error == kvImageNoError else {
-        throw vImage.Error(vImageError: error)
-    }
-    
-    var width: CGFloat = 0
-    var height: CGFloat = 0
-    //We always scale the image and center it according to the tallest height of the parent view, if we dont scale the size will fill the parent view
-    if scale {
-        height = size.height
-        width = size.height * aspectRatio
-    } else {
-        height = size.height
-        width = size.width
-    }
-    
-    var destinationBuffer = try vImage_Buffer(width: Int(width), height:  Int(height), bitsPerPixel: format.bitsPerPixel)
-    // Scale the image
-    error = vImageScale_ARGB8888(&sourceBuffer,
-                                 &destinationBuffer,
-                                 nil,
-                                 vImage_Flags(kvImageHighQualityResampling))
-    guard error == kvImageNoError else {
-        throw vImage.Error(vImageError: error)
-    }
-    
-    var resizedImage: CGImage?
-    // Center the image
-    resizedImage = try destinationBuffer.createCGImage(format: format)
-    
-    defer {
-        sourceBuffer.free()
-        destinationBuffer.free()
-    }
-    guard let resizedImage = resizedImage else { return nil }
-    return resizedImage
-}
 
-import Vision
-private let pixelAttributes = [
-    kCVPixelBufferIOSurfacePropertiesKey: [
-        kCVPixelBufferCGImageCompatibilityKey: true,
-        kCVPixelBufferCGBitmapContextCompatibilityKey: true,
-        kCVPixelBufferMetalCompatibilityKey: true,
-        kCMSampleAttachmentKey_DisplayImmediately: true
-    ]
-] as? CFDictionary
+    func resizeImage(sourceTexture: MTLTexture, newSize: CGSize) async -> MTLTexture? {
+        let filter = MPSImageLanczosScale(device: device)
+        let originalScale = CGFloat(sourceTexture.width) / CGFloat(sourceTexture.height)
+        var newSize = newSize
+        if (newSize.width / newSize.height) > originalScale {
+            newSize.height = newSize.width / originalScale
+        }
 
-internal func recreatePixelBuffer(from image: CIImage) -> CVPixelBuffer? {
-    autoreleasepool {
-        var pixelBuffer: CVPixelBuffer? = nil
-        
-        CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            Int(image.extent.width),
-            Int(image.extent.height),
-            kCVPixelFormatType_32BGRA,
-            pixelAttributes,
-            &pixelBuffer
+        let scaleX = Double(newSize.width) / Double(sourceTexture.width)
+        let scaleY = Double(newSize.height) / Double(sourceTexture.height)
+        let destTextureDescriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: sourceTexture.pixelFormat,
+                                                                             width: Int(newSize.width),
+                                                                             height: Int(newSize.height),
+                                                                             mipmapped: false)
+        destTextureDescriptor.usage = [.shaderRead, .shaderWrite]
+        guard let destTexture = device.makeTexture(descriptor: destTextureDescriptor) else {
+            print("Error creating destination texture")
+            return nil
+        }
+        let translateX = (Double(destTextureDescriptor.width) - Double(sourceTexture.width) * scaleX) / 2
+        let translateY = (Double(destTextureDescriptor.height) - Double(sourceTexture.height) * scaleY) / 2
+
+        let transform = MPSScaleTransform(
+            scaleX: scaleX,
+            scaleY: scaleY,
+            translateX: translateX,
+            translateY: translateY
         )
-        let ciContext = CIContext(options: [.useSoftwareRenderer: false, .cacheIntermediates: false])
-        guard let pixelBuffer = pixelBuffer else { return nil }
-        ciContext.render(image, to: pixelBuffer)
-        return pixelBuffer
+        let transformPointer = UnsafeMutablePointer<MPSScaleTransform>.allocate(capacity: 1)
+        transformPointer.initialize(to: transform)
+        filter.scaleTransform = UnsafePointer(transformPointer)
+        defer {
+            transformPointer.deallocate()
+        }
+        let commandBuffer = commandQueue.makeCommandBuffer()
+        filter.encode(commandBuffer: commandBuffer!, sourceTexture: sourceTexture, destinationTexture: destTexture)
+        commandBuffer?.commit()
+        commandBuffer?.waitUntilCompleted()
+
+        return destTexture
+    }
+
+    func processImageWithMetal(image: UIImage?, newSize: CGSize) async -> UIImage? {
+        
+        guard let sourceImage = image, let cgImage = sourceImage.cgImage else {
+            print("Invalid source image")
+            return nil
+        }
+        do {
+            let texture = try await textureLoader.newTexture(cgImage: cgImage, options: nil)
+            let resizedTexture = await resizeImage(sourceTexture: texture, newSize: newSize)
+            guard let resizedTexture = resizedTexture else {
+                print("Error resizing image")
+                return nil
+            }
+            let imageSize = CGSize(width: resizedTexture.width, height: resizedTexture.height)
+            let hasAlpha = cgImage.alphaInfo != .none || sourceImage.imageOrientation == .upMirrored || sourceImage.imageOrientation == .downMirrored || sourceImage.imageOrientation == .leftMirrored || sourceImage.imageOrientation == .rightMirrored
+            return await imageFromTexture(texture: resizedTexture, imageSize: imageSize, bitsPerPixel: cgImage.bitsPerPixel, hasAlpha: hasAlpha)
+        } catch {
+            print("Error processing image with Metal: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    private func imageFromTexture(texture: MTLTexture, imageSize: CGSize, bitsPerPixel: Int, hasAlpha: Bool) async -> UIImage {
+        let region = MTLRegion(origin: MTLOrigin(x: 0, y: 0, z: 0),
+                               size: MTLSize(width: texture.width, height: texture.height, depth: 1))
+        let bytesPerRow = (texture.width * bitsPerPixel) / 8
+        let imageByteCount = bytesPerRow * texture.height
+        var bytes = [UInt8](repeating: 0, count: imageByteCount)
+        
+        texture.getBytes(&bytes, bytesPerRow: bytesPerRow, from: region, mipmapLevel: 0)
+        
+        
+        let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+        
+        guard let provider = CGDataProvider(data: NSData(bytes: &bytes, length: bytes.count * MemoryLayout<UInt8>.size)) else {
+            fatalError("Error creating CGDataProvider")
+        }
+        
+        if let cgImage = CGImage(width: texture.width, height: texture.height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: bitmapInfo, provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) {
+            return UIImage(cgImage: cgImage)
+        } else {
+            fatalError("Error creating CGImage")
+        }
     }
 }
-

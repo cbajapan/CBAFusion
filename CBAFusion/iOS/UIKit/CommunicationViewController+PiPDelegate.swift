@@ -24,12 +24,11 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
         return false
     }
     
-    @available(iOS 15.0, *)
+    @available(iOS 15, *)
     func showPip(show: Bool) async {
         if show {
             if AVPictureInPictureController.isPictureInPictureSupported() {
                 if #available(iOS 16.0, *) {
-                    let communicationView = self.view as! CommunicationView
                     guard let captureSession = communicationView.captureSession else { return }
                     if captureSession.isMultitaskingCameraAccessSupported {
                         let remoteVideoScale = UserDefaults.standard.integer(forKey: "remoteVideoScale")
@@ -80,8 +79,8 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
                         let pipController = AVPictureInPictureController(contentSource: pipContentSource)
                         pipController.canStartPictureInPictureAutomaticallyFromInline = true
                         pipController.delegate = self
-                        self.pipController = pipController
                         await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
+                        self.pipController = pipController
                     }
                 }
                 pipController?.startPictureInPicture()
@@ -90,11 +89,13 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
             }
         } else {
             if #available(iOS 16.0, *) {
-                let communicationView = self.view as! CommunicationView
                 guard let captureSession = communicationView.captureSession else { return }
                 if captureSession.isMultitaskingCameraAccessSupported {
                     pipController?.stopPictureInPicture()
                     self.pipController = nil
+                    await self.fcsdkCallService.fcsdkCall?.call?.setPipController(nil)
+                } else {
+                    pipController?.stopPictureInPicture()
                 }
             } else {
                 pipController?.stopPictureInPicture()
@@ -104,35 +105,27 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
     
     
     func setUpPip(_ communicationView: CommunicationView) async {
-        guard let remoteView = communicationView.remoteView else { return }
-        if #available(iOS 16.0, *) {
-            guard let captureSession = communicationView.captureSession else { return }
-            if captureSession.isMultitaskingCameraAccessSupported {
-                //We set up when pip is hit due to resource allocation
-            } else {
-                //If we are iOS 16 and we are not an m chip
-                guard let sourceLayer = communicationView.pipLayer else { return }
-                let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
-                
-                pipController = AVPictureInPictureController(contentSource: source)
-                guard let pipController = self.pipController else { return }
-                pipController.canStartPictureInPictureAutomaticallyFromInline = true
-                pipController.delegate = self
-                await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
-            }
+        guard let remoteView = RemoteViews.shared.views.first?.remoteVideoView else { return }
+        guard let captureSession = communicationView.captureSession else { return }
+        if #available(iOS 16.0, *), captureSession.isMultitaskingCameraAccessSupported {
+            //We set up when pip is hit due to resource allocation
+            print("SUPPORTS MultitaskingCameraAccessSupported")
         } else if #available(iOS 15.0, *) {
-            //If we are iOS 15
-            let sourceLayer = remoteView.layer as! AVSampleBufferDisplayLayer
+            //If we are iOS 16 and we are not an m chip
+            guard let sourceLayer = remoteView.sampleBufferLayer else { return }
+            //            guard let sourceLayer = remoteView.layer as? AVSampleBufferDisplayLayer else { return }
             let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
-            guard var pipController = self.pipController else { return }
-            pipController = AVPictureInPictureController(contentSource: source)
+            
+            let pipController = AVPictureInPictureController(contentSource: source)
             pipController.canStartPictureInPictureAutomaticallyFromInline = true
             pipController.delegate = self
             await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
+            self.pipController = pipController
         }
     }
     
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        print("STARTED_PIP")
     }
     func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
         PipStateObject.shared.pip = false
@@ -140,7 +133,7 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
     }
     
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-        logger.error("\(error)")
+        logger.error("FAILED_PIP_\(error)")
     }
     func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
     }
@@ -149,5 +142,6 @@ extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVP
         return true
     }
     func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        print("WILL_START_PIP")
     }
 }

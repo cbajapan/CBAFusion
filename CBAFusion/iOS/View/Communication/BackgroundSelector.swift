@@ -14,9 +14,10 @@ struct BackgroundSelector: View {
     
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var fcsdkService: FCSDKCallService
-    @EnvironmentObject var backgrounds: Backgrounds
+    @EnvironmentObject var backgroundObserver: BackgroundObserver
     @State var uiImage: UIImage?
-    
+    @State var imageProcessor: ImageProcessor?
+
     var body: some View {
         VStack {
             HStack {
@@ -33,18 +34,18 @@ struct BackgroundSelector: View {
                 Image(uiImage: uiImage ?? UIImage(named: "bedroom1")!)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .onReceive(backgrounds.$displayImage, perform: { image in
+                    .onReceive(backgroundObserver.$displayImage, perform: { image in
                         if let image = image {
                             uiImage = image.image1
                         }
-                        if let hasImage = backgrounds.displayImage {
+                        if let hasImage = backgroundObserver.displayImage {
                             uiImage = hasImage.image2
                         } else {
-                            if let firstImage = backgrounds.backgroundsViewModel.first {
-                                uiImage = firstImage.image
-                                backgrounds.displayImage = DisplayImageObject(image1: firstImage.image, image2: firstImage.thumbnail)
+                                if let firstImage = backgroundObserver.backgroundsViewModel.first {
+                                    uiImage = firstImage.image
+                                    backgroundObserver.displayImage = DisplayImageObject(image1: firstImage.image, image2: firstImage.thumbnail)
+                                }
                             }
-                        }
                     })
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     .frame(maxWidth: 300, maxHeight: 225)
@@ -58,11 +59,11 @@ struct BackgroundSelector: View {
             Button("Set Background") {
                 //Get data from image asset
                 Task { @MainActor in
-                    if backgrounds.displayImage?.image1?.title == "remove" {
+                    if backgroundObserver.displayImage?.image1?.title == "remove" {
                         await self.fcsdkService.removeBackground()
                     } else {
-                        if let uiImage = backgrounds.displayImage?.image1 {
-                            if backgrounds.displayImage?.image1?.title == "blur" {
+                        if let uiImage = backgroundObserver.displayImage?.image1 {
+                            if backgroundObserver.displayImage?.image1?.title == "blur" {
                                 await self.fcsdkService.setBackgroundImage(mode: .blur)
                             } else {
                                 await self.fcsdkService.setBackgroundImage(uiImage, mode: .image)
@@ -75,31 +76,18 @@ struct BackgroundSelector: View {
             }
             
             Spacer()
-            //                    if #available(iOS 16.0, *) {
-            //                        ScrollView(.horizontal, showsIndicators: false) {
-            //                            Grid {
-            //                                GridRow {
-            //
-            //                                    ForEach(backgrounds.backgroundsViewModel) { model in
-            //
-            //                                        Button {
-            //                                            self.uiImage = model.thumbnail
-            //                                            backgrounds.displayImage = (model.image, model.thumbnail)
-            //                                        } label: {
-            //                                            Image(uiImage: model.thumbnail)
-            //                                                .resizable()
-            //                                                .frame(width: 225, height: 180)
-            //                                                .cornerRadius(12)
-            //                                        }
-            //                                    }
-            //                                }
-            //                            }
-            //                        }
-            //                    } else {
-            
-            VirtualBackgroundController()
+            VirtualBackgroundController(backgroundObserver: backgroundObserver)
                 .padding(EdgeInsets(top: 40, leading: 20, bottom: 100, trailing: 0))
-//        }
+        }
+        .task {
+            imageProcessor = ImageProcessor(backgroundObserver: backgroundObserver)
+            await imageProcessor?.loadImages()
+        }
+        .onDisappear {
+            Task {
+                await imageProcessor?.removeImages()
+            }
         }
     }
 }
+

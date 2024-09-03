@@ -90,7 +90,7 @@ struct Console: View {
     @MainActor
     func didTapTopic(_ topic: ACBTopic) async {
         if self.topicName.count > 0 {
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: topic.name, delegate: self.aedService)
+            self.aedService.currentTopic = self.authenticationService.uc?.aed.createTopic(withName: topic.name, delegate: self.aedService)
             let msg = "Current topic is \(self.aedService.currentTopic?.name ?? "")."
             self.console += "\n\(msg)"
         } else {
@@ -103,7 +103,7 @@ struct Console: View {
     func connectToTopic() async {
         if self.topicName.count > 0 {
             let expiry = Int(self.expiry) ?? 0
-            self.aedService.currentTopic = self.authenticationService.acbuc?.aed.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
+            self.aedService.currentTopic = self.authenticationService.uc?.aed.createTopic(withName: self.topicName, expiryTime: expiry, delegate: self.aedService)
             self.topicName = ""
             self.expiry = ""
         } else {

@@ -93,8 +93,6 @@ struct Authentication: View {
     
     private func login() async {
         await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-        self.fcsdkCallService.acbuc = self.authenticationService.acbuc
-        guard let uc = self.fcsdkCallService.acbuc else { return }
-        await self.fcsdkCallService.setPhoneDelegate(uc)
+        await self.fcsdkCallService.setPhoneDelegate()
     }
 }

@@ -24,32 +24,38 @@ struct Contacts: View {
     @EnvironmentObject var contactService: ContactService
     @EnvironmentObject var callKitManager: CallKitManager
     @Environment(\.colorScheme) var colorScheme
+    @State var newImage: Image?
     
     var body: some View {
         NavigationView {
             if #available(iOS 14, *) {
-                content
-                    .navigationTitle(title: "Contacts")
-                    .navigationBarTitleDisplayMode(.large)
-                    .toolbar(content: {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button {
-                                if self.authenticationService.connectedToSocket,
-                                   self.authenticationService.sessionExists {
-                                    self.contactService.addSheet = true
-                                }
-                            } label: {
-                                Image(systemName: "plus")
-                                    .foregroundColor(.blue)
+                ZStack {
+                    content
+                    if let newImage = newImage {
+                        newImage
+                    }
+                }
+                .navigationTitle(title: "Contacts")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar(content: {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            if self.authenticationService.connectedToSocket,
+                               self.authenticationService.sessionExists {
+                                self.contactService.addSheet = true
                             }
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundColor(.blue)
                         }
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            HStack {
-                                PushDetail(destination: CallSheet(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
-                                    .foregroundColor(.blue)
-                            }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        HStack {
+                            PushDetail(destination: CallSheet(destination: self.$fcsdkCallService.destination, hasVideo: self.$fcsdkCallService.hasVideo, showCommunication: self.$fcsdkCallService.presentCommunication), image: "phone.fill.arrow.up.right")
+                                .foregroundColor(.blue)
                         }
-                    })
+                    }
+                })
             } else {
                 VStack {
                     HStack {

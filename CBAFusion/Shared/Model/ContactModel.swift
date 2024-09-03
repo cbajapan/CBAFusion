@@ -8,13 +8,13 @@
 import Foundation
 import FCSDKiOS
 
-final class ContactModel: Hashable {
+struct ContactModel: Hashable, Sendable {
     
   let listID = UUID()
   let id: UUID
   let username: String
   let number: String
-  let calls: [FCSDKCall]?
+  var calls: [FCSDKCall] = []
   let blocked: Bool?
   var createdAt: Date? = nil
   var updatedAt: Date? = nil
@@ -24,7 +24,7 @@ final class ContactModel: Hashable {
         id: UUID,
         username: String,
         number: String,
-        calls: [FCSDKCall]?,
+        calls: [FCSDKCall] = [],
         blocked: Bool?,
         createdAt: Date? = nil,
         updatedAt: Date? = nil,
