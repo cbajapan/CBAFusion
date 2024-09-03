@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import CallKit
+@preconcurrency import CallKit
 import FCSDKiOS
 import AVFAudio
 import Logging
@@ -15,16 +15,11 @@ enum CallKitErrors: Swift.Error {
     case failedRequestTransaction(String)
 }
 
-class CallKitManager: NSObject, ObservableObject {
+final class CallKitManager: Sendable, ObservableObject {
+    static let shared = CallKitManager()
     
     let callController = CXCallController()
-    var logger: Logger
-    
-    override init() {
-        self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
-        super.init()
-    }
-
+    let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - CallKitManager - ")
 
     func initializeCall(_ call: FCSDKCall) async {
         await self.makeCall(uuid: call.id, handle: call.handle, hasVideo: call.hasVideo)

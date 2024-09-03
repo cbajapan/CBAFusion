@@ -10,17 +10,17 @@ import SwiftUI
 
 struct DisplayImage: UIViewRepresentable {
     
-    @EnvironmentObject var backgrounds: Backgrounds
+    @EnvironmentObject var backgroundObserver: BackgroundObserver
 
     func makeCoordinator() -> Coordinator {
         return DisplayImage.Coordinator(parent: self)
     }
     
     func makeUIView(context: Context) -> UIImageView {
-        UIImageView(image: backgrounds.displayImage?.image1)
+        UIImageView(image: backgroundObserver.displayImage?.image1)
     }
     func updateUIView(_ uiView: UIImageView, context: Context) {
-        uiView.image = backgrounds.displayImage?.image2
+        uiView.image = backgroundObserver.displayImage?.image2
     }
     
     class Coordinator: NSObject {

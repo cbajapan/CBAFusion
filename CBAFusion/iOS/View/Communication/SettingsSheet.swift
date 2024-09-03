@@ -77,146 +77,144 @@ struct SettingsSheet: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Group {
-                                if UIDevice.current.userInterfaceIdiom == .phone {
-                                    Text("Preferred Video Direction")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    Picker("", selection: $preferredVideo) {
-                                        ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
-                                            Text(item.rawValue.capitalized)
-                                        }
+                                Text("Preferred Video Direction")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $preferredVideo) {
+                                    ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue.capitalized)
                                     }
-                                    .valueChanged(value: preferredVideo) { item in
-                                        UserDefaults.standard.setValue(item, forKey: "\(MediaValue.keyVideoDirection.rawValue)")
+                                }
+                                .valueChanged(value: preferredVideo) { item in
+                                    UserDefaults.standard.setValue(item, forKey: "\(MediaValue.keyVideoDirection.rawValue)")
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                
+                                Text("Preferred Audio Direction")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $preferredAudio) {
+                                    ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue.capitalized)
                                     }
-                                    .pickerStyle(SegmentedPickerStyle())
-                                    
-                                    Text("Preferred Audio Direction")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    Picker("", selection: $preferredAudio) {
-                                        ForEach(ACBMediaDirection.allCases, id: \.rawValue) { item in
-                                            Text(item.rawValue.capitalized)
-                                        }
+                                }
+                                .valueChanged(value: self.preferredAudio) { item in
+                                    UserDefaults.standard.setValue(item, forKey: "\(MediaValue.keyAudioDirection.rawValue)")
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                
+                                Text("Audio Options")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $selectedAudio) {
+                                    ForEach(ACBAudioDevice.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue.capitalized)
                                     }
-                                    .valueChanged(value: self.preferredAudio) { item in
-                                        UserDefaults.standard.setValue(item, forKey: "\(MediaValue.keyAudioDirection.rawValue)")
-                                    }
-                                    .pickerStyle(SegmentedPickerStyle())
-                                    
-                                    Text("Audio Options")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    Picker("", selection: $selectedAudio) {
+                                }
+                                .valueChanged(value: self.selectedAudio) { item in
+                                    self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: item)!)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                Divider()
+                                    .padding(.top)
+                                Text("Default Audio")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                if #available(iOS 15, *) {
+                                    Picker("", selection: $selectedDefaultAudio) {
                                         ForEach(ACBAudioDevice.allCases, id: \.rawValue) { item in
                                             Text(item.rawValue.capitalized)
                                         }
                                     }
-                                    .valueChanged(value: self.selectedAudio) { item in
-                                        self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: item)!)
+                                    .onAppear {
+                                        self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: self.selectedDefaultAudio)!)
+                                    }
+                                    .valueChanged(value: self.selectedDefaultAudio) { item in
+                                        self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: item)!)
                                     }
                                     .pickerStyle(SegmentedPickerStyle())
-                                    Divider()
-                                        .padding(.top)
-                                    Text("Default Audio")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    if #available(iOS 15, *) {
-                                        Picker("", selection: $selectedDefaultAudio) {
-                                            ForEach(ACBAudioDevice.allCases, id: \.rawValue) { item in
-                                                Text(item.rawValue.capitalized)
-                                            }
+                                } else {
+                                    Picker("", selection: $selectedDefaultAudio) {
+                                        ForEach(ACBAudioDevice.allCases, id: \.rawValue) { item in
+                                            Text(item.rawValue.capitalized)
                                         }
-                                        .onAppear {
-                                            self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: self.selectedDefaultAudio)!)
-                                        }
-                                        .valueChanged(value: self.selectedDefaultAudio) { item in
-                                            self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: item)!)
-                                        }
-                                        .pickerStyle(SegmentedPickerStyle())
-                                    } else {
-                                        Picker("", selection: $selectedDefaultAudio) {
-                                            ForEach(ACBAudioDevice.allCases, id: \.rawValue) { item in
-                                                Text(item.rawValue.capitalized)
-                                            }
-                                        }
-                                        .pickerStyle(SegmentedPickerStyle())
-                                        .onAppear {
-                                            self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: self.selectedDefaultAudio)!)
-                                        }
-                                        .valueChanged(value: self.selectedDefaultAudio) { item in
-                                            self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: item)!)
-                                        }
-                                    }
-                                    VStack {
-                                        Text("Local Scale Options")
-                                            .fontWeight(.light)
-                                            .multilineTextAlignment(.leading)
-                                        Picker("", selection: $localScaleOption) {
-                                            ForEach(ScaleOptions.allCases, id: \.rawValue) { item in
-                                                Text(item.rawValue)
-                                            }
-                                        }
-                                        .valueChanged(value: self.localScaleOption) { item in
-                                            UserDefaults.standard.setValue(item, forKey: "LocalScale")
-                                        }
-                                        .pickerStyle(SegmentedPickerStyle())
-                                        Divider()
-                                        
-                                        Text("Remote Scale Options")
-                                            .fontWeight(.light)
-                                            .multilineTextAlignment(.leading)
-                                        Picker("", selection: $remoteScaleOption) {
-                                            ForEach(ScaleOptions.allCases, id: \.rawValue) { item in
-                                                Text(item.rawValue)
-                                            }
-                                        }
-                                        .valueChanged(value: self.remoteScaleOption) { item in
-                                            UserDefaults.standard.setValue(item, forKey: "RemoteScale")
-                                        }
-                                        .pickerStyle(SegmentedPickerStyle())
-                                        Divider()
-                                        
-                                        HStack {
-                                            Spacer()
-                                            Toggle(
-                                                self.scaleWithOrientation ? "Scaling with orientation" : "Not scaling with orieintation",
-                                                isOn: $scaleWithOrientation
-                                            )
-                                            .valueChanged(value: scaleWithOrientation) { newValue in
-                                                UserDefaults.standard.setValue(newValue, forKey: "ScaleWithOrientation")
-                                            }
-                                            .padding()
-                                        }
-                                    }
-                                    Text("Resolution Options")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    Picker("", selection: $selectedResolution) {
-                                        ForEach(ResolutionOptions.allCases, id: \.rawValue) { item in
-                                            Text(item.rawValue)
-                                        }
-                                    }
-                                    .valueChanged(value: self.selectedResolution) { item in
-                                        self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: item)!)
                                     }
                                     .pickerStyle(SegmentedPickerStyle())
-                                    Divider()
-                                        .padding(.top)
-                                    
-                                    Text("Frame Rate Options")
-                                        .fontWeight(.light)
-                                        .multilineTextAlignment(.leading)
-                                    Picker("", selection: $selectedFrameRate) {
-                                        ForEach(FrameRateOptions.allCases, id: \.rawValue) { item in
-                                            Text(item.rawValue)
-                                        }
+                                    .onAppear {
+                                        self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: self.selectedDefaultAudio)!)
                                     }
-                                    .valueChanged(value: self.selectedFrameRate) { item in
-                                        self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: item)!)
+                                    .valueChanged(value: self.selectedDefaultAudio) { item in
+                                        self.fcsdkCallService.selectDefaultAudio(audio: ACBAudioDevice(rawValue: item)!)
                                     }
-                                    .pickerStyle(SegmentedPickerStyle())
                                 }
+                                VStack {
+                                    Text("Local Scale Options")
+                                        .fontWeight(.light)
+                                        .multilineTextAlignment(.leading)
+                                    Picker("", selection: $localScaleOption) {
+                                        ForEach(ScaleOptions.allCases, id: \.rawValue) { item in
+                                            Text(item.rawValue)
+                                        }
+                                    }
+                                    .valueChanged(value: self.localScaleOption) { item in
+                                        UserDefaults.standard.setValue(item, forKey: "LocalScale")
+                                    }
+                                    .pickerStyle(SegmentedPickerStyle())
+                                    Divider()
+                                    
+                                    Text("Remote Scale Options")
+                                        .fontWeight(.light)
+                                        .multilineTextAlignment(.leading)
+                                    Picker("", selection: $remoteScaleOption) {
+                                        ForEach(ScaleOptions.allCases, id: \.rawValue) { item in
+                                            Text(item.rawValue)
+                                        }
+                                    }
+                                    .valueChanged(value: self.remoteScaleOption) { item in
+                                        UserDefaults.standard.setValue(item, forKey: "RemoteScale")
+                                    }
+                                    .pickerStyle(SegmentedPickerStyle())
+                                    Divider()
+                                    
+                                    HStack {
+                                        Spacer()
+                                        Toggle(
+                                            self.scaleWithOrientation ? "Scaling with orientation" : "Not scaling with orieintation",
+                                            isOn: $scaleWithOrientation
+                                        )
+                                        .valueChanged(value: scaleWithOrientation) { newValue in
+                                            UserDefaults.standard.setValue(newValue, forKey: "ScaleWithOrientation")
+                                        }
+                                        .padding()
+                                    }
+                                }
+                                Text("Resolution Options")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $selectedResolution) {
+                                    ForEach(ResolutionOptions.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue)
+                                    }
+                                }
+                                .valueChanged(value: self.selectedResolution) { item in
+                                    self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: item)!)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                Divider()
+                                    .padding(.top)
+                                
+                                Text("Frame Rate Options")
+                                    .fontWeight(.light)
+                                    .multilineTextAlignment(.leading)
+                                Picker("", selection: $selectedFrameRate) {
+                                    ForEach(FrameRateOptions.allCases, id: \.rawValue) { item in
+                                        Text(item.rawValue)
+                                    }
+                                }
+                                .valueChanged(value: self.selectedFrameRate) { item in
+                                    self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: item)!)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
                                 if fcsdkCallService.isBuffer {
                                     HStack {
                                         Spacer()
@@ -284,7 +282,7 @@ struct SettingsSheet: View {
                                         isOn: $fcsdkCallService.isMirroredFrontCamera
                                     )
                                     .valueChanged(value: fcsdkCallService.isMirroredFrontCamera) { newValue in
-                                        fcsdkCallService.isMirroredFrontCamera = fcsdkCallService.isMirroredFrontCamera ? false : true
+                                        fcsdkCallService.isMirroredFrontCamera = newValue
                                         switchedMirroredViewType = true
                                     }
                                     .padding()
@@ -334,20 +332,16 @@ struct SettingsSheet: View {
                                             .fontWeight(.light)
                                     }
                                     Spacer()
-                                    if self.fcsdkCallService.fcsdkCall?.activeCall == false ||
-                                        self.fcsdkCallService.fcsdkCall?.activeCall == nil
-                                    {
-                                        Button {
-                                            Task {
-                                                await self.logout()
-                                            }
-                                        } label: {
-                                            HStack {
-                                                Spacer()
-                                                Text("Logout")
-                                                    .font(.title)
-                                                    .bold()
-                                            }
+                                    Button {
+                                        Task {
+                                            await self.logout()
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Spacer()
+                                            Text("Logout")
+                                                .font(.title)
+                                                .bold()
                                         }
                                     }
                                     Spacer()

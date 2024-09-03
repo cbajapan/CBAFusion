@@ -19,7 +19,6 @@ class CommunicationView: UIView {
     }()
     let numberLabel = UILabel()
     let nameLabel = UILabel()
-    var remoteView: UIView?
     var pipLayer: AVSampleBufferDisplayLayer?
     var previewView: UIView?
     var captureSession: AVCaptureSession?
@@ -34,7 +33,6 @@ class CommunicationView: UIView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
     
     func updateAnchors(_ orientation: UIDeviceOrientation, flipped: Bool = false, minimize: Bool = false) {
         self.isFlipped = flipped
@@ -62,57 +60,40 @@ class CommunicationView: UIView {
     }
     
     func setConstraint(flipped: Bool, size: (CGFloat, CGFloat)) {
-        guard let previewView = previewView else { return }
-        guard let remoteView = remoteView else { return }
-        for constraint in previewView.constraints {
-            if constraint.isActive {
-                constraint.isActive = false
-            }
-        }
-        
-        for constraint in remoteView.constraints {
-            if constraint.isActive {
-                constraint.isActive = false
+        if let previewView = previewView {
+            for constraint in previewView.constraints {
+                if constraint.isActive {
+                    constraint.isActive = false
+                }
             }
         }
         
         if flipped {
-            previewView.anchors(
-                top: topAnchor,
-                leading: leadingAnchor,
-                bottom: bottomAnchor,
-                trailing: trailingAnchor
-            )
-            remoteView.anchors(
-                bottom: bottomAnchor,
-                trailing: trailingAnchor,
-                bottomPadding: 110,
-                trailPadding: 20,
-                width: size.0,
-                height: size.1
-            )
-            
+            if let previewView = previewView {
+                previewView.anchors(
+                    top: topAnchor,
+                    leading: leadingAnchor,
+                    bottom: bottomAnchor,
+                    trailing: trailingAnchor
+                )
+            }
         } else {
-            remoteView.anchors(
-                top: topAnchor,
-                leading: leadingAnchor,
-                bottom: bottomAnchor,
-                trailing: trailingAnchor
-            )
-            
-            previewView.anchors(
-                bottom: bottomAnchor,
-                trailing: trailingAnchor,
-                bottomPadding: 135,
-                trailPadding: 20,
-                width: size.0,
-                height: size.1
-            )
+            if let previewView = previewView {
+                previewView.anchors(
+                    bottom: bottomAnchor,
+                    trailing: trailingAnchor,
+                    bottomPadding: 135,
+                    trailPadding: 20,
+                    width: size.0,
+                    height: size.1
+                )
+            }
         }
-        remoteView.frame = remoteView.bounds
-        previewView.frame = previewView.bounds
-        previewView.layer.cornerRadius = 10
-        previewView.layer.masksToBounds = true
+        if let previewView = previewView {
+            previewView.frame = previewView.bounds
+            previewView.layer.cornerRadius = 10
+            previewView.layer.masksToBounds = true
+        }
     }
     
     internal func getAspectRatio(width: CGFloat, height: CGFloat) -> CGFloat {
@@ -142,6 +123,7 @@ class CommunicationView: UIView {
             switch UIDevice.current.userInterfaceIdiom {
             case .phone:
                 width = minimize ? (UIScreen.main.bounds.width / 6.5) : UIScreen.main.bounds.height / 4.5
+                
                 height = minimize ? (UIScreen.main.bounds.width / 6.5) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) : (UIScreen.main.bounds.height / 5.5) * getAspectRatio(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
             case .pad:
                 width = minimize ? UIScreen.main.bounds.height / 3 : UIScreen.main.bounds.height / 4
@@ -154,20 +136,16 @@ class CommunicationView: UIView {
     }
     
     func setupUI() {
-        guard let previewView = previewView else { return }
-        guard let remoteView = remoteView else { return }
-        if !subviews.contains(previewView) || !subviews.contains(remoteView) {
-            addSubview(remoteView)
+        if let previewView = previewView, !subviews.contains(previewView) {
             addSubview(previewView)
         }
     }
     
     
     func breakDownView() {
-        guard let previewView = previewView else { return }
-        guard let remoteView = remoteView else { return }
-        remoteView.removeFromSuperview()
-        previewView.removeFromSuperview()
+        if let previewView = previewView {
+            previewView.removeFromSuperview()
+        }
     }
     
     func connectingUI(isRinging: Bool) {
@@ -211,6 +189,7 @@ class CommunicationView: UIView {
             sender.setTranslation(CGPoint.zero, in: self)
         }
     }
+    
     
     var tapped = false
     @objc func tapLocalView() {
