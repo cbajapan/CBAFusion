@@ -10,32 +10,28 @@ import SwiftUI
 import FCSDKiOS
 import Logging
 
-
+/// Protocol defining the authentication functionalities.
 protocol AuthenticationProtocol: AnyObject {
     var uc: ACBUC? { get set }
     func loginUser(networkStatus: Bool) async
 }
 
-@globalActor actor AuthenticationActor {
+/// Global actor for managing authentication tasks.
+@globalActor
+actor AuthenticationActor {
     static let shared = AuthenticationActor()
 }
 
+/// Service responsible for user authentication and session management.
 final class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol, @unchecked Sendable {
     
+    // Logger for tracking authentication events
     let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
+    
+    // Repository for network operations
     let networkRepository = NetworkRepository()
     
-    override init() {
-        self.networkRepository.networkRepositoryDelegate = networkRepository
-    }
-    
-    deinit {
-    }
-    
-    func requestLoginObject() -> LoginRequest {
-        return LoginRequest(username: username, password: password)
-    }
-    
+    // User credentials and settings
     @Published var username = UserDefaults.standard.string(forKey: "Username") ?? ""
     @Published var password = KeychainItem.getPassword
     @Published var server = UserDefaults.standard.string(forKey: "Server") ?? ""
@@ -51,6 +47,17 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     @Published var showFailedSession = false
     @Published var showDidLoseConnection = false
     @Published var showReestablishedConnection = false
+    @Published var showErrorAlert: Bool = false
+    @Published var errorMessage: String = ""
+    @Published var showSettingsSheet = false
+    @Published var selectedParentIndex: Int = 0
+    @Published var currentTabIndex = 0
+    @Published var showProgress: Bool = false
+    @Published var sessionExists = false
+    
+    var uc: ACBUC?
+    
+    // Connection state
     var connection = false {
         didSet {
             Task { @MainActor [weak self] in
@@ -59,16 +66,22 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
             }
         }
     }
-    @Published var sessionExists = false
-    var uc: ACBUC?
-    @Published var showErrorAlert: Bool = false
-    @Published var errorMessage: String = ""
-    @Published var showSettingsSheet = false
-    @Published var selectedParentIndex: Int = 0
-    @Published var currentTabIndex = 0
-    @Published var showProgress: Bool = false
     
-    /// Authenticate the User
+    override init() {
+        super.init()
+        self.networkRepository.networkRepositoryDelegate = networkRepository
+    }
+    
+    deinit {
+        // Clean up resources if needed
+    }
+    
+    /// Creates a login request object with the current credentials.
+    func requestLoginObject() -> LoginRequest {
+        return LoginRequest(username: username, password: password)
+    }
+    
+    /// Authenticates the user with the provided credentials.
     @AuthenticationActor
     func loginUser(networkStatus: Bool) async {
         let loginCredentials = Login(
@@ -81,6 +94,51 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
             acceptUntrustedCertificates: acceptUntrustedCertificates
         )
         
+        // Save user credentials to UserDefaults and Keychain
+        saveUserCredentials()
+        
+        do {
+            guard let repository = networkRepository.networkRepositoryDelegate else { return }
+            let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
+            let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
+            await fireStatus(response: response)
+            
+            // Update session ID and create a session
+            await updateSessionID(with: payload.sessionid)
+            await createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
+            
+            // Save session ID to Keychain if it's empty
+            if KeychainItem.getSessionID.isEmpty {
+                KeychainItem.saveSessionID(sessionid: sessionID)
+            }
+        } catch {
+            await handleError(error)
+        }
+    }
+    
+    /// Updates the session ID and checks the connection status.
+    @MainActor
+    private func updateSessionID(with newSessionID: String) async {
+        // Update the session ID property
+        self.sessionID = newSessionID
+        
+        // Check if the connection is still valid
+        if let currentUC = self.uc {
+            // Update the connection status based on the current ACBUC instance
+            self.connectedToSocket = currentUC.connection
+            
+            // Optionally, you can log the new session ID and connection status
+            logger.info("Updated session ID to: \(newSessionID)")
+            logger.info("Connection status updated: \(self.connectedToSocket ? "Connected" : "Disconnected")")
+        } else {
+            // If uc is nil, it means there is no active session
+            self.connectedToSocket = false
+            logger.warning("No active session found when updating session ID.")
+        }
+    }
+    
+    /// Saves user credentials to UserDefaults and Keychain.
+    private func saveUserCredentials() {
         UserDefaults.standard.set(username, forKey: "Username")
         KeychainItem.savePassword(password: password)
         UserDefaults.standard.set(server, forKey: "Server")
@@ -89,67 +147,44 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
         UserDefaults.standard.set(useCookies, forKey: "Cookies")
         UserDefaults.standard.set(acceptUntrustedCertificates, forKey: "Trust")
         UserDefaults.standard.set(alwaysRetryConnection, forKey: "Retry")
-        do {
-            guard let repository = networkRepository.networkRepositoryDelegate else {return}
-            let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
-            let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
-            await fireStatus(response: response)
-            
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                self.sessionID = payload.sessionid
-            }
-            await self.createSession(sessionid: payload.sessionid, networkStatus: networkStatus)
-            
-            if KeychainItem.getSessionID == "" {
-                KeychainItem.saveSessionID(sessionid: sessionID)
-            }
-            
-        } catch {
-            await errorCaught(error: error)
-            self.logger.error("Error Logging in Error: \(error.localizedDescription)")
-        }
     }
     
-    func errorCaught(error: Error) async {
+    /// Handles errors during login and shows an alert.
+    private func handleError(_ error: Error) async {
         await showAlert(error: error)
+        logger.error("Error Logging in: \(error.localizedDescription)")
     }
     
+    /// Checks the response status and handles it accordingly.
     @MainActor
     func fireStatus(response: URLResponse) async {
-        guard let httpResponse = response as? HTTPURLResponse else {return}
+        guard let httpResponse = response as? HTTPURLResponse else { return }
         switch httpResponse.statusCode {
         case 200...299:
-            self.logger.info("success")
-            self.showProgress = false
-            self.showSettingsSheet = false
+            logger.info("Login successful")
+            showProgress = false
+            showSettingsSheet = false
         case 401:
             await showAlert(response: httpResponse)
-        case 402...500:
-            await showAlert(response: httpResponse)
-        case 501...599:
-            await showAlert(response: httpResponse)
-        case 600:
+        case 402...500, 501...599, 600:
             await showAlert(response: httpResponse)
         default:
             await showAlert(response: httpResponse)
         }
     }
     
+    /// Displays an alert with the error message or response details.
     @MainActor
     func showAlert(response: HTTPURLResponse? = nil, error: Error? = nil) async {
-        var message: String = "No Message"
-        if response == nil {
-            message = error?.localizedDescription ?? "Error string empty"
-        } else {
+        var message: String = error?.localizedDescription ?? "No Message"
+        if let response = response {
             message = "\(String(describing: response))"
         }
-        self.errorMessage = message
-        self.showErrorAlert = true
+        errorMessage = message
+        showErrorAlert = true
     }
     
-    
-    /// Create the Session
+    /// Creates a session with the provided session ID.
     func createSession(sessionid: String, networkStatus: Bool) async {
         self.uc = await ACBUC.uc(
             withConfiguration: sessionid,
@@ -158,19 +193,29 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
             videoDSCPPriority: .high,
             delegate: self
         )
+        uc?.phone.mirrorFrontFacingCameraPreview = await FCSDKCallService.shared.isMirroredFrontCamera
+        //Set resolution and frame rate as soon as possible
+        let selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption") ?? FrameRateOptions.fro30.rawValue
+        let selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption") ?? ResolutionOptions.auto.rawValue
+        guard let uc = uc else { return }
+        uc.phone.delegate = await FCSDKCallService.shared
+        uc.phone.callDelegate = await FCSDKCallService.shared
+        self.selectResolution(uc: uc, res: ResolutionOptions(rawValue: selectedResolution) ?? ResolutionOptions.auto)
+        self.selectFramerate(uc: uc, rate: FrameRateOptions(rawValue: selectedFrameRate) ?? FrameRateOptions.fro30)
+        
         self.uc?.logLevel = .info
         await self.uc?.setNetworkReachable(networkStatus)
-        let acceptUntrustedCertificates = UserDefaults.standard.bool(forKey: "Secure")
-        self.uc?.acceptAnyCertificate(acceptUntrustedCertificates)
-        let useCookies = UserDefaults.standard.bool(forKey: "Cookies")
-        self.uc?.useCookies = useCookies
-        let shouldAlwaysRetry = UserDefaults.standard.bool(forKey: "Retry")
-        if shouldAlwaysRetry == true {
+        self.uc?.acceptAnyCertificate(UserDefaults.standard.bool(forKey: "Secure"))
+        self.uc?.useCookies = UserDefaults.standard.bool(forKey: "Cookies")
+        
+        // Start session with retry option
+        if UserDefaults.standard.bool(forKey: "Retry") {
             await self.uc?.startSession(triggerReconnect: true, timeout: 10)
         } else {
             await self.uc?.startSession(timeout: 10)
         }
-        self.connection = self.uc?.connection != nil
+        
+        connection = self.uc?.connection != nil
         
         await MainActor.run { [weak self] in
             guard let self else { return }
@@ -178,17 +223,45 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
         }
     }
     
+    /// Selects the resolution for the video call.
+    /// - Parameter res: The resolution option to select.
+    func selectResolution(uc: ACBUC, res: ResolutionOptions) {
+        switch res {
+        case .auto:
+            uc.phone.preferredCaptureResolution = ACBVideoCapture.resolutionAuto
+        case .res288p:
+            uc.phone.preferredCaptureResolution = ACBVideoCapture.resolution352x288
+        case .res480p:
+            uc.phone.preferredCaptureResolution = ACBVideoCapture.resolution640x480
+        case .res720p:
+            uc.phone.preferredCaptureResolution = ACBVideoCapture.resolution1024x768
+        }
+    }
+    
+    /// Selects the frame rate for the video call.
+    /// - Parameter rate: The frame rate option to select.
+    func selectFramerate(uc: ACBUC, rate: FrameRateOptions) {
+        switch rate {
+        case .fro20:
+            uc.phone.preferredCaptureFrameRate = 20
+        case .fro30:
+            uc.phone.preferredCaptureFrameRate = 30
+        case .fro60:
+            uc.phone.preferredCaptureFrameRate = 60
+        }
+    }
+    
+    /// Removes the current call from the call service.
     @MainActor
     func removeCall() async {
         FCSDKCallService.shared.fcsdkCall = nil
     }
-    /// Logout and stop the session
+    
+    /// Logs out the user and stops the session.
     func logout() async {
-        self.logger.info("Logging out of server: \(server) with: \(username)")
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.showProgress = true
-        }
+        logger.info("Logging out of server: \(server) with: \(username)")
+        showProgress = true
+        
         let loginCredentials = Login(
             username: username,
             password: password,
@@ -198,130 +271,133 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
             useCookies: useCookies,
             acceptUntrustedCertificates: acceptUntrustedCertificates
         )
+        
         await stopSession()
         self.uc = nil
         await removeCall()
         
         do {
-            guard let repository = networkRepository.networkRepositoryDelegate else {return}
+            guard let repository = networkRepository.networkRepositoryDelegate else { return }
             let response = try await repository.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
             await setSessionID()
-            
             await fireStatus(response: response)
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.sessionExists = false
-            }
+            sessionExists = false
         } catch {
-            await errorCaught(error: error)
-            self.logger.error("\(error.localizedDescription)")
+            await handleError(error)
             UserDefaults.standard.set("", forKey: "Server")
             await setSessionID()
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.sessionExists = false
-                self.showProgress = false
-                self.showSettingsSheet = false
-            }
+            showProgress = false
+            showSettingsSheet = false
         }
     }
     
+    /// Updates the session ID and connection status.
     @MainActor
     func setSessionID() async {
-        self.connectedToSocket = self.uc?.connection != nil
+        connectedToSocket = self.uc?.connection != nil
         KeychainItem.deleteSessionID()
         sessionID = KeychainItem.getSessionID
     }
     
-    /// Stop the Session
+    /// Stops the current session.
     func stopSession() async {
         await self.uc?.stopSession()
     }
 }
 
-
+// MARK: - ACBUCDelegate Implementation
 extension AuthenticationService: ACBUCDelegate {
     
+    @MainActor
     func didStartSession(_ uc: ACBUC) async {
-        self.logger.info("Started Session \(String(describing: uc))")
-        Task { @MainActor [weak self] in
+        logger.info("Started Session \(String(describing: uc))")
+        _ = Task { [weak self] in
             guard let self else { return }
-            self.showStartedSession = true
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
-            } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+            showStartedSession = true
+#if swift(>=6.0)
+            if #available(iOS 18.0, *) {
+                await sleep()
             }
-            self.showStartedSession = false
+#endif
+            showStartedSession = false
         }
     }
     
+    @MainActor
     func didFail(toStartSession uc: ACBUC) async {
-        self.logger.info("Failed to start Session \(String(describing: uc))")
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.showFailedSession = true
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
-            } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+        Task {
+            logger.info("Failed to start Session \(String(describing: uc))")
+            showFailedSession = true
+#if swift(>=6.0)
+            if #available(iOS 18.0, *) {
+                await sleep()
             }
-            self.showFailedSession = false
+#endif
+            showFailedSession = false
         }
     }
     
+    @MainActor
     func didReceiveSystemFailure(_ uc: ACBUC) async {
-        self.logger.info("Received system failure \(String(describing: uc))")
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.showSystemFailed = true
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
-            } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+        Task {
+            logger.info("Received system failure \(String(describing: uc))")
+            showSystemFailed = true
+#if swift(>=6.0)
+            if #available(iOS 18.0, *) {
+                await sleep()
             }
-            self.showSystemFailed = false
+#endif
+            showSystemFailed = false
         }
     }
     
+    @MainActor
     func didLoseConnection(_ uc: ACBUC) async {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.logger.info("Did lose connection \(String(describing: uc))")
-            self.showDidLoseConnection = true
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
-            } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+        Task {
+            logger.info("Did lose connection \(String(describing: uc))")
+            showDidLoseConnection = true
+#if swift(>=6.0)
+            if #available(iOS 18.0, *) {
+                await sleep()
             }
-            self.showDidLoseConnection = false
+#endif
+            showDidLoseConnection = false
         }
     }
     
+    @MainActor
     func uc(_ uc: ACBUC, willRetryConnection attemptNumber: Int, in delay: TimeInterval) async {
-        self.logger.info("\n We are trying to reconnect to the network\n UC: \(uc)\n Attempt: \(attemptNumber)\n Delay: \(delay)")
+        logger.info("Attempting to reconnect to the network - Attempt: \(attemptNumber), Delay: \(delay)")
         if attemptNumber == 7 {
-            await self.uc?.startSession()
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.sessionExists = true
-            }
-        }
-    }
-    
-    func didReestablishConnection(_ uc: ACBUC) async {
-        self.logger.info("\n We restablished Network Connectivity\n UC: \(uc)")
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            self.showReestablishedConnection = true
-            
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+            if UserDefaults.standard.bool(forKey: "Retry") {
+                await self.uc?.startSession(triggerReconnect: true, timeout: 10)
             } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+                await self.uc?.startSession(timeout: 10)
             }
-            self.showReestablishedConnection = false
+            sessionExists = true
         }
     }
     
+    @MainActor
+    func didReestablishConnection(_ uc: ACBUC) async {
+        Task {
+            logger.info("Reestablished Network Connectivity - UC: \(uc)")
+            showReestablishedConnection = true
+#if swift(>=6.0)
+            if #available(iOS 18.0, *) {
+                await sleep()
+            }
+#endif
+            showReestablishedConnection = false
+        }
+    }
+    
+    
+    func sleep() async {
+        if #available(iOS 16.0, *) {
+            try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
+        } else {
+            try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2_000_000)
+        }
+    }
 }

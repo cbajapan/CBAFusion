@@ -262,15 +262,3 @@ fileprivate func makeSQLiteURL() -> String {
     
     return url.path
 }
-
-
-@discardableResult func returningAsyncDispatch<T>(_ block: @escaping () -> T) -> T {
-    let queue = DispatchQueue.global(qos: .userInitiated)
-    let group = DispatchGroup()
-    var result: T?
-    group.enter()
-    queue.async(group: group) { result = block(); group.leave(); }
-    group.wait()
-    
-    return result!
-}

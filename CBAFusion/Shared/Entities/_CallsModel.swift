@@ -10,7 +10,7 @@ import Foundation
 import FluentKit
 import FCSDKiOS
 
-final class _CallsModel: FluentKit.Model {
+final class _CallsModel: FluentKit.Model, @unchecked Sendable {
     static let schema = "call"
 
     @ID(key: .id) var id: UUID?

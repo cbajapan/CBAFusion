@@ -1,5 +1,5 @@
 //
-//  Communication+ViewControllerRepresenable.swift
+//  Communication+ViewControllerRepresentable.swift
 //  CBAFusion
 //
 //  Created by Cole M on 9/1/21.
@@ -11,8 +11,10 @@ import FCSDKiOS
 import Logging
 import AVFoundation
 
+/// A SwiftUI wrapper for the CommunicationViewController, allowing it to be used in SwiftUI views.
 struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     
+    // Binding properties for various states and configurations
     @Binding var removePip: Bool
     @Binding var destination: String
     @Binding var hasVideo: Bool
@@ -33,19 +35,23 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
     @Binding var hasStartedConnectingID: UUID?
     @Binding var ringingID: UUID?
     @Binding var hasConnectedID: UUID?
+    
     @State var blurViewID: UUID?
+    
+    // Environment objects for managing call state and services
     @EnvironmentObject var callKitManager: CallKitManager
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var contactService: ContactService
     @EnvironmentObject var pipStateObject: PipStateObject
     
+    // User preferences for audio, resolution, and frame rate
     var selectedAudio = UserDefaults.standard.string(forKey: "AudioOption")
     var selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption")
     var selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption")
     
+    // Creates the CommunicationViewController instance
     func makeUIViewController(context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) -> CommunicationViewController {
-        
         let communicationViewController = CommunicationViewController(
             callKitManager: self.callKitManager,
             fcsdkCallService: self.fcsdkCallService,
@@ -58,20 +64,25 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         
         communicationViewController.fcsdkCallDelegate = context.coordinator
         return communicationViewController
-        
     }
     
-    func updateUIViewController(_
-                                uiViewController: CommunicationViewController,
-                                context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>
-    ) {
-        
+    // Updates the CommunicationViewController with new state
+    func updateUIViewController(_ uiViewController: CommunicationViewController, context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) {
+        // Update properties of the view controller
         uiViewController.authenticationService = self.authenticationService
         uiViewController.destination = self.destination
         uiViewController.hasVideo = self.hasVideo
         uiViewController.callKitManager = self.callKitManager
+        
         let call = self.fcsdkCallService
         
+        // Handle various states and transitions
+        handleCallStates(call, uiViewController, context)
+    }
+    
+    // Handles the different call states and updates the UI accordingly
+    private func handleCallStates(_ call: FCSDKCallService, _ uiViewController: CommunicationViewController, _ context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) {
+        // Check if the call has started connecting
         if call.hasStartedConnecting {
             if hasStartedConnectingID != context.coordinator.previousHasStartedConnectingID {
                 Task {
@@ -81,7 +92,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousHasStartedConnectingID = hasStartedConnectingID
         }
         
-        
+        // Check if the call is ringing
         if call.isRinging {
             if ringingID != context.coordinator.previousRingingID {
                 Task {
@@ -94,36 +105,45 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousRingingID = ringingID
         }
         
+        // Check if the call has connected
         if call.hasConnected {
             if hasConnectedID != context.coordinator.previousHasConnectedID {
                 Task { @MainActor in
-#if !targetEnvironment(simulator)
-                    if #available(iOS 15.0.0, *), fcsdkCallService.isBuffer {
-                        await uiViewController.layoutPipLayer()
-                    }
-#endif
                     await uiViewController.currentState(state: .hasConnected)
                     if self.isOutgoing {
                         self.fcsdkCallService.stopRing()
                     } else {
-                        self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.selectedResolution ?? ResolutionOptions.auto.rawValue)!)
-                        self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.selectedFrameRate ?? FrameRateOptions.fro20.rawValue)!)
-                        self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: self.selectedAudio ?? ACBAudioDevice.speakerphone.rawValue)!)
+                        configureCallSettings()
                     }
                 }
             }
             context.coordinator.previousHasConnectedID = hasConnectedID
         }
         
+        // Handle Picture-in-Picture state
         if #available(iOS 15, *) {
             if pipStateObject.pipClickedID != context.coordinator.previousPipClickedID {
+                context.coordinator.previousPipClickedID = pipStateObject.pipClickedID
                 Task {
                     await uiViewController.showPip(show: pipStateObject.pip)
                 }
-                context.coordinator.previousPipClickedID = pipStateObject.pipClickedID
             }
         }
         
+        // Handle hold, resume, mute, and camera states
+        handleStateChanges(uiViewController, context)
+    }
+    
+    // Configures call settings based on user preferences
+    private func configureCallSettings() {
+        self.fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: self.selectedResolution ?? ResolutionOptions.auto.rawValue)!)
+        self.fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: self.selectedFrameRate ?? FrameRateOptions.fro20.rawValue)!)
+        self.fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: self.selectedAudio ?? ACBAudioDevice.speakerphone.rawValue)!)
+    }
+    
+    // Handles state changes for hold, resume, mute, and camera
+    private func handleStateChanges(_ uiViewController: CommunicationViewController, _ context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) {
+        // Handle hold state
         if holdID != context.coordinator.previousHoldID {
             Task {
                 await uiViewController.currentState(state: .hold)
@@ -132,6 +152,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousHoldID = holdID
         }
         
+        // Handle blur view state
         if blurViewID != context.coordinator.previousBlurViewID {
             Task {
                 await uiViewController.blurView()
@@ -139,6 +160,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousBlurViewID = blurViewID
         }
         
+        // Handle resume state
         if resumeID != context.coordinator.previousResumeID {
             Task {
                 await uiViewController.currentState(state: .resume)
@@ -147,6 +169,43 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             context.coordinator.previousResumeID = resumeID
         }
         
+        // Handle mute and resume video/audio states
+        handleMuteAndResumeStates(uiViewController, context)
+        
+        // Handle camera state changes
+        if cameraFrontID != context.coordinator.previousCameraFrontID {
+            Task {
+                await uiViewController.currentState(state: .cameraFront)
+            }
+            context.coordinator.previousCameraFrontID = cameraFrontID
+        }
+        if cameraBackID != context.coordinator.previousCameraBackID {
+            Task {
+                await uiViewController.currentState(state: .cameraBack)
+            }
+            context.coordinator.previousCameraBackID = cameraBackID
+        }
+        
+        // Handle close call action
+        if closeClickID != context.coordinator.previousCloseClickID {
+            Task {
+                do {
+                    try await uiViewController.endCall()
+                } catch {
+                    print("Error ending call - Error: \(error)")
+                }
+                await setServiceHasEnded()
+                await uiViewController.currentState(state: .hasEnded)
+                if self.isOutgoing {
+                    self.fcsdkCallService.stopRing()
+                }
+            }
+            context.coordinator.previousCloseClickID = closeClickID
+        }
+    }
+    
+    // Handles mute and resume states for audio and video
+    private func handleMuteAndResumeStates(_ uiViewController: CommunicationViewController, _ context: UIViewControllerRepresentableContext<CommunicationViewControllerRepresentable>) {
         if muteVideoID != context.coordinator.previousMuteVideoID {
             Task {
                 await uiViewController.currentState(state: .muteVideo)
@@ -155,7 +214,6 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
         
         if resumeVideoID != context.coordinator.previousResumeVideoID {
-            
             Task {
                 await uiViewController.currentState(state: .resumeVideo)
             }
@@ -175,40 +233,19 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
             }
             context.coordinator.previousResumeAudioID = resumeAudioID
         }
-        
-        if cameraFrontID != context.coordinator.previousCameraFrontID {
-            Task {
-                await uiViewController.currentState(state: .cameraFront)
-            }
-            context.coordinator.previousCameraFrontID = cameraFrontID
-        }
-        if cameraBackID != context.coordinator.previousCameraBackID {
-            Task {
-                await uiViewController.currentState(state: .cameraBack)
-            }
-            context.coordinator.previousCameraBackID = cameraBackID
-        }
-        
-        if closeClickID != context.coordinator.previousCloseClickID {
-            Task {
-                do {
-                    try await uiViewController.endCall()
-                } catch {
-                    print("Error ending call - Error: \(error)")
-                }
-                await setServiceHasEnded()
-                await uiViewController.currentState(state: .hasEnded)
-                if self.isOutgoing {
-                    self.fcsdkCallService.stopRing()
-                }
-            }
-            context.coordinator.previousCloseClickID = closeClickID
-        }
     }
     
+    // Creates the Coordinator for managing the communication state
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    // Coordinator class for handling call delegate methods
     class Coordinator: NSObject, FCSDKCallDelegate {
         
         var parent: CommunicationViewControllerRepresentable
+        
+        // Previous state identifiers for tracking changes
         var previousCloseClickID: UUID? = nil
         var previousCameraFrontID: UUID? = nil
         var previousCameraBackID: UUID? = nil
@@ -239,6 +276,7 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         }
     }
     
+    // Resets the service state when the call ends
     @MainActor
     func setServiceHasEnded() async {
         self.fcsdkCallService.connectDate = nil
@@ -247,18 +285,15 @@ struct CommunicationViewControllerRepresentable: UIViewControllerRepresentable {
         self.fcsdkCallService.hasConnected = false
         self.fcsdkCallService.isStreaming = false
     }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
 }
 
-
+// Protocol for handling call delegate methods
 protocol FCSDKCallDelegate: AnyObject {
     func passCallToService(_ call: FCSDKCall) async
     func passViewsToService(communicationView: CommunicationView) async
 }
 
+// Enum for error handling
 enum OurErrors: String, Swift.Error {
     case nilACBUC = "Cannot initialize because ACBUC is nil"
     case nilFCSDKCall = "Cannot initialize because FCSDKCall is nil"

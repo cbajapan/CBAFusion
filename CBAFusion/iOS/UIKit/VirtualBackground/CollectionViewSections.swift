@@ -16,6 +16,7 @@ enum ConferenceCallSections: Int, CaseIterable {
     case inital
 }
 
+@MainActor
 class CollectionViewSections: NSObject {
     
     override init() {}
@@ -65,17 +66,39 @@ class CollectionViewSections: NSObject {
         )
         return NSCollectionLayoutSection(group: group)
     }
-    
-    
-    
-    func conferenceViewSection(itemCount: Int) -> NSCollectionLayoutSection {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0 / CGFloat(itemCount)), heightDimension: .fractionalHeight(1.0))
+
+    func conferenceViewSection(itemCount: Int, aspectRatio: CGFloat) -> NSCollectionLayoutSection {
+        // Get the screen size
+        let screenSize = UIScreen.main.bounds.size
+        
+        // Calculate the available width for the items
+        let availableWidth = screenSize.width
+        
+        // Calculate the width for each item based on the aspect ratio
+        // itemWidth = availableWidth / numberOfColumns
+        // itemHeight = itemWidth / aspectRatio
+        // We will calculate the number of columns based on the available width and the aspect ratio
+        let numberOfColumns = Int(availableWidth / (availableWidth / CGFloat(itemCount) * aspectRatio))
+        
+        // Calculate the width for each item
+        let itemWidth = availableWidth / CGFloat(numberOfColumns)
+        let itemHeight = itemWidth / aspectRatio
+        
+        // Create the item size with the calculated width and height
+        let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(itemWidth), heightDimension: .absolute(itemHeight))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15)
+        
+        // Create the group size, ensuring it respects the overall layout
         let group = NSCollectionLayoutGroup.horizontal(
-            layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)),
+            layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(itemHeight)),
             subitems: [item]
         )
-        return NSCollectionLayoutSection(group: group)
+        
+        // Create the section with the group
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 15 // Adjust spacing between groups if needed
+        
+        return section
     }
 }

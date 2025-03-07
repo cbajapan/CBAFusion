@@ -9,116 +9,81 @@ import SwiftUI
 import FCSDKiOS
 import AVKit
 
-
+/// A view that displays the contents of a call, including missed, rejected, or outgoing calls.
 struct ContactContents: View {
     
     @State var call: FCSDKCall
     
     var body: some View {
-        
         HStack {
+            // Determine the call status and display appropriate content
             if call.missed == true && call.outbound == false {
-                Image(systemName: "arrow.down.left.video")
-                    .foregroundColor(.red)
-                Text("You Missed a call from \(call.handle) - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
-                    .foregroundColor(.red)
+                callStatusView(imageName: "arrow.down.left.video", color: .red, status: "You Missed a call from")
             } else if call.rejected == true && call.outbound == false {
-                Image(systemName: "arrow.down.left.video.fill")
-                    .foregroundColor(.red)
-                Text("You Rejected a call from \(call.handle) - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
-                    .foregroundColor(.red)
+                callStatusView(imageName: "arrow.down.left.video.fill", color: .red, status: "You Rejected a call from")
             } else if call.outbound == false && call.rejected == false {
-                Image(systemName: "arrow.down.left.video.fill")
-                    .foregroundColor(.blue)
-                Text("\(call.handle) called you - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
-                    .foregroundColor(.blue)
+                callStatusView(imageName: "arrow.down.left.video.fill", color: .blue, status: "\(call.handle) called you")
             } else {
-                Image(systemName: "arrow.up.right.video")
-                    .foregroundColor(.blue)
-                Text("You called \(call.handle) - " + DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: call.createdAt ?? Date()))
-                    .foregroundColor(.blue)
+                callStatusView(imageName: "arrow.up.right.video", color: .blue, status: "You called \(call.handle)")
             }
         }
     }
+    
+    /// Helper function to create a view for the call status.
+    private func callStatusView(imageName: String, color: Color, status: String) -> some View {
+        VStack {
+            Image(systemName: imageName)
+                .foregroundColor(color)
+            Text("\(status) \(call.handle) - \(formattedDate(call.createdAt))")
+                .foregroundColor(color)
+        }
+    }
+    
+    /// Formats the date from the call.
+    private func formattedDate(_ date: Date?) -> String {
+        DateFormatter().getFormattedDateFromDate(currentFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZ", newFormat: "MMM d, h:mm a", date: date ?? Date())
+    }
 }
 
-
+/// A view that represents a contact card, displaying call history and options to initiate a call.
 struct ContactCard: View {
-    
     
     @Binding var destination: String
     @Binding var hasVideo: Bool
     @Binding var isOutgoing: Bool
     var contact: ContactModel?
-    @State var notLoggedIn: Bool = false
-    @State var calls: [FCSDKCall] = []
+    
+    @State private var notLoggedIn: Bool = false
+    @State private var calls: [FCSDKCall] = []
+    
     @EnvironmentObject var authenticationService: AuthenticationService
     @EnvironmentObject var fcsdkCallService: FCSDKCallService
     @EnvironmentObject var contactService: ContactService
     
-    
-    
-    
-    @ViewBuilder var content: some View {
-        ZStack {
-            VStack(alignment: .leading) {
-                ScrollView {
-                    ForEach(self.calls.lazy.reversed(), id: \.id) { call in
-                        ContactContents(call: call)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2)
-                            .padding([.leading, .trailing])
-                            .padding(.bottom, 3)
-                    }
-                    Spacer()
-                }.padding(.top)
-            }
-        }
-    }
-    
     var body: some View {
         if #available(iOS 14, *) {
             content
-                .navigationTitle(self.contactService.selectedContact?.username ?? "")
-                .toolbar(content: {
+                .navigationTitle(title: contactService.selectedContact?.username ?? "")
+                .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        HStack {
-                            Button {
-                                setupCall(hasVideo: true)
-                            } label: {
-                                Image(systemName: "video")
-                                    .foregroundColor(.blue)
-                            }
+                        Button(action: { setupCall(hasVideo: true) }) {
+                            Image(systemName: "video")
+                                .foregroundColor(.blue)
                         }
                     }
-                })
-                .alert(isPresented: self.$contactService.alert, content: {
+                }
+                .alert(isPresented: $contactService.alert) {
                     Alert(
                         title: Text("We are sorry you don't seem to be logged in"),
-                        message: Text(""),
-                        dismissButton: .cancel(Text("Okay"), action: {
-                            Task {
-                                await processNotLoggedIn()
-                            }
-                        })
+                        dismissButton: .cancel(Text("Okay"), action: { Task { await processNotLoggedIn() } })
                     )
-                })
-                .onAppear {
-                    Task.detached {
-                        try await self.contactService.fetchContactCalls(destination)
-                    }
-                    Task {
-                        self.calls = self.contactService.calls
-                        self.contactService.selectedContact = self.contact
-                        self.fcsdkCallService.destination = self.contact?.number ?? ""
-                        await self.contactService.setCallsForContact(self.contact!)
-                    }
                 }
-                .valueChanged(value: self.contactService.calls) { newValue in
+                .onAppear {
+                    loadContactCalls()
+                }
+                .valueChanged(value: contactService.calls) { newValue in
                     if !newValue.isEmpty {
-                        self.calls = newValue
+                        calls = newValue
                     }
                 }
         } else {
@@ -159,7 +124,9 @@ struct ContactCard: View {
                         self.calls = self.contactService.calls
                         self.contactService.selectedContact = self.contact
                         self.fcsdkCallService.destination = self.contact?.number ?? ""
-                        await self.contactService.setCallsForContact(self.contact!)
+                        if let calls = contact?.calls {
+                            self.contactService.calls = calls
+                        }
                     }
                 }
                 .valueChanged(value: self.contactService.calls) { newValue in
@@ -170,23 +137,58 @@ struct ContactCard: View {
         }
     }
     
-    func setupCall(hasVideo: Bool) {
-        if self.authenticationService.connectedToSocket,
-           self.authenticationService.sessionExists {
-            self.fcsdkCallService.presentCommunication = true
-            self.fcsdkCallService.destination = self.contactService.selectedContact?.number ?? ""
-            self.fcsdkCallService.hasVideo = hasVideo
-            self.fcsdkCallService.isOutgoing = true
-        } else {
-            //            notLoggedIn = true
+    /// The main content view displaying the call history.
+    @ViewBuilder private var content: some View {
+        VStack(alignment: .leading) {
+            ScrollView {
+                ForEach(calls.lazy.reversed(), id: \.id) { call in
+                    ContactContents(call: call)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                        .padding([.leading, .trailing])
+                        .padding(.bottom, 3)
+                }
+                Spacer()
+            }
+            .padding(.top)
         }
     }
     
-    func processNotLoggedIn() async {
-        await self.authenticationService.logout()
+    /// Sets up a call to the selected contact.
+    private func setupCall(hasVideo: Bool) {
+        guard authenticationService.connectedToSocket, authenticationService.sessionExists else {
+            // Handle not logged in case
+            return
+        }
+        fcsdkCallService.presentCommunication = true
+        fcsdkCallService.destination = contactService.selectedContact?.number ?? ""
+        fcsdkCallService.hasVideo = hasVideo
+        fcsdkCallService.isOutgoing = true
+    }
+    
+    /// Processes the case when the user is not logged in.
+    private func processNotLoggedIn() async {
+        await authenticationService.logout()
         KeychainItem.deleteSessionID()
-        self.authenticationService.sessionID = KeychainItem.getSessionID
+        authenticationService.sessionID = KeychainItem.getSessionID
+    }
+    
+    /// Loads the calls for the selected contact.
+    private func loadContactCalls() {
+        Task {
+            do {
+                try await contactService.fetchContactCalls(destination)
+                calls = contactService.calls
+                contactService.selectedContact = contact
+                fcsdkCallService.destination = contact?.number ?? ""
+                if let calls = contact?.calls {
+                    self.contactService.calls = calls
+                }
+            } catch {
+                // Handle error appropriately
+            }
+        }
     }
 }
-
-
