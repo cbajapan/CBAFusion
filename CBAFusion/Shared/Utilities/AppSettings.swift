@@ -15,16 +15,17 @@ enum MediaValue: String {
 }
 
 
-struct AppSettings {
+struct AppSettings: Sendable {
     
+    @MainActor
     static var media = ACBMediaDirection.sendAndReceive
-
+    @MainActor
     static func registerDefaults(_ video: ACBMediaDirection, audio: ACBMediaDirection) {
         UserDefaults.standard.set(audio.rawValue, forKey: MediaValue.keyAudioDirection.rawValue)
         UserDefaults.standard.set(video.rawValue, forKey: MediaValue.keyVideoDirection.rawValue)
     }
     
-    
+    @MainActor
    static func mediaDirection(for string: String) -> ACBMediaDirection {
        switch ACBMediaDirection(rawValue: string) ?? .none {
         case .sendAndReceive:
@@ -39,12 +40,12 @@ struct AppSettings {
             return ACBMediaDirection.sendAndReceive
         }
     }
-    
+    @MainActor
     static func perferredAudioDirection() -> ACBMediaDirection {
         guard let audioPreference = UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) else { return ACBMediaDirection.none }
         return self.mediaDirection(for: audioPreference)
     }
-    
+    @MainActor
     static func perferredVideoDirection() -> ACBMediaDirection {
         guard let videoPreference = UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) else { return ACBMediaDirection.none }
         return  self.mediaDirection(for: videoPreference)

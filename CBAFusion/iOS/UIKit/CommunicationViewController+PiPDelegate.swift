@@ -10,138 +10,168 @@ import AVKit
 import Logging
 import FCSDKiOS
 
-extension CommunicationViewController: AVPictureInPictureControllerDelegate, AVPictureInPictureSampleBufferPlaybackDelegate {
+
+/// Extension for `CommunicationViewController` to handle Picture in Picture (PiP) functionality.
+/// This extension conforms to `AVPictureInPictureControllerDelegate` and `AVPictureInPictureSampleBufferPlaybackDelegate`.
+extension CommunicationViewController: @preconcurrency AVPictureInPictureControllerDelegate, @preconcurrency AVPictureInPictureSampleBufferPlaybackDelegate {
     
-    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, setPlaying playing: Bool) {}
-    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, didTransitionToRenderSize newRenderSize: CMVideoDimensions) {}
-    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, skipByInterval skipInterval: CMTime) async {}
-    func pictureInPictureControllerTimeRangeForPlayback(_ pictureInPictureController: AVPictureInPictureController) -> CMTimeRange {
-        return CMTimeRange(start: .zero, duration: .positiveInfinity)
-    }
-    func pictureInPictureControllerIsPlaybackPaused(_ pictureInPictureController: AVPictureInPictureController) -> Bool {
-        PipStateObject.shared.pip = false
-        PipStateObject.shared.pipClickedID = UUID()
-        return false
-    }
-    
-    @available(iOS 15, *)
+    /// Shows or hides the Picture in Picture (PiP) interface.
+    /// - Parameter show: A Boolean indicating whether to show or hide PiP
     func showPip(show: Bool) async {
+        guard AVPictureInPictureController.isPictureInPictureSupported() else {
+            self.logger.info("PIP not Supported")
+            return
+        }
+
         if show {
-            if AVPictureInPictureController.isPictureInPictureSupported() {
-                if #available(iOS 16.0, *) {
-                    guard let captureSession = communicationView.captureSession else { return }
-                    if captureSession.isMultitaskingCameraAccessSupported {
-                        let remoteVideoScale = UserDefaults.standard.integer(forKey: "remoteVideoScale")
-                        let scaleWithOrientation = UserDefaults.standard.bool(forKey: "scaleWithOrientation")
-                        
-                        guard let remotePipView = await FCSDKCallService.shared.fcsdkCall?.call?.remoteBufferView(
-                            scaleMode: VideoScaleMode(rawValue: remoteVideoScale) ?? .horizontal,
-                            shouldScaleWithOrientation: scaleWithOrientation
-                        ) else { return }
-                        
-                        let pipVideoCallViewController = AVPictureInPictureVideoCallViewController()
-                        var size: CGSize?
-                        switch UIDevice.current.orientation {
-                        case .unknown, .faceUp, .faceDown:
-                            if UIScreen.main.bounds.width < UIScreen.main.bounds.height {
-                                let result = communicationView.setSize(isLandscape: false, minimize: false)
-                                size = CGSize(width: result.0, height: result.1)
-                            } else {
-                                let result = communicationView.setSize(isLandscape: true, minimize: false)
-                                size = CGSize(width: result.0, height: result.1)
-                            }
-                        case .portrait, .portraitUpsideDown:
-                            let result = communicationView.setSize(isLandscape: false, minimize: false)
-                            size = CGSize(width: result.0, height: result.1)
-                        case .landscapeRight, .landscapeLeft:
-                            let result = communicationView.setSize(isLandscape: true, minimize: false)
-                            size = CGSize(width: result.0, height: result.1)
-                        default:
-                            let result = communicationView.setSize(isLandscape: true, minimize: false)
-                            size = CGSize(width: result.0, height: result.1)
-                        }
-                        pipVideoCallViewController.preferredContentSize = size!
-                        pipVideoCallViewController.view.addSubview(remotePipView)
-                        
-                        remotePipView.anchors(
-                            top: pipVideoCallViewController.view.topAnchor,
-                            leading: pipVideoCallViewController.view.leadingAnchor,
-                            bottom: pipVideoCallViewController.view.bottomAnchor,
-                            trailing: pipVideoCallViewController.view.trailingAnchor
-                            
-                        )
-                        
-                        let pipContentSource = AVPictureInPictureController.ContentSource(
-                            activeVideoCallSourceView: view,
-                            contentViewController: pipVideoCallViewController
-                        )
-                        
-                        let pipController = AVPictureInPictureController(contentSource: pipContentSource)
-                        pipController.canStartPictureInPictureAutomaticallyFromInline = true
-                        pipController.delegate = self
-                        await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
-                        self.pipController = pipController
-                    }
-                }
-                pipController?.startPictureInPicture()
-            } else {
-                self.logger.info("PIP not Supported")
+            guard let captureSession = communicationView.captureSession else { return }
+            if #available(iOS 16.0, *), captureSession.isMultitaskingCameraAccessSupported {
+                guard let remoteView = RemoteViews.shared.views.first?.remoteVideoView else { return }
+                    await startPipWithMultitaskingCamera(remoteView: remoteView)
+            } else if #available(iOS 15.0, *) {
+                await startPipWithoutMultitaskingCamera()
             }
+            pipController?.startPictureInPicture()
         } else {
-            if #available(iOS 16.0, *) {
-                guard let captureSession = communicationView.captureSession else { return }
-                if captureSession.isMultitaskingCameraAccessSupported {
-                    pipController?.stopPictureInPicture()
-                    self.pipController = nil
-                    await self.fcsdkCallService.fcsdkCall?.call?.setPipController(nil)
-                } else {
-                    pipController?.stopPictureInPicture()
-                }
-            } else {
-                pipController?.stopPictureInPicture()
-            }
+            // Stop Picture in Picture
+            pipController?.stopPictureInPicture()
+            pipController?.delegate = self
         }
     }
-    
-    
-    func setUpPip(_ communicationView: CommunicationView) async {
-        guard let remoteView = RemoteViews.shared.views.first?.remoteVideoView else { return }
-        guard let captureSession = communicationView.captureSession else { return }
-        if #available(iOS 16.0, *), captureSession.isMultitaskingCameraAccessSupported {
-            //We set up when pip is hit due to resource allocation
-            print("SUPPORTS MultitaskingCameraAccessSupported")
-        } else if #available(iOS 15.0, *) {
-            //If we are iOS 16 and we are not an m chip
-            guard let sourceLayer = remoteView.sampleBufferLayer else { return }
-            //            guard let sourceLayer = remoteView.layer as? AVSampleBufferDisplayLayer else { return }
+
+    @available(iOS 16, *)
+    func startPipWithMultitaskingCamera(remoteView: UIView) async {
+        self.logger.info("Multitasking Camera is Supported")
+        
+        let size = communicationView.determineSize(for: UIDevice.current.orientation, minimize: false)
+        let pipVideoCallViewController = AVPictureInPictureVideoCallViewController(remoteView, preferredContentSize: CGSize(width: size.0, height: size.1))
+        let contentSource = AVPictureInPictureController.ContentSource(activeVideoCallSourceView: view, contentViewController: pipVideoCallViewController)
+        let pipController = AVPictureInPictureController(contentSource: contentSource)
+        
+        await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
+        pipController.delegate = self
+        self.pipController = pipController
+    }
+
+    @available(iOS 15, *)
+    private func startPipWithoutMultitaskingCamera() async {
+        self.logger.info("Multitasking Camera is not Supported")
+        
+        guard let sourceLayer = await self.fcsdkCallService.fcsdkCall?.call?.getSampleLayers().first else { return }
+        
+        if pipController == nil {
             let source = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: sourceLayer, playbackDelegate: self)
-            
             let pipController = AVPictureInPictureController(contentSource: source)
-            pipController.canStartPictureInPictureAutomaticallyFromInline = true
-            pipController.delegate = self
             await self.fcsdkCallService.fcsdkCall?.call?.setPipController(pipController)
             self.pipController = pipController
         }
     }
+
     
+    /// Called when Picture in Picture has started successfully.
+    /// - Parameter pictureInPictureController: The PiP controller.
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        print("STARTED_PIP")
+        // Handle PiP started
     }
+    
+    /// Called when Picture in Picture is about to stop.
+    /// - Parameter pictureInPictureController: The PiP controller.
     func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        PipStateObject.shared.pip = false
-        PipStateObject.shared.pipClickedID = UUID()
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            PipStateObject.shared.pip = false
+            PipStateObject.shared.pipClickedID = UUID()
+            
+            if #available(iOS 16.0, *), let captureSession = communicationView.captureSession, captureSession.isMultitaskingCameraAccessSupported {
+                await self.performQuery()
+            }
+        }
     }
     
+    /// Called when Picture in Picture fails to start.
+    /// - Parameters:
+    ///   - pictureInPictureController: The PiP controller.
+    ///   - error: The error that occurred.
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-        logger.error("FAILED_PIP_\(error)")
-    }
-    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        self.logger.error("Failed to start PiP: \(error.localizedDescription)")
     }
     
+    /// Called when Picture in Picture has stopped.
+    /// - Parameter pictureInPictureController: The PiP controller.
+    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        pipStateObject.pip = false
+    }
+    
+    /// Called to determine if Picture in Picture should start.
+    /// - Parameter pictureInPictureController: The PiP controller.
+    /// - Returns: A Boolean indicating whether PiP should start.
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController) async -> Bool {
         return true
     }
+    
+    /// Called when Picture in Picture is about to start.
+    /// - Parameter pictureInPictureController: The PiP controller.
     func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        print("WILL_START_PIP")
+        // Handle PiP will start
     }
+    
+    
+    /// Called when the PiP controller's playing state changes.
+    /// - Parameters:
+    ///   - pictureInPictureController: The PiP controller.
+    ///   - playing: A Boolean indicating whether playback is currently active.
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, setPlaying playing: Bool) {}
+    
+    /// Called when the PiP controller transitions to a new render size.
+    /// - Parameters:
+    ///   - pictureInPictureController: The PiP controller.
+    ///   - newRenderSize: The new render size for the PiP window.
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, didTransitionToRenderSize newRenderSize: CMVideoDimensions) {}
+    
+    /// Called to skip playback by a specified interval.
+    /// - Parameters:
+    ///   - pictureInPictureController: The PiP controller.
+    ///   - skipInterval: The time interval to skip.
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, skipByInterval skipInterval: CMTime) async {}
+    
+    /// Provides the time range for playback in the PiP controller.
+    /// - Parameter pictureInPictureController: The PiP controller.
+    /// - Returns: A `CMTimeRange` representing the playback time range.
+    func pictureInPictureControllerTimeRangeForPlayback(_ pictureInPictureController: AVPictureInPictureController) -> CMTimeRange {
+        return CMTimeRange(start: .zero, duration: .positiveInfinity)
+    }
+    
+    /// Indicates whether playback is paused in the PiP controller.
+    /// - Parameter pictureInPictureController: The PiP controller.
+    /// - Returns: A Boolean indicating if playback is paused.
+    func pictureInPictureControllerIsPlaybackPaused(_ pictureInPictureController: AVPictureInPictureController) -> Bool {
+        return false
+    }
+    
+    
+}
+
+@available(iOS 15.0, *)
+extension AVPictureInPictureVideoCallViewController {
+    
+    convenience init(_ pipView: UIView, preferredContentSize: CGSize) {
+        
+        // Initialize.
+        self.init()
+        
+        // Set the preferredContentSize.
+        self.preferredContentSize = preferredContentSize
+        
+        // Configure the PreviewView.
+        pipView.translatesAutoresizingMaskIntoConstraints = false
+        pipView.frame = self.view.frame
+        self.view.addSubview(pipView)
+        pipView.anchors(
+            top: view.topAnchor,
+            leading: view.leadingAnchor,
+            bottom: view.bottomAnchor,
+            trailing: view.trailingAnchor
+        )
+    }
+    
 }

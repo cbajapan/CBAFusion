@@ -8,7 +8,7 @@
 import Foundation
 import PushKit
 import CallKit
-import UIKit
+@preconcurrency import UIKit
 import FCSDKiOS
 import Logging
 import AVKit
@@ -29,11 +29,14 @@ extension AppDelegate {
     }
 }
 
-class AppDelegate: UIResponder, UIApplicationDelegate, ObservableObject {
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    
     let pushRegistry = PKPushRegistry(queue: .main)
     var providerDelegate: ProviderDelegate?
     let window = UIWindow(frame: UIScreen.main.bounds)
     var logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - App Delegate - ")
+    
+    
     // MARK: - UIApplicationDelegate
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -65,29 +68,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, ObservableObject {
         return true
     }
     
-    func getNotificationSettings() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            UNUserNotificationCenter.current().delegate = self
-            guard settings.authorizationStatus == .authorized else { return }
-            Task {
-                await MainActor.run {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            }
-        }
+    @MainActor
+    func getNotificationSettings() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        UNUserNotificationCenter.current().delegate = self
+        guard settings.authorizationStatus == .authorized else { return }
+        UIApplication.shared.registerForRemoteNotifications()
     }
     
     func registerForPushNotifications() {
-        UNUserNotificationCenter.current()
-            .requestAuthorization(options: [.alert, .sound, .badge]) {
-                [weak self] granted, error in
-                guard let _ = self else {return}
-                guard granted else { return }
-                self?.getNotificationSettings()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            if try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+                await getNotificationSettings()
             }
+        }
     }
 }
-//
+
 //// MARK:- UNUserNotificationCenterDelegate
 extension AppDelegate : UNUserNotificationCenterDelegate {
     

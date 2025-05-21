@@ -7,58 +7,78 @@
 
 import SwiftUI
 
+/// A view for adding or editing a contact.
 struct AddContact: View {
     
+    // Environment objects to access shared data and presentation mode
     @EnvironmentObject var contactService: ContactService
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
-        NavigationView  {
+        NavigationView {
             Form {
-                Section(header: Text(self.contactService.isEdit ? "Edit Contact" : "Add Contact")) {
-                    VStack(alignment: .leading) {
-                        Text("Contact")
-                            .bold()
-                        TextField("Enter Contact name...", text: $contactService.username)
-                        Divider()
-                        Text("Phone Number")
-                            .bold()
-                        TextField("Enter Phone Number...", text: $contactService.number)
-                    }
-                }
-                Button(action: {
-                    Task {
-                        if self.contactService.isEdit {
-                            await self.contactService.addContact(self.contactService.contactToEdit, isEdit: true)
-                        } else {
-                            await self.contactService.addContact(nil, isEdit: false)
-                        }
-                        await self.contactService.clearToDismiss()
-                        if self.contactService.isEdit {
-                            self.contactService.isEdit = false
-                        }
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                }, label: {
-                    Text("Save")
-                })
+                // Section for contact details
+                contactDetailsSection
+                
+                // Save button to add or edit a contact
+                saveButton
             }
-            .alert(isPresented: self.$contactService.alert, content: {
+            .alert(isPresented: $contactService.alert) {
                 Alert(
                     title: Text("Please fill in the Contact information"),
-                    message: Text(""),
-                    dismissButton: .cancel(Text("Okay"), action: {
-                    })
+                    dismissButton: .cancel(Text("Okay"))
                 )
-            })
-            .navigationBarTitle(self.contactService.isEdit ? "Edit Contact" : "Add Contact")
+            }
+            .navigationBarTitle(contactService.isEdit ? "Edit Contact" : "Add Contact")
+        }
+    }
+    
+    /// A section for entering contact details.
+    private var contactDetailsSection: some View {
+        Section(header: Text(contactService.isEdit ? "Edit Contact" : "Add Contact")) {
+            VStack(alignment: .leading) {
+                Text("Contact")
+                    .bold()
+                TextField("Enter Contact name...", text: $contactService.username)
+                
+                Divider()
+                
+                Text("Phone Number")
+                    .bold()
+                TextField("Enter Phone Number...", text: $contactService.number)
+            }
+        }
+    }
+    
+    /// A button to save the contact information.
+    private var saveButton: some View {
+        Button(action: {
+            Task {
+                // Add or edit the contact based on the current mode
+                if contactService.isEdit {
+                    await contactService.addContact(contactService.contactToEdit, isEdit: true)
+                } else {
+                    await contactService.addContact(nil, isEdit: false)
+                }
+                
+                // Clear the contact service and dismiss the view
+                await contactService.clearToDismiss()
+                if contactService.isEdit {
+                    contactService.isEdit = false
+                }
+                presentationMode.wrappedValue.dismiss()
+            }
+        }) {
+            Text("Save")
         }
     }
 }
 
+// MARK: - Preview
 
 struct AddContact_Previews: PreviewProvider {
     static var previews: some View {
         AddContact()
+            .environmentObject(ContactService()) // Provide a mock ContactService for previews
     }
 }

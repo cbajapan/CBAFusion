@@ -7,58 +7,94 @@
 
 import SwiftUI
 
+/// A view that displays a welcome screen with animations for the title, logo, and captions.
 struct Welcome: View {
     
     @Binding var animateCommunication: Bool
     @Binding var animateAED: Bool
-    @State private var animateTitle: Bool = false
-    @State private var animateCaption: Bool = false
-    @State private var animateTask: Bool = false
-    @State private var rotation = 0.0
+    
+    // State variables for managing animations
+    @State private var isAnimating = false
+    @State private var rotation: Double = 0.0
+    
     var body: some View {
         VStack {
             Spacer()
-            if self.animateTitle {
-                VStack {
-                    Text("CBAFusion")
-                        .font(.system(size: 30))
-                        .fontWeight(.bold)
-                    
-                }
-                .animation(.easeInOut(duration: 20), value: 1)
-                .transition(.slide)
-            }
-                    Image("cbaLogo")
-                    .rotation3DEffect(.degrees(rotation), axis: (x: 0, y:1, z:0))
             
-            if self.animateCaption {
-                Text("Powered by Communication Business Avenue inc.")
-                    .font(.system(size: 12))
-                    .animation(.interactiveSpring(), value: 1)
-            }
+            // Title with animation
+            titleView
+            
+            // Logo with 3D rotation effect
+            logoView
+            
+            // Caption with animation
+            captionView
+            
             Spacer()
-            if self.animateTask {
-                Text(self.animateCommunication ? "Please Login to start communicating" : "Please Login to start Application Event Distribution")
-                    .multilineTextAlignment(.center)
-                    .animation(.easeInOut(duration: 3), value: 1)
-                    .transition(.slide)
-            }
+            
+            // Task prompt with animation
+            taskPromptView
+            
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            withAnimation(.easeInOut(duration: 2)) {
-                self.animateTitle = true
+            startAnimations()
+        }
+    }
+    
+    /// View for the title with animation.
+    private var titleView: some View {
+        Group {
+            if isAnimating {
+                Text("CBAFusion")
+                    .font(.system(size: 30))
+                    .fontWeight(.bold)
+                    .transition(.slide)
+                    .animation(.easeInOut(duration: 2), value: isAnimating)
             }
-            withAnimation(.easeInOut(duration: 13)) {
-                self.animateCaption = true
+        }
+    }
+    
+    /// View for the logo with a 3D rotation effect.
+    private var logoView: some View {
+        Image("cbaLogo")
+            .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
+            .animation(.interpolatingSpring(stiffness: 5, damping: 1), value: rotation)
+    }
+    
+    /// View for the caption with animation.
+    private var captionView: some View {
+        Group {
+            if isAnimating {
+                Text("Powered by Communication Business Avenue inc.")
+                    .font(.system(size: 12))
+                    .animation(.interactiveSpring(), value: isAnimating)
             }
-            withAnimation(.easeInOut(duration: 3)) {
-                self.animateTask = true
+        }
+    }
+    
+    /// View for the task prompt with animation.
+    private var taskPromptView: some View {
+        Group {
+            if isAnimating {
+                Text(animateCommunication ? "Please Login to start communicating" : "Please Login to start Application Event Distribution")
+                    .multilineTextAlignment(.center)
+                    .animation(.easeInOut(duration: 3), value: isAnimating)
+                    .transition(.slide)
             }
-            withAnimation(.interpolatingSpring(stiffness: 5, damping: 1)) {
-                self.rotation += 360
-            }
+        }
+    }
+    
+    /// Starts the animations when the view appears.
+    private func startAnimations() {
+        withAnimation(.easeInOut(duration: 2)) {
+            isAnimating = true
+        }
+        
+        // Rotate the logo continuously
+        withAnimation(.interpolatingSpring(stiffness: 5, damping: 1)) {
+            rotation += 360
         }
     }
 }

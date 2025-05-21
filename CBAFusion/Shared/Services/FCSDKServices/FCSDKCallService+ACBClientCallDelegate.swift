@@ -10,99 +10,146 @@ import FCSDKiOS
 import AVFoundation
 import UIKit
 
+// Extension to handle call events and manage call state
 extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
     
+    // Called when the remote display name changes
+    func didChangeRemoteDisplayName(_ name: String, with call: FCSDKiOS.ACBClientCall) async {
+        // Handle remote display name change if needed
+    }
     
+    // Called when a media change request is received
+    func willReceiveMediaChangeRequest(_ call: FCSDKiOS.ACBClientCall) async {
+        // Handle media change request if needed
+    }
+    
+    // Called when a provisional response status is received
+    func responseStatus(didReceive responseStatus: FCSDKiOS.ACBClientCallProvisionalResponse, withReason reason: String, call: FCSDKiOS.ACBClientCall) async {
+        // Handle response status if needed
+    }
+    
+    // Ends the call and cleans up resources
     @MainActor private func endCall() async {
         if !endPressed {
             self.hasEnded = true
         }
+        
         if #available(iOS 15.0, *), isBuffer {
             await self.fcsdkCall?.call?.removeBufferView()
             await self.fcsdkCall?.call?.removeLocalBufferView()
             
             RemoteViews.shared.views.removeAll()
             fcsdkCall?.communicationView?.previewView = nil
-            
-        } else {
-            // Fallback on earlier versions
         }
+        
         self.endPressed = false
     }
     
+    // Sets up buffer views for local and remote video
     @MainActor
     func setupBufferViews(call: ACBClientCall) async {
-        let localVideoScale = UserDefaults.standard.string(forKey: "LocalScale")
-        let remoteVideoScale = UserDefaults.standard.string(forKey: "RemoteScale")
+        let localVideoScale = UserDefaults.standard.string(forKey: "LocalScale") ?? "Horizontal"
+        let remoteVideoScale = UserDefaults.standard.string(forKey: "RemoteScale") ?? "Horizontal"
         let scaleWithOrientation = UserDefaults.standard.bool(forKey: "ScaleWithOrientation")
         
+        // Setup remote video view
         if let remoteView = await call.remoteBufferView(
-            scaleMode: VideoScaleMode(string: remoteVideoScale) ?? .horizontal,
+            scaleMode: .init(string: remoteVideoScale) ?? .vertical,
             shouldScaleWithOrientation: scaleWithOrientation
         ) {
             RemoteViews.shared.views.append(RemoteVideoViewModel(remoteVideoView: remoteView))
         }
+        // Setup local video view if not already set
         if fcsdkCall?.communicationView?.previewView == nil {
-            let c = VideoScaleMode(string: localVideoScale)
             fcsdkCall?.communicationView?.previewView = await call.localBufferView(
-                scaleMode: VideoScaleMode(string: localVideoScale) ?? .horizontal,
+                scaleMode: VideoScaleMode(string: localVideoScale) ?? .vertical,
                 shouldScaleWithOrientation: scaleWithOrientation
             )
+            
             if #available(iOS 16, *), fcsdkCall?.communicationView?.captureSession == nil {
                 let session = await call.captureSession()
                 fcsdkCall?.communicationView?.captureSession = session
             }
-            
+          
             if #available(iOS 15, *) {
                 await fcsdkCall?.call?.feedBackgroundImage(backgroundImage, mode: virtualBackgroundMode)
             }
+            
             fcsdkCall?.communicationView?.setupUI()
             fcsdkCall?.communicationView?.updateAnchors(UIDevice.current.orientation)
             fcsdkCall?.communicationView?.gestures()
         }
     }
     
+    // Notifies that the call is active
     @MainActor
     func notifyInCall() async {
         await self.inCall()
         isStreaming = true
     }
     
+    
+    func sleep() async {
+        do {
+            if #available(iOS 16.0, *) {
+                try await Task.sleep(until: .now + .seconds(1), clock: .suspending)
+            } else {
+                try await Task.sleep(nanoseconds: NSEC_PER_SEC * 1_000_000)
+            }
+        } catch {
+            print("Sleep Error", error)
+        }
+    }
+    
+    // Handles changes in call status
     func didChange(_ status: ACBClientCallStatus, call: ACBClientCall) async {
-        fcsdkCall?.call = call
         Task { @MainActor [weak self] in
             guard let self else { return }
+            fcsdkCall?.call = call
             self.callStatus = status.rawValue
         }
+        
         switch status {
         case .setup:
             break
         case .preparingBufferViews:
-            //Just wait a second if we are answering from callkit for the view
-            if #available(iOS 16.0, *) {
-                try? await Task.sleep(until: .now + .seconds(1), clock: .suspending)
-            } else {
-                try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
-            }
-            if isBuffer {
-                await setupBufferViews(call: call)
-            }
+            await Task.detached { [weak self] in
+                guard let self else { return }
+                // Wait for a second if answering from CallKit
+#if swift(>=6.0)
+                if #available(iOS 18.0, *) {
+                    await sleep()
+                }
+#endif
+                if await isBuffer {
+                    await setupBufferViews(call: call)
+                }
+             }.value
         case .alerting:
-            await self.alerting()
+            _ = await Task.detached { [weak self] in
+                guard let self else { return }
+                await self.alerting()
+            }.value
         case .ringing:
-            await ringing()
+            _ = await Task.detached { [weak self] in
+                guard let self else { return }
+                await ringing()
+            }.value
         case .mediaPending:
             break
         case .inCall:
-            await notifyInCall()
+            _ = await Task.detached { [weak self] in
+                guard let self else { return }
+                await notifyInCall()
+            }.value
         case .timedOut:
             await setErrorMessage(message: "Call timed out")
         case .busy:
-            await setErrorMessage(message: "User is Busy")
+            await setErrorMessage(message: "User is busy")
         case .notFound:
             await setErrorMessage(message: "Could not find user")
         case .error:
-            await setErrorMessage(message: "Unkown Error")
+            await setErrorMessage(message: "Unknown error")
         case .ended:
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -113,11 +160,13 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         }
     }
     
+    // Marks the call as alerting
     @MainActor
     func alerting() async {
         self.hasStartedConnecting = true
     }
     
+    // Marks the call as in progress
     @MainActor
     func inCall() async {
         self.isRinging = false
@@ -125,6 +174,7 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         self.connectDate = Date()
     }
     
+    // Marks the call as ringing
     @MainActor
     func ringing() async {
         self.hasStartedConnecting = false
@@ -132,25 +182,22 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         self.isRinging = true
     }
     
+    // Sets an error message
     @MainActor
     func setErrorMessage(message: String) async {
         self.sendErrorMessage = true
         self.errorMessage = message
     }
     
+    // Handles session interruption
     func didReceiveSessionInterruption(_ message: String, call: ACBClientCall) async {
-        if message == "Session interrupted" {
-            if  self.fcsdkCall?.call != nil {
-                if self.fcsdkCall?.call?.status == .inCall {
-                    if !self.isOnHold {
-                        await call.hold()
-                        self.isOnHold = true
-                    }
-                }
-            }
+        if message == "Session interrupted", let call = self.fcsdkCall?.call, call.status == .inCall, !self.isOnHold {
+            await call.hold()
+            self.isOnHold = true
         }
     }
     
+    // Handles call failure
     func didReceiveCallFailure(with error: Error, call: ACBClientCall) async {
         await MainActor.run {
             self.sendErrorMessage = true
@@ -158,7 +205,7 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         }
     }
     
-    
+    // Handles dial failure
     func didReceiveDialFailure(with error: Error, call: ACBClientCall) async {
         await MainActor.run {
             self.sendErrorMessage = true
@@ -166,6 +213,7 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         }
     }
     
+    // Handles call recording permission failure
     func didReceiveCallRecordingPermissionFailure(_ message: String, call: ACBClientCall?) async {
         await MainActor.run {
             self.sendErrorMessage = true
@@ -173,10 +221,12 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         }
     }
     
+    // Handles received SSRCs for audio and video
     func didReceiveSSRCs(for audioSSRCs: [String], andVideo videoSSRCs: [String], call: ACBClientCall) async {
         self.logger.info("Received SSRC information for\n AUDIO \(audioSSRCs)\n VIDEO \(videoSSRCs)")
     }
     
+    // Reports inbound quality change
     func didReportInboundQualityChange(_ inboundQuality: Int, with call: ACBClientCall) async {
         self.logger.info("Call Quality: \(inboundQuality)")
         Task { @MainActor [weak self] in
@@ -185,34 +235,39 @@ extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
         }
     }
     
+    // Handles media change request
     func didReceiveMediaChangeRequest(_ call: ACBClientCall) async {
         let audio = call.hasRemoteAudio
         let video = call.hasRemoteVideo
         self.logger.info("HAS AUDIO \(audio)")
         self.logger.info("HAS VIDEO \(video)")
     }
+    
+    // Called when a remote media stream is added
     func didAddRemoteMediaStream(_ call: ACBClientCall) async {
         print("\(#function)")
     }
     
+    // Called when a local media stream is added
     func didAddLocalMediaStream(_ call: ACBClientCall) async {
         print("\(#function)")
     }
 }
 
-
+// Extension to initialize VideoScaleMode from a string
 extension VideoScaleMode {
     init?(string: String?) {
-        if string == "Vertical" {
+        switch string {
+        case "Vertical":
             self.init(rawValue: 0)
-        } else if string == "Horizontal" {
+        case "Horizontal":
             self.init(rawValue: 1)
-        } else if string == "Fill" {
+        case "Fill":
             self.init(rawValue: 2)
-        } else if string == "None" {
+        case "None":
             self.init(rawValue: 3)
-        } else {
-            self.init(rawValue: 0)
+        default:
+            self.init(rawValue: 0) // Default to Horizontal
         }
     }
 }
