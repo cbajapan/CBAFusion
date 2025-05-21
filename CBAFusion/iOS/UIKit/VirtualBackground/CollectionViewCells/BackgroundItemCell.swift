@@ -7,39 +7,55 @@
 
 import UIKit
 
+/// A custom UICollectionViewCell that displays a poster image.
 class BackgroundItemCell: UICollectionViewCell {
     
-    static let reuseIdentifer = "background-item-cell-reuse-identifier"
+    // Reuse identifier for the cell
+    static let reuseIdentifier = "background-item-cell-reuse-identifier"
+    
+    // UIImageView to display the poster image
     let posterImage: UIImageView = {
-        let pstImg = UIImageView()
-        pstImg.layer.backgroundColor = UIColor(red: 10/255, green: 18/255, blue: 20/255, alpha: 1).cgColor
-        pstImg.contentMode = .scaleAspectFill
-        pstImg.layer.cornerRadius = 10
-        pstImg.clipsToBounds = true
-        return pstImg
+        let imageView = UIImageView()
+        imageView.layer.backgroundColor = UIColor(red: 10/255, green: 18/255, blue: 20/255, alpha: 1).cgColor
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 10
+        imageView.clipsToBounds = true
+        return imageView
     }()
     
+    // Initializer for the cell
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configure()
+        configure() // Configure the cell's subviews
     }
     
+    // Required initializer for decoding from storyboard or xib
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    fileprivate var indentContraint: NSLayoutConstraint! = nil
-    fileprivate let inset = CGFloat(10)
+    
+    // Constraint for indentation (if needed in the future)
+    fileprivate var indentConstraint: NSLayoutConstraint! = nil
+    fileprivate let inset: CGFloat = 10 // Padding for the cell
 }
 
+// MARK: - Configuration
 extension BackgroundItemCell {
+    
+    /// Configures the cell's subviews and layout constraints.
     func configure() {
-        addSubview(posterImage)
-        posterImage.anchors(
-            top: topAnchor,
-            leading: leadingAnchor,
-            bottom: bottomAnchor,
-            trailing: trailingAnchor,
-            bottomPadding: 20
-        )
+        addSubview(posterImage) // Add the poster image view to the cell
+        setupConstraints() // Set up constraints for the poster image
+    }
+    
+    /// Sets up the layout constraints for the poster image view.
+    private func setupConstraints() {
+        posterImage.translatesAutoresizingMaskIntoConstraints = false // Enable Auto Layout
+        NSLayoutConstraint.activate([
+            posterImage.topAnchor.constraint(equalTo: topAnchor),
+            posterImage.leadingAnchor.constraint(equalTo: leadingAnchor),
+            posterImage.trailingAnchor.constraint(equalTo: trailingAnchor),
+            posterImage.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20) // Adjust bottom padding
+        ])
     }
 }

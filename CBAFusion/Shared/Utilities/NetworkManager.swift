@@ -10,10 +10,10 @@ import Combine
 import UIKit
 import OSLog
 
-class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
+final class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
     
     
-    enum NetworkErrors: Swift.Error {
+    enum NetworkErrors: Swift.Error, Sendable {
         case requestFailed(String)
         case responseUnsuccessful(String)
         case jsonConversionFailure(String)

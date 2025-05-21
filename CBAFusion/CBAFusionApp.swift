@@ -13,7 +13,6 @@ import Intents
 import Logging
 
 
-
 @main
 struct CBAFusionApp {
     static func main() {
@@ -29,40 +28,50 @@ struct CBAFusionApp {
     }
 }
 
+/// The main application struct for the CBAFusion app.
 @available(iOS 14.0, *)
 struct CBAFusion: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @Environment(\.scenePhase) var scenePhase
+    
+    // State objects for managing application state and services
     @StateObject private var authenticationService = AuthenticationService()
-    @StateObject private var fcsdkCallService = FCSDKCallService.shared
-    @StateObject private var monitor = NetworkMonitor(type: .all)
-    @StateObject private var callKitManager = CallKitManager.shared
+    @ObservedObject private var fcsdkCallService = FCSDKCallService.shared
+    @ObservedObject private var callKitManager = CallKitManager.shared
     @StateObject private var contactService = ContactService()
     @StateObject private var aedService = AEDService()
     @StateObject private var backgroundObserver = BackgroundObserver()
-    @StateObject private var pipStateObject = PipStateObject.shared
+    @ObservedObject private var pipStateObject = PipStateObject.shared
+    @MainActor @StateObject private var pathState = NWPathState()
     
-    @State var providerDelegate: ProviderDelegate?
-    @State var callIntent = false
+    @State private var providerDelegate: ProviderDelegate?
+    @State private var callIntent = false
+    
+    // AppStorage properties for persistent user settings
     @AppStorage("Server") var servername = ""
     @AppStorage("Username") var username = ""
+    
+    // Logger for tracking application events
     var logger: Logger
     
+    /// Initializes the CBAFusion app and sets up the logger.
     init() {
         self.logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Main App - ")
     }
     
+    /// Requests microphone and camera permissions based on app settings.
+    /// - Returns: An asynchronous task that requests permissions.
     func requestMicrophoneAndCameraPermissionFromAppSettings() async {
-        let requestMic = AppSettings.perferredAudioDirection() == .sendOnly || AppSettings.perferredAudioDirection() == .sendAndReceive
-        let requestCam = AppSettings.perferredVideoDirection() == .sendOnly || AppSettings.perferredVideoDirection() == .sendAndReceive
+        let requestMic = AppSettings.perferredAudioDirection() != .receiveOnly
+        let requestCam = AppSettings.perferredVideoDirection() != .receiveOnly
         await ACBClientPhone.requestMicrophoneAndCameraPermission(requestMic, video: requestCam)
     }
     
+    /// The main body of the app, defining the app's scenes and views.
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(monitor)
                 .environmentObject(authenticationService)
                 .environmentObject(callKitManager)
                 .environmentObject(fcsdkCallService)
@@ -70,84 +79,112 @@ struct CBAFusion: App {
                 .environmentObject(aedService)
                 .environmentObject(backgroundObserver)
                 .environmentObject(pipStateObject)
-                .onAppear {
-                    fcsdkCallService.delegate = authenticationService
-                    fcsdkCallService.appDelegate = delegate
-                    fcsdkCallService.contactService = contactService
-                    delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
-                    if (UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) == nil), (UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) == nil) {
-                        AppSettings.registerDefaults(.sendAndReceive, audio: .sendAndReceive)
-                    }
-                }
-                .onContinueUserActivity(String(describing: INStartCallIntent.self)) { activity in
-                    
-                    callIntent = true
-                    guard let handle = activity.startCallHandle else {
-                        self.logger.error("Could not determine start call handle from user activity: \(activity)")
-                        return
-                    }
-                    Task {
-                        self.fcsdkCallService.destination = handle
-                        self.fcsdkCallService.isOutgoing = true
-                        self.fcsdkCallService.hasVideo = true
-                        await reAuthFlowWithCallIntent()
-                    }
-                }
-                .valueChanged(value: scenePhase) { phase in
-                    switch phase {
-                    case .active:
-                        Task { @MainActor in
-                            await self.requestMicrophoneAndCameraPermissionFromAppSettings()
-                            if self.authenticationService.uc?.connection == false {
-                                self.authenticationService.sessionExists = false
-                            }
-                            
-                            if !callIntent {
-                                if self.authenticationService.uc == nil && !self.authenticationService.sessionID.isEmpty,
-                                   servername != "" && username != "" {
-                                    await reAuthFlow()
-                                }
-                                if self.authenticationService.uc?.connection != nil {
-                                    self.authenticationService.sessionExists = true
-                                }
-                            }
-                            self.logger.info("DO WE HAVE A SESSION? \(self.authenticationService.sessionExists)")
-                            
-                        }
-                    case .background:
-                        break
-                    case .inactive:
-                        self.logger.info("ScenePhase: inactive")
-                    @unknown default:
-                        self.logger.info("ScenePhase: unexpected state")
-                    }
-                }
+                .environmentObject(pathState)
+                .onAppear(perform: setup)
+                .onContinueUserActivity(String(describing: INStartCallIntent.self), perform: handleCallIntent)
+                .onChange(of: scenePhase, perform: handleScenePhaseChange)
         }
     }
-    func reAuthFlow() async {
-        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
-        await self.fcsdkCallService.setPhoneDelegate()
+    let monitor = NetworkMonitor()
+    /// Sets up the initial state of the app when it appears.
+    private func setup() {
+        monitor.startMonitor(type: .all, pathState: self.pathState)
+        // Configure services and defaults
+        fcsdkCallService.delegate = authenticationService
+        fcsdkCallService.appDelegate = delegate
+        fcsdkCallService.contactService = contactService
+        
+        delegate.providerDelegate = ProviderDelegate(callKitManager: callKitManager, authenticationService: authenticationService, fcsdkCallService: fcsdkCallService)
+        
+        // Register default audio and video settings if not already set
+        if UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) == nil,
+           UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) == nil {
+            AppSettings.registerDefaults(.sendAndReceive, audio: .sendAndReceive)
+        }
     }
     
+    /// Handles the incoming call intent from user activity.
+    /// - Parameter activity: The user activity containing call information.
+    private func handleCallIntent(activity: NSUserActivity) {
+        callIntent = true
+        guard let handle = activity.startCallHandle else {
+            logger.error("Could not determine start call handle from user activity: \(activity)")
+            return
+        }
+        
+        Task {
+            fcsdkCallService.destination = handle
+            fcsdkCallService.isOutgoing = true
+            fcsdkCallService.hasVideo = true
+            await reAuthFlowWithCallIntent()
+        }
+    }
+    
+    /// Handles changes in the app's scene phase.
+    /// - Parameter phase: The current scene phase.
+    private func handleScenePhaseChange(phase: ScenePhase) {
+        switch phase {
+        case .active:
+            Task { @MainActor in
+                await requestMicrophoneAndCameraPermissionFromAppSettings()
+                if authenticationService.uc?.connection == false {
+                    authenticationService.sessionExists = false
+                }
+                
+                if !callIntent {
+                    if authenticationService.uc == nil && !authenticationService.sessionID.isEmpty,
+                       !servername.isEmpty && !username.isEmpty {
+                        await reAuthFlow()
+                    }
+                    if authenticationService.uc?.connection != nil {
+                        authenticationService.sessionExists = true
+                    }
+                }
+                logger.info("DO WE HAVE A SESSION? \(authenticationService.sessionExists)")
+            }
+        case .background:
+            logger.info("ScenePhase: background")
+        case .inactive:
+            logger.info("ScenePhase: inactive")
+        @unknown default:
+            logger.info("ScenePhase: unexpected state")
+        }
+    }
+    
+    /// Re-authenticates the user and sets the phone delegate.
+    /// - Returns: An asynchronous task that performs the re-authentication.
+    func reAuthFlow() async {
+        await authenticationService.loginUser(networkStatus: true)
+        await fcsdkCallService.setPhoneDelegate()
+    }
+    
+    /// Re-authenticates the user when a call intent is received.
+    /// - Returns: An asynchronous task that performs the re-authentication and presents the communication sheet.
     func reAuthFlowWithCallIntent() async {
         await reAuthFlow()
-        repeat {
-            Task {
-                if self.authenticationService.uc?.connection != false {
-                    await fcsdkCallService.presentCommunicationSheet()
-                    callIntent = false
-                }
+        var attempts = 0
+        let maxAttempts = 5
+        
+        while attempts < maxAttempts {
+            if authenticationService.uc?.connection != false {
+                await fcsdkCallService.presentCommunicationSheet()
+                callIntent = false
+                break
             }
-        } while (self.authenticationService.uc?.connection == false)  
+            attempts += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait for 1 second before retrying
+        }
     }
 }
+
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
     private var authenticationService = AuthenticationService()
     private var fcsdkCallService = FCSDKCallService.shared
-    private var monitor = NetworkMonitor(type: .all)
+    private let monitor = NetworkMonitor()
+    private let pathState = NWPathState()
     private var callKitManager = CallKitManager.shared
     private var contactService = ContactService()
     private var aedService = AEDService()
@@ -159,7 +196,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Add another view with content Text("From iOS 13") to test both block runs
         let contentView = ContentView()
-            .environmentObject(monitor)
             .environmentObject(authenticationService)
             .environmentObject(callKitManager)
             .environmentObject(fcsdkCallService)
@@ -167,7 +203,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .environmentObject(aedService)
             .environmentObject(backgroundObserver)
             .environmentObject(pipStateObject)
+            .environmentObject(pathState)
             .onAppear {
+                self.monitor.startMonitor(type: .all, pathState: self.pathState)
                 self.fcsdkCallService.delegate = self.authenticationService
                 self.fcsdkCallService.contactService = self.contactService
                 self.providerDelegate = ProviderDelegate(callKitManager: self.callKitManager, authenticationService: self.authenticationService, fcsdkCallService: self.fcsdkCallService)
@@ -195,7 +233,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func reAuthFlow() async {
-        await self.authenticationService.loginUser(networkStatus: monitor.networkStatus())
+        await self.authenticationService.loginUser(networkStatus: pathState.pathStatus == .satisfied ? true : false)
         await self.fcsdkCallService.setPhoneDelegate()
     }
     

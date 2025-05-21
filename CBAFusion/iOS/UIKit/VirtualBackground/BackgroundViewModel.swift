@@ -10,27 +10,57 @@ import Metal
 import MetalKit
 import MetalPerformanceShaders
 
+
+/// A view model representing a background image with its title and images.
+///
+/// The `BackgroundsViewModel` struct encapsulates the properties of a background image,
+/// including a unique identifier, a title, the full-size image, and a thumbnail image.
+/// It conforms to the `Hashable` protocol to allow instances to be compared and used in collections.
 struct BackgroundsViewModel: Hashable {
-    var id = UUID()
+    /// A unique identifier for the background view model.
+    let id = UUID()
+    
+    /// The title of the background image.
     var title: String
+    
+    /// The full-size background image.
     var image: UIImage
+    
+    /// The thumbnail version of the background image.
     var thumbnail: UIImage
     
+    /// Initializes a new instance of `BackgroundsViewModel` using an `ImageModel`.
+    ///
+    /// - Parameter imageModel: An instance of `ImageModel` containing the image data.
     init(imageModel: ImageModel) {
         self.title = imageModel.title
         self.image = imageModel.image
         self.thumbnail = imageModel.thumbnail
     }
     
+    // MARK: - Hashable Conformance
     
-    static func == (lhs: BackgroundsViewModel, rhs: BackgroundsViewModel) -> Bool {
+    /// Compares two `BackgroundsViewModel` instances for equality.
+    ///
+    /// - Parameters:
+    ///   - lhs: The left-hand side instance.
+    ///   - rhs: The right-hand side instance.
+    /// - Returns: A Boolean value indicating whether the two instances are equal.
+    nonisolated static func == (lhs: BackgroundsViewModel, rhs: BackgroundsViewModel) -> Bool {
         return lhs.id == rhs.id
     }
     
-    func hash(into hasher: inout Hasher) {
+    /// Hashes the essential components of the background view model into the provided hasher.
+    ///
+    /// - Parameter hasher: The hasher to use for combining the hash values.
+    nonisolated func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
     
+    /// Searches the title for a given filter string.
+    ///
+    /// - Parameter filter: An optional string to filter the title.
+    /// - Returns: A Boolean value indicating whether the title contains the filter text.
     func search(_ filter: String?) -> Bool {
         guard let filterText = filter else { return true }
         if filterText.isEmpty { return true }
@@ -39,46 +69,77 @@ struct BackgroundsViewModel: Hashable {
     }
 }
 
-struct DisplayImageObject: Equatable {
+/// A structure representing a display image object with two images.
+///
+/// The `DisplayImageObject` struct is used to hold two optional images for display purposes.
+struct DisplayImageObject: Equatable, Sendable {
+    /// A unique identifier for the display image object.
     let id = UUID()
+    
+    /// The first image.
     var image1: UIImage?
+    
+    /// The second image.
     var image2: UIImage?
 }
 
+/// A class that observes and manages background images in a SwiftUI environment.
+///
+/// The `BackgroundObserver` class conforms to `ObservableObject` and provides
+/// published properties for managing the display image and a collection of background view models.
 @MainActor
 final class BackgroundObserver: ObservableObject {
+    /// The currently displayed image object.
     @Published var displayImage: DisplayImageObject?
+    
+    /// An array of background view models.
     @Published var backgroundsViewModel: [BackgroundsViewModel] = []
     
+    /// Searches for images that match a given query asynchronously.
+    ///
+    /// - Parameter query: An optional search query string.
+    /// - Returns: An array of `BackgroundsViewModel` instances that match the query.
     func searchImages(with query: String?) async -> [BackgroundsViewModel] {
-        return backgroundsViewModel.filter ({ $0.search(query) })
+        return backgroundsViewModel.filter { $0.search(query) }
     }
 }
 
+/// A class responsible for processing images and managing background images.
+///
+/// The `ImageProcessor` class handles loading, resizing, and managing images
+/// for the `BackgroundObserver`.
 @MainActor
 internal final class ImageProcessor {
+    /// The background observer instance that this processor will manage.
     let backgroundObserver: BackgroundObserver
     
     deinit {
         print("RECLAIMED MEMORY IN IMAGE PROCESSOR")
     }
     
+    /// Initializes a new instance of `ImageProcessor`.
+    ///
+    /// - Parameter backgroundObserver: An instance of `BackgroundObserver` to manage.
     init(backgroundObserver: BackgroundObserver) {
         self.backgroundObserver = backgroundObserver
     }
     
+    /// Loads images asynchronously and adds them to the background observer.
     func loadImages() async {
-        async let image1 = self.addImage("bedroom1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image2 = self.addImage("bedroom2", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image3 = self.addImage("dining_room11", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image4 = self.addImage("entrance1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image5 = self.addImage("garden", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image6 = self.addImage("guest_room1", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image7 = self.addImage("guest_room8", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image8 = self.addImage("lounge", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image9 = self.addImage("porch", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image10 = self.addImage("remove", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
-        async let image11 = self.addImage("blur", size: CGSize(width: 1280, height: 720), thumbnail: CGSize(width: 300, height: 225))
+        let screenSize = UIScreen.main.bounds.size
+        async let image1 = self.addImage("bedroom1", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image2 = self.addImage("bedroom2", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image3 = self.addImage("dining_room11", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image4 = self.addImage("entrance1", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image5 = self.addImage("garden", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image6 = self.addImage("guest_room1", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image7 = self.addImage("guest_room8", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image8 = self.addImage("lounge", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image9 = self.addImage("porch", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image10 = self.addImage("remove", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        async let image11 = self.addImage("blur", size: screenSize, thumbnail: CGSize(width: 300, height: 225))
+        
+        // Await all image loading tasks
         _ = await [
             image1,
             image2,
@@ -92,136 +153,73 @@ internal final class ImageProcessor {
             image10,
             image11
         ]
-        await self.setImage(image: image1?.0, thumbnail: image1?.1)
+        
+        // Set the first loaded image and its thumbnail
+        await self.setImage(image: image1?.0, thumbnail: image1?.1, title: image1?.2.title ?? "")
     }
     
+    /// Removes all images from the background observer.
     func removeImages() async {
         backgroundObserver.displayImage = nil
         backgroundObserver.backgroundsViewModel.removeAll()
     }
+    
+    /// Resizes an image to a specified target size while maintaining its aspect ratio.
+    ///
+    /// - Parameters:
+    ///   - image: The original image to resize.
+    ///   - targetSize: The desired size for the resized image.
+    /// - Returns: The resized image, or `nil` if resizing fails.
+    func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage? {
+        // Calculate the scaling factor
+        let widthRatio  = targetSize.width  / image.size.width
+        let heightRatio = targetSize.height / image.size.height
+        
+        // Determine the scale factor to maintain aspect ratio
+        let scaleFactor = min(widthRatio, heightRatio)
+        
+        // Calculate the new size
+        let newSize = CGSize(width: image.size.width * scaleFactor, height: image.size.height * scaleFactor)
+        
+        // Resize the image
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 0.0)
+        image.draw(in: CGRect(origin: .zero, size: newSize))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return resizedImage
+    }
 
-    let metalManager = MetalManager()
-    func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage)? {
-        guard let resizedImage = await metalManager.processImageWithMetal(image: UIImage(named: image)!, newSize: size) else { return nil }
-        guard let thumbnailImage = await metalManager.processImageWithMetal(image: UIImage(named: image)!, newSize: thumbnail) else { return nil }
-            resizedImage.title = image
-            backgroundObserver.backgroundsViewModel.append(
-                BackgroundsViewModel(
-                    imageModel: ImageModel(
-                        title: image,
-                        image: resizedImage,
-                        thumbnail: thumbnailImage
-                    )
-                )
-            )
-            return (resizedImage, thumbnailImage)
+    /// Adds an image and its thumbnail to the background observer asynchronously.
+    ///
+    /// - Parameters:
+    ///   - image: The name of the image to load.
+    ///   - size: The desired size for the full-size image.
+    ///   - thumbnail: The desired size for the thumbnail image.
+    /// - Returns: A tuple containing the resized image and thumbnail, or `nil` if loading fails.
+    func addImage(_ image: String, size: CGSize, thumbnail: CGSize) async -> (UIImage, UIImage, BackgroundsViewModel)? {
+        guard let resizedImage = resizeImage(image: UIImage(named: image)!, targetSize: size) else { return nil }
+        guard let thumbnailImage = resizeImage(image: UIImage(named: image)!, targetSize: thumbnail) else { return nil }
+        
+        // Create and append a new BackgroundsViewModel to the observer
+        let model = BackgroundsViewModel(
+            imageModel: ImageModel(
+                title: image,
+                image: resizedImage,
+                thumbnail: thumbnailImage
+            ))
+        backgroundObserver.backgroundsViewModel.append(model)
+        
+        return (resizedImage, thumbnailImage, model)
     }
     
-    func setImage(image: UIImage?, thumbnail: UIImage?) {
+    /// Sets the display image and thumbnail in the background observer.
+    ///
+    /// - Parameters:
+    ///   - image: The full-size image to display.
+    ///   - thumbnail: The thumbnail image to display.
+    func setImage(image: UIImage?, thumbnail: UIImage?, title: String) {
+        image?.title = title
         backgroundObserver.displayImage = DisplayImageObject(image1: image, image2: thumbnail)
-    }
-}
-
-struct MetalManager: @unchecked Sendable {
-    let device: MTLDevice
-    let commandQueue: MTLCommandQueue
-    let library: MTLLibrary!
-    let textureLoader: MTKTextureLoader
-
-    init() {
-        guard let device = MTLCreateSystemDefaultDevice() else {
-            fatalError("Metal is not supported on this device")
-        }
-        self.device = device
-        library = device.makeDefaultLibrary()
-        self.commandQueue = device.makeCommandQueue()!
-        self.textureLoader = MTKTextureLoader(device: device)
-    }
-
-    func resizeImage(sourceTexture: MTLTexture, newSize: CGSize) async -> MTLTexture? {
-        let filter = MPSImageLanczosScale(device: device)
-        let originalScale = CGFloat(sourceTexture.width) / CGFloat(sourceTexture.height)
-        var newSize = newSize
-        if (newSize.width / newSize.height) > originalScale {
-            newSize.height = newSize.width / originalScale
-        }
-
-        let scaleX = Double(newSize.width) / Double(sourceTexture.width)
-        let scaleY = Double(newSize.height) / Double(sourceTexture.height)
-        let destTextureDescriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: sourceTexture.pixelFormat,
-                                                                             width: Int(newSize.width),
-                                                                             height: Int(newSize.height),
-                                                                             mipmapped: false)
-        destTextureDescriptor.usage = [.shaderRead, .shaderWrite]
-        guard let destTexture = device.makeTexture(descriptor: destTextureDescriptor) else {
-            print("Error creating destination texture")
-            return nil
-        }
-        let translateX = (Double(destTextureDescriptor.width) - Double(sourceTexture.width) * scaleX) / 2
-        let translateY = (Double(destTextureDescriptor.height) - Double(sourceTexture.height) * scaleY) / 2
-
-        let transform = MPSScaleTransform(
-            scaleX: scaleX,
-            scaleY: scaleY,
-            translateX: translateX,
-            translateY: translateY
-        )
-        let transformPointer = UnsafeMutablePointer<MPSScaleTransform>.allocate(capacity: 1)
-        transformPointer.initialize(to: transform)
-        filter.scaleTransform = UnsafePointer(transformPointer)
-        defer {
-            transformPointer.deallocate()
-        }
-        let commandBuffer = commandQueue.makeCommandBuffer()
-        filter.encode(commandBuffer: commandBuffer!, sourceTexture: sourceTexture, destinationTexture: destTexture)
-        commandBuffer?.commit()
-        commandBuffer?.waitUntilCompleted()
-
-        return destTexture
-    }
-
-    func processImageWithMetal(image: UIImage?, newSize: CGSize) async -> UIImage? {
-        
-        guard let sourceImage = image, let cgImage = sourceImage.cgImage else {
-            print("Invalid source image")
-            return nil
-        }
-        do {
-            let texture = try await textureLoader.newTexture(cgImage: cgImage, options: nil)
-            let resizedTexture = await resizeImage(sourceTexture: texture, newSize: newSize)
-            guard let resizedTexture = resizedTexture else {
-                print("Error resizing image")
-                return nil
-            }
-            let imageSize = CGSize(width: resizedTexture.width, height: resizedTexture.height)
-            let hasAlpha = cgImage.alphaInfo != .none || sourceImage.imageOrientation == .upMirrored || sourceImage.imageOrientation == .downMirrored || sourceImage.imageOrientation == .leftMirrored || sourceImage.imageOrientation == .rightMirrored
-            return await imageFromTexture(texture: resizedTexture, imageSize: imageSize, bitsPerPixel: cgImage.bitsPerPixel, hasAlpha: hasAlpha)
-        } catch {
-            print("Error processing image with Metal: \(error.localizedDescription)")
-            return nil
-        }
-    }
-
-    private func imageFromTexture(texture: MTLTexture, imageSize: CGSize, bitsPerPixel: Int, hasAlpha: Bool) async -> UIImage {
-        let region = MTLRegion(origin: MTLOrigin(x: 0, y: 0, z: 0),
-                               size: MTLSize(width: texture.width, height: texture.height, depth: 1))
-        let bytesPerRow = (texture.width * bitsPerPixel) / 8
-        let imageByteCount = bytesPerRow * texture.height
-        var bytes = [UInt8](repeating: 0, count: imageByteCount)
-        
-        texture.getBytes(&bytes, bytesPerRow: bytesPerRow, from: region, mipmapLevel: 0)
-        
-        
-        let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
-        
-        guard let provider = CGDataProvider(data: NSData(bytes: &bytes, length: bytes.count * MemoryLayout<UInt8>.size)) else {
-            fatalError("Error creating CGDataProvider")
-        }
-        
-        if let cgImage = CGImage(width: texture.width, height: texture.height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: bitmapInfo, provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) {
-            return UIImage(cgImage: cgImage)
-        } else {
-            fatalError("Error creating CGImage")
-        }
     }
 }

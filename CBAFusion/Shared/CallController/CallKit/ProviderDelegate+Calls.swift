@@ -1,5 +1,5 @@
 //
-//  callKitController+Call.swift
+//  ProviderDelegate+Extension.swift
 //  CBAFusion
 //
 //  Created by Cole M on 10/4/21.
@@ -59,14 +59,41 @@ extension ProviderDelegate {
         self.logger.info("Answer call action")
         Task {
             await self.fcsdkCallService.answerFCSDKCall()
-            action.fulfill()
             print("Answer Action Fullfilled")
         }
+        action.fulfill()
     }
     
     //Start Call
+    
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         self.logger.info("Start call action")
+        startCall { result in
+            switch result {
+            case .success(let packet):
+                provider.reportCall(with: packet.id, updated: packet.updated)
+            case .failure(let error):
+                self.logger.error("\(error)")
+                action.fail()
+            }
+            return provider
+        } completion: { result in
+            switch result {
+            case .success(_):
+                action.fulfill()
+            case .failure(let error):
+                self.logger.error("\(error)")
+                action.fail()
+            }
+        }
+    }
+    
+    struct ReportCall: Sendable {
+        var id: UUID
+        var updated: CXCallUpdate
+    }
+    
+    func startCall(reportCall: @Sendable @escaping (Result<ReportCall, Error>) -> CXProvider, completion: @Sendable @escaping (Result<Void, Error>) -> Void) {
         Task { [weak self] in
             guard let self else { return }
             var acbCall: ACBClientCall?
@@ -80,7 +107,7 @@ extension ProviderDelegate {
                 await self.fcsdkCallService.startCall(previewView: outgoingFCSDKCall.communicationView?.previewView)
                 acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
-                provider.reportCall(with: outgoingFCSDKCall.id, updated: callUpdate)
+                let provider = reportCall(.success(ReportCall(id: outgoingFCSDKCall.id, updated: callUpdate)))
                 
                 await self.fcsdkCallService.hasStartedConnectingDidChange(provider: provider,
                                                                           id: outgoingFCSDKCall.id,
@@ -90,59 +117,75 @@ extension ProviderDelegate {
                                                                   date: self.fcsdkCallService.connectDate ?? Date())
                 await self.fcsdkCallService.addCall(fcsdkCall: outgoingFCSDKCall)
                 //We need to set the delegate initially because if the user is on another call we need to get notified through the delegate and end the call
-                await self.fcsdkCallService.fcsdkCall?.call?.delegate = self.fcsdkCallService
-                action.fulfill()
+                completion(.success(()))
             } catch {
                 self.logger.error("\(error)")
-                action.fail()
+                completion(.failure(OurErrors.noActiveCalls))
             }
         }
+        
     }
     
     //Hold Call
     //TODO: - We want to keep track of which call we have and set it to an on hold state. Let's make it happen
     func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        Task {
-            print("Action", action)
-            print("Provider", provider)
-        }
+        print("Action", action)
+        print("Provider", provider)
     }
     
     //End Call
     //TODO: - When we end the call we want to check if we have any calls on hold if it is on hold then resume the call. We also want to make sure the correct call is ended while handling multiple calls.
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        Task { [weak self] in
-            guard let self else { return }
-            // if we are on a call end otherwise also end
-            if var call = await self.fcsdkCallService.fcsdkCall {
-                if await fcsdkCallService.hasConnected == false && call.outbound == false {
-                    call.missed = false
-                    call.outbound = false
-                    call.rejected = true
-                }
-                do {
-                    try await self.fcsdkCallService.endFCSDKCall(call)
-                    await fcsdkCallService.stopAudioSession()
-                    action.fulfill()
-                } catch {
-                    self.logger.error("\(error)")
-                    action.fail()
-                }
-            } else {
-                self.logger.info("No Call To End")
+        endCall { result in
+            switch result {
+            case .success:
+                print("Call ended successfully.")
+                action.fulfill()
+            case .failure(let error):
+                print("Error ending call: \(error)")
                 action.fail()
             }
         }
     }
+    
+    func endCall(completion: @Sendable @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                if var call = await self.fcsdkCallService.fcsdkCall {
+                    if await fcsdkCallService.hasConnected == false && call.outbound == false {
+                        call.missed = false
+                        call.outbound = false
+                        call.rejected = true
+                    }
+                    
+                    // Attempt to end the call
+                    try await self.fcsdkCallService.endFCSDKCall(call)
+                    await fcsdkCallService.stopAudioSession()
+                    
+                    // If successful, call the completion handler with success
+                    completion(.success(()))
+                } else {
+                    // If there is no active call, call the completion handler with an error
+                    completion(.failure(OurErrors.noActiveCalls))
+                }
+            } catch {
+                // If an error occurs, call the completion handler with the error
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    
     //DTMF
     func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
+        let digits = action.digits
         Task { [weak self] in
             guard let self else { return }
             self.logger.info("Provider - CXPlayDTMFCallAction")
-            let dtmfDigits:String = action.digits
+            let dtmfDigits:String = digits
             await self.fcsdkCallService.fcsdkCall?.call?.playDTMFCode(dtmfDigits, localPlayback: true)
-            action.fulfill()
         }
+        action.fulfill()
     }
     
     //Provider Began
