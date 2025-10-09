@@ -10,7 +10,8 @@ import Combine
 import UIKit
 import OSLog
 
-final class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
+@MainActor
+final class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     
     
     enum NetworkErrors: Swift.Error, Sendable {
@@ -164,7 +165,7 @@ final class NetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate
     }
     
     
-    func urlSession(
+    nonisolated func urlSession(
         _
         session: URLSession,
         didReceive challenge: URLAuthenticationChallenge,

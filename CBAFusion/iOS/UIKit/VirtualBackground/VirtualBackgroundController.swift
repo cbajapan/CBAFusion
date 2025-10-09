@@ -44,7 +44,6 @@ struct VirtualBackgroundController: UIViewControllerRepresentable {
         /// - Parameter indexPath: The index path of the selected item.
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
             guard let object = parent.compositionCollectionView.dataSource.itemIdentifier(for: indexPath) else { return }
-            object.image.title = object.title
             parent.backgroundObserver.displayImage = DisplayImageObject(image1: object.image, image2: object.thumbnail)
         }
         

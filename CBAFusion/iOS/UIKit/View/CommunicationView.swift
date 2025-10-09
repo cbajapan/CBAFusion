@@ -69,7 +69,6 @@ class CommunicationView: UIView {
     ///   - flipped: A boolean indicating if the view should be flipped.
     ///   - minimize: A boolean indicating if the view should be minimized.
     func updateAnchors(_ orientation: UIDeviceOrientation, flipped: Bool = false, minimize: Bool = false) {
-        assert(!Thread.isMainThread)
         self.isFlipped = flipped
         
         if UIApplication.shared.applicationState != .background {
@@ -83,11 +82,13 @@ class CommunicationView: UIView {
     ///   - flipped: A boolean indicating if the view should be flipped.
     ///   - size: A tuple containing the width and height for the preview view.
     func setConstraint(flipped: Bool, size: (CGFloat, CGFloat)) {
-        assert(!Thread.isMainThread)
         if let previewView = previewView {
-            previewView.removeConstraints(previewView.constraints)
             previewView.layer.cornerRadius = 10
             previewView.layer.masksToBounds = true
+            
+            for constraint in previewView.constraints {
+                constraint.isActive = false
+            }
             
             if flipped {
                 previewView.anchors(
@@ -168,7 +169,6 @@ class CommunicationView: UIView {
     /// Configures the UI to indicate that a connection is being established.
     /// - Parameter isRinging: A boolean indicating if the call is ringing.
     func connectingUI(isRinging: Bool) {
-        assert(!Thread.isMainThread)
         numberLabel.font = .boldSystemFont(ofSize: 18)
         nameLabel.text = isRinging ? "Ringing..." : "FCSDK iOS Connecting..."
         nameLabel.font = .systemFont(ofSize: 16)

@@ -10,7 +10,6 @@ import AVKit
 import Logging
 import FCSDKiOS
 
-
 /// Extension for `CommunicationViewController` to handle Picture in Picture (PiP) functionality.
 /// This extension conforms to `AVPictureInPictureControllerDelegate` and `AVPictureInPictureSampleBufferPlaybackDelegate`.
 extension CommunicationViewController: @preconcurrency AVPictureInPictureControllerDelegate, @preconcurrency AVPictureInPictureSampleBufferPlaybackDelegate {
@@ -22,12 +21,15 @@ extension CommunicationViewController: @preconcurrency AVPictureInPictureControl
             self.logger.info("PIP not Supported")
             return
         }
-
+        
         if show {
             guard let captureSession = communicationView.captureSession else { return }
             if #available(iOS 16.0, *), captureSession.isMultitaskingCameraAccessSupported {
-                guard let remoteView = RemoteViews.shared.views.first?.remoteVideoView else { return }
-                    await startPipWithMultitaskingCamera(remoteView: remoteView)
+                if let remoteView = RemoteViews.shared.views.first?.remoteVideoView, UserDefaults.standard.string(forKey: "PiPViewKey") == "remote" {
+                    await startPipWithMultitaskingCamera(pipView: remoteView)
+                } else if let localView = self.communicationView.previewView {
+                    await startPipWithMultitaskingCamera(pipView: localView)
+                }
             } else if #available(iOS 15.0, *) {
                 await startPipWithoutMultitaskingCamera()
             }
@@ -40,11 +42,11 @@ extension CommunicationViewController: @preconcurrency AVPictureInPictureControl
     }
 
     @available(iOS 16, *)
-    func startPipWithMultitaskingCamera(remoteView: UIView) async {
+    func startPipWithMultitaskingCamera(pipView: UIView) async {
         self.logger.info("Multitasking Camera is Supported")
         
         let size = communicationView.determineSize(for: UIDevice.current.orientation, minimize: false)
-        let pipVideoCallViewController = AVPictureInPictureVideoCallViewController(remoteView, preferredContentSize: CGSize(width: size.0, height: size.1))
+        let pipVideoCallViewController = AVPictureInPictureVideoCallViewController(pipView, preferredContentSize: CGSize(width: size.0, height: size.1))
         let contentSource = AVPictureInPictureController.ContentSource(activeVideoCallSourceView: view, contentViewController: pipVideoCallViewController)
         let pipController = AVPictureInPictureController(contentSource: contentSource)
         
@@ -77,17 +79,12 @@ extension CommunicationViewController: @preconcurrency AVPictureInPictureControl
     /// Called when Picture in Picture is about to stop.
     /// - Parameter pictureInPictureController: The PiP controller.
     func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
+        Task { @MainActor in
             PipStateObject.shared.pip = false
             PipStateObject.shared.pipClickedID = UUID()
-            
-            if #available(iOS 16.0, *), let captureSession = communicationView.captureSession, captureSession.isMultitaskingCameraAccessSupported {
-                await self.performQuery()
-            }
         }
     }
-    
+
     /// Called when Picture in Picture fails to start.
     /// - Parameters:
     ///   - pictureInPictureController: The PiP controller.
@@ -99,7 +96,18 @@ extension CommunicationViewController: @preconcurrency AVPictureInPictureControl
     /// Called when Picture in Picture has stopped.
     /// - Parameter pictureInPictureController: The PiP controller.
     func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        pipStateObject.pip = false
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            PipStateObject.shared.pip = false
+            PipStateObject.shared.pipClickedID = UUID()
+            
+            if #available(iOS 16.0, *), let captureSession = communicationView.captureSession, captureSession.isMultitaskingCameraAccessSupported {
+                await self.performQuery()
+                communicationView.setupUI()
+                communicationView.updateAnchors(UIDevice.current.orientation)
+                communicationView.gestures()
+            }
+        }
     }
     
     /// Called to determine if Picture in Picture should start.

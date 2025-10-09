@@ -112,10 +112,15 @@ struct BackgroundSelector: View {
     private func setBackground() async {
         guard let displayImage = backgroundObserver.displayImage else { return }
         
-        if displayImage.image1?.title == "remove" {
+        // Find the corresponding background model to get the title
+        let selectedModel = backgroundObserver.backgroundsViewModel.first { model in
+            model.image === displayImage.image1 || model.thumbnail === displayImage.image2
+        }
+        
+        if selectedModel?.title == "remove" {
             await fcsdkService.removeBackground()
         } else if let uiImage = displayImage.image1 {
-            if displayImage.image1?.title == "blur" {
+            if selectedModel?.title == "blur" {
                 await fcsdkService.setBackgroundImage(mode: .blur)
             } else {
                 await fcsdkService.setBackgroundImage(uiImage, mode: .image)

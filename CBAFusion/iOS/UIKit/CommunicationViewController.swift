@@ -12,7 +12,8 @@ import AVKit
 import Logging
 
 /// A singleton class that manages remote video views.
-final class RemoteViews: ObservableObject, @unchecked Sendable {
+@MainActor
+final class RemoteViews: ObservableObject {
     let lock = NSLock()
     
     @MainActor
@@ -156,11 +157,9 @@ class CommunicationViewController: UICollectionViewController {
         }
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            self.deleteSnap()
-        }
+    override func viewWillDisappear(_ animated: Bool) {
+        RemoteViews.shared.views.removeAll()
+        self.deleteSnap()
     }
     
     /// Asynchronously performs a query to update the collection view with remote video views.
@@ -185,6 +184,7 @@ class CommunicationViewController: UICollectionViewController {
     @MainActor
     func deleteSnap() {
         var snapshot = dataSource.snapshot()
+        snapshot.deleteSections([.inital])
         snapshot.deleteAllItems()
         dataSource.apply(snapshot)
     }
@@ -391,7 +391,7 @@ class CommunicationViewController: UICollectionViewController {
                 await self.acbuc.phone.setCamera(self.currentCamera)
             } else if let image = fcsdkCallService.backgroundImage {
                 await self.acbuc.phone.setCamera(self.currentCamera)
-                await self.acbuc.phone.currentCalls.last?.feedBackgroundImage(image, mode: image.title == "blur" ? .blur : .image)
+                await self.acbuc.phone.currentCalls.last?.feedBackgroundImage(image, mode: fcsdkCallService.virtualBackgroundMode)
             } else {
                 await self.acbuc.phone.setCamera(self.currentCamera)
             }
