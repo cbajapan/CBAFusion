@@ -11,8 +11,8 @@ import FCSDKiOS
 import Logging
 
 /// Protocol defining the authentication functionalities.
-protocol AuthenticationProtocol: AnyObject {
-    var uc: ACBUC? { get set }
+protocol AuthenticationProtocol: AnyObject, Sendable {
+    @MainActor var uc: ACBUC? { get set }
     func loginUser(networkStatus: Bool) async
 }
 
@@ -23,13 +23,19 @@ actor AuthenticationActor {
 }
 
 /// Service responsible for user authentication and session management.
-final class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol, @unchecked Sendable {
+@MainActor
+final class AuthenticationService: NSObject, ObservableObject, AuthenticationProtocol {
     
     // Logger for tracking authentication events
     let logger = Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Authentication Service - ")
     
     // Repository for network operations
     let networkRepository = NetworkRepository()
+    
+    @State private var selectedAudio: String = UserDefaults.standard.string(forKey: "AudioOption") ?? ACBAudioDevice.speakerphone.rawValue
+    @State private var selectedResolution: String = UserDefaults.standard.string(forKey: "ResolutionOption") ?? ResolutionOptions.auto.rawValue
+    @State private var selectedFrameRate: String = UserDefaults.standard.string(forKey: "RateOption") ?? FrameRateOptions.fro20.rawValue
+    @State private var selectedDefaultAudio: String = UserDefaults.standard.string(forKey: "DefaultAudio") ?? ACBAudioDevice.speakerphone.rawValue
     
     // User credentials and settings
     @Published var username = UserDefaults.standard.string(forKey: "Username") ?? ""
@@ -69,7 +75,8 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     
     override init() {
         super.init()
-        self.networkRepository.networkRepositoryDelegate = networkRepository
+        // Remove circular reference - NetworkRepository should not delegate to itself
+        // self.networkRepository.networkRepositoryDelegate = networkRepository
     }
     
     deinit {
@@ -77,12 +84,11 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Creates a login request object with the current credentials.
-    func requestLoginObject() -> LoginRequest {
+    func requestLoginObject() async -> LoginRequest {
         return LoginRequest(username: username, password: password)
     }
     
     /// Authenticates the user with the provided credentials.
-    @AuthenticationActor
     func loginUser(networkStatus: Bool) async {
         let loginCredentials = Login(
             username: username,
@@ -98,8 +104,7 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
         saveUserCredentials()
         
         do {
-            guard let repository = networkRepository.networkRepositoryDelegate else { return }
-            let (data, response) = try await repository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
+            let (data, response) = try await networkRepository.asyncLogin(loginReq: loginCredentials, reqObject: requestLoginObject())
             let payload = try JSONDecoder().decode(LoginResponse.self, from: data)
             await fireStatus(response: response)
             
@@ -117,7 +122,6 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Updates the session ID and checks the connection status.
-    @MainActor
     private func updateSessionID(with newSessionID: String) async {
         // Update the session ID property
         self.sessionID = newSessionID
@@ -156,7 +160,6 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Checks the response status and handles it accordingly.
-    @MainActor
     func fireStatus(response: URLResponse) async {
         guard let httpResponse = response as? HTTPURLResponse else { return }
         switch httpResponse.statusCode {
@@ -174,7 +177,6 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Displays an alert with the error message or response details.
-    @MainActor
     func showAlert(response: HTTPURLResponse? = nil, error: Error? = nil) async {
         var message: String = error?.localizedDescription ?? "No Message"
         if let response = response {
@@ -193,13 +195,13 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
             videoDSCPPriority: .high,
             delegate: self
         )
-        uc?.phone.mirrorFrontFacingCameraPreview = await FCSDKCallService.shared.isMirroredFrontCamera
+        uc?.phone.mirrorFrontFacingCameraPreview = FCSDKCallService.shared.isMirroredFrontCamera
         //Set resolution and frame rate as soon as possible
         let selectedFrameRate = UserDefaults.standard.string(forKey: "RateOption") ?? FrameRateOptions.fro30.rawValue
         let selectedResolution = UserDefaults.standard.string(forKey: "ResolutionOption") ?? ResolutionOptions.auto.rawValue
         guard let uc = uc else { return }
-        uc.phone.delegate = await FCSDKCallService.shared
-        uc.phone.callDelegate = await FCSDKCallService.shared
+        uc.phone.delegate = FCSDKCallService.shared
+        uc.phone.callDelegate = FCSDKCallService.shared
         self.selectResolution(uc: uc, res: ResolutionOptions(rawValue: selectedResolution) ?? ResolutionOptions.auto)
         self.selectFramerate(uc: uc, rate: FrameRateOptions(rawValue: selectedFrameRate) ?? FrameRateOptions.fro30)
         
@@ -252,7 +254,6 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Removes the current call from the call service.
-    @MainActor
     func removeCall() async {
         FCSDKCallService.shared.fcsdkCall = nil
     }
@@ -277,8 +278,7 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
         await removeCall()
         
         do {
-            guard let repository = networkRepository.networkRepositoryDelegate else { return }
-            let response = try await repository.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
+            let response = try await networkRepository.asyncLogout(logoutReq: loginCredentials, sessionid: self.sessionID)
             await setSessionID()
             await fireStatus(response: response)
             sessionExists = false
@@ -292,7 +292,6 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
     }
     
     /// Updates the session ID and connection status.
-    @MainActor
     func setSessionID() async {
         connectedToSocket = self.uc?.connection != nil
         KeychainItem.deleteSessionID()
@@ -308,92 +307,101 @@ final class AuthenticationService: NSObject, ObservableObject, AuthenticationPro
 // MARK: - ACBUCDelegate Implementation
 extension AuthenticationService: ACBUCDelegate {
     
-    @MainActor
-    func didStartSession(_ uc: ACBUC) async {
-        logger.info("Started Session \(String(describing: uc))")
-        _ = Task { [weak self] in
+    private func configureInitialSettings() {
+        let service = FCSDKCallService.shared
+        service.selectResolution(res: ResolutionOptions(rawValue: selectedResolution)!)
+        service.selectFramerate(rate: FrameRateOptions(rawValue: selectedFrameRate)!)
+        service.selectAudio(audio: ACBAudioDevice(rawValue: selectedAudio)!)
+        service.selectDefaultAudio(audio: ACBAudioDevice(rawValue: selectedDefaultAudio)!)
+    }
+    
+    nonisolated func didStartSession(_ uc: ACBUC) async {
+        Task { @MainActor [weak self] in
             guard let self else { return }
-            showStartedSession = true
+            self.configureInitialSettings()
+            self.logger.info("Started Session \(String(describing: uc))")
+            self.showStartedSession = true
 #if swift(>=6.0)
             if #available(iOS 18.0, *) {
-                await sleep()
+                await self.sleep()
             }
 #endif
-            showStartedSession = false
+            self.showStartedSession = false
         }
     }
     
-    @MainActor
-    func didFail(toStartSession uc: ACBUC) async {
-        Task {
-            logger.info("Failed to start Session \(String(describing: uc))")
-            showFailedSession = true
+    nonisolated func didFail(toStartSession uc: ACBUC) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Failed to start Session \(String(describing: uc))")
+            self.showFailedSession = true
 #if swift(>=6.0)
             if #available(iOS 18.0, *) {
-                await sleep()
+                await self.sleep()
             }
 #endif
-            showFailedSession = false
+            self.showFailedSession = false
         }
     }
     
-    @MainActor
-    func didReceiveSystemFailure(_ uc: ACBUC) async {
-        Task {
-            logger.info("Received system failure \(String(describing: uc))")
-            showSystemFailed = true
+    nonisolated func didReceiveSystemFailure(_ uc: ACBUC) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Received system failure \(String(describing: uc))")
+            self.showSystemFailed = true
 #if swift(>=6.0)
             if #available(iOS 18.0, *) {
-                await sleep()
+                await self.sleep()
             }
 #endif
-            showSystemFailed = false
+            self.showSystemFailed = false
         }
     }
     
-    @MainActor
-    func didLoseConnection(_ uc: ACBUC) async {
-        Task {
-            logger.info("Did lose connection \(String(describing: uc))")
-            showDidLoseConnection = true
+    nonisolated func didLoseConnection(_ uc: ACBUC) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Did lose connection \(String(describing: uc))")
+            self.showDidLoseConnection = true
 #if swift(>=6.0)
             if #available(iOS 18.0, *) {
-                await sleep()
+                await self.sleep()
             }
 #endif
-            showDidLoseConnection = false
+            self.showDidLoseConnection = false
         }
     }
     
-    @MainActor
-    func uc(_ uc: ACBUC, willRetryConnection attemptNumber: Int, in delay: TimeInterval) async {
-        logger.info("Attempting to reconnect to the network - Attempt: \(attemptNumber), Delay: \(delay)")
-        if attemptNumber == 7 {
-            if UserDefaults.standard.bool(forKey: "Retry") {
-                await self.uc?.startSession(triggerReconnect: true, timeout: 10)
-            } else {
-                await self.uc?.startSession(timeout: 10)
+    nonisolated func uc(_ uc: ACBUC, willRetryConnection attemptNumber: Int, in delay: TimeInterval) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Attempting to reconnect to the network - Attempt: \(attemptNumber), Delay: \(delay)")
+            if attemptNumber == 7 {
+                if UserDefaults.standard.bool(forKey: "Retry") {
+                    await self.uc?.startSession(triggerReconnect: true, timeout: 10)
+                } else {
+                    await self.uc?.startSession(timeout: 10)
+                }
+                self.sessionExists = true
             }
-            sessionExists = true
         }
     }
     
-    @MainActor
-    func didReestablishConnection(_ uc: ACBUC) async {
-        Task {
-            logger.info("Reestablished Network Connectivity - UC: \(uc)")
-            showReestablishedConnection = true
+    nonisolated func didReestablishConnection(_ uc: ACBUC) async {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.logger.info("Reestablished Network Connectivity - UC: \(uc)")
+            self.showReestablishedConnection = true
 #if swift(>=6.0)
             if #available(iOS 18.0, *) {
-                await sleep()
+                await self.sleep()
             }
 #endif
-            showReestablishedConnection = false
+            self.showReestablishedConnection = false
         }
     }
     
-    
-    func sleep() async {
+    private func sleep() async {
         if #available(iOS 16.0, *) {
             try? await Task.sleep(until: .now + .seconds(2), clock: .suspending)
         } else {

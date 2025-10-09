@@ -7,15 +7,10 @@
 
 import Foundation
 
-protocol NetworkRepositoryDelegate: AnyObject {
-    func asyncLogin(loginReq: Login, reqObject: LoginRequest) async throws -> (Data, URLResponse)
-    func asyncLogout(logoutReq: Login, sessionid: String) async throws -> URLResponse
-}
-
-class NetworkRepository: NetworkRepositoryDelegate {
+@MainActor
+class NetworkRepository {
     
     let networkManager = NetworkManager()
-    weak var networkRepositoryDelegate: NetworkRepositoryDelegate?
     
     @available(iOS 13, *)
     func asyncLogin(loginReq: Login, reqObject: LoginRequest) async throws -> (Data, URLResponse) {

@@ -100,7 +100,9 @@ extension FCSDKCallService: ACBClientPhoneDelegate {
             fcsdkCall.activeCall = true
             
             await self.addCall(fcsdkCall: fcsdkCall) // Add the call to the call list
-            self.setCall(fcsdkCall: fcsdkCall) // Set the current call
+            await MainActor.run {
+                self.setCall(fcsdkCall: fcsdkCall) // Set the current call
+            }
             
             guard let fcsdkCall = self.fcsdkCall else { throw OurErrors.nilFCSDKCall }
             await self.appDelegate?.displayIncomingCall(fcsdkCall: fcsdkCall) // Display the incoming call
@@ -112,7 +114,9 @@ extension FCSDKCallService: ACBClientPhoneDelegate {
                 subtitle: "\(fcsdkCall.handle)",
                 body: "You missed a call from \(fcsdkCall.call?.remoteDisplayName ?? "No Display Name")"
             )
-            setProperties(from: fcsdkCall) // Set properties for the missed call
+            await MainActor.run {
+                self.setProperties(from: fcsdkCall) // Set properties for the missed call
+            }
             await self.addCall(fcsdkCall: fcsdkCall) // Add the missed call to the call list
         }
     }

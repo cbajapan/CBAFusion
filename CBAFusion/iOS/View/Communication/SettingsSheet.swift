@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FCSDKiOS
+import AVFAudio
 
 
 enum AudioOptions: String, Equatable, CaseIterable {
@@ -35,11 +36,10 @@ enum ScaleOptions: String, Equatable, CaseIterable {
     case fill = "Fill"
     case none = "None"
 }
-
-
-import SwiftUI
-
-import SwiftUI
+enum PiPViewType: String, Equatable, CaseIterable {
+    case remote = "remote"
+    case local = "local"
+}
 
 /// A view that represents the settings sheet where users can configure various application settings.
 struct SettingsSheet: View {
@@ -59,7 +59,10 @@ struct SettingsSheet: View {
     @State private var scaleWithOrientation: Bool = UserDefaults.standard.bool(forKey: "ScaleWithOrientation")
     @State private var preferredAudio: String = UserDefaults.standard.string(forKey: MediaValue.keyAudioDirection.rawValue) ?? "SendAndReceive"
     @State private var preferredVideo: String = UserDefaults.standard.string(forKey: MediaValue.keyVideoDirection.rawValue) ?? "SendAndReceive"
+    @State private var preferredPiPView: String = UserDefaults.standard.string(forKey: "PiPViewKey") ?? PiPViewType.remote.rawValue
     
+    private let routeChangePublisher = NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)
+
     @EnvironmentObject private var authenticationService: AuthenticationService
     @EnvironmentObject private var contactService: ContactService
     @EnvironmentObject private var fcsdkCallService: FCSDKCallService
@@ -100,6 +103,7 @@ struct SettingsSheet: View {
                             
                             // Call History and User Info
                             callHistoryAndUserInfoSection
+                            
                         }
                     }
                     .padding()
@@ -107,7 +111,10 @@ struct SettingsSheet: View {
                         Task {
                             await removeViewTypeMessage()
                         }
-                        configureInitialSettings()
+                        updateSelectedAudio()
+                    }
+                    .onReceive(routeChangePublisher) { _ in
+                        updateSelectedAudio()
                     }
                     .onDisappear {
                         Task {
@@ -250,6 +257,9 @@ struct SettingsSheet: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             
+            //PiP View Selection
+            pipViewSelection
+            
             if fcsdkCallService.isBuffer {
                 HStack {
                     Spacer()
@@ -331,16 +341,11 @@ struct SettingsSheet: View {
     
     private var callHistoryAndUserInfoSection: some View {
         VStack(alignment: .leading, spacing: 5) {
-//            if fcsdkCallService.fcsdkCall?.activeCall == false ||
-//                fcsdkCallService.fcsdkCall?.activeCall == nil
-//            {
-                Button("Clear Call History") {
-                    Task {
-                        await fcsdkCallService.contactService?.deleteCalls()
-                    }
+            Button("Clear Call History") {
+                Task {
+                    await fcsdkCallService.contactService?.deleteCalls()
                 }
-//            }
-            
+            }
             Divider()
             
             HStack {
@@ -370,13 +375,23 @@ struct SettingsSheet: View {
         }
     }
     
-    // MARK: - Helper Methods
-    
-    private func configureInitialSettings() {
-        fcsdkCallService.selectResolution(res: ResolutionOptions(rawValue: selectedResolution)!)
-        fcsdkCallService.selectFramerate(rate: FrameRateOptions(rawValue: selectedFrameRate)!)
-        fcsdkCallService.selectAudio(audio: ACBAudioDevice(rawValue: selectedAudio)!)
+    private var pipViewSelection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("PiP View Selection")
+                .fontWeight(.light)
+            Picker("", selection: $preferredPiPView) {
+                ForEach(PiPViewType.allCases, id: \.rawValue) { item in
+                    Text(item.rawValue.capitalized)
+                }
+            }
+            .valueChanged(value: preferredPiPView) { item in
+                UserDefaults.standard.setValue(item, forKey: "PiPViewKey")
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
     }
+    
+    // MARK: - Helper Methods
     
     private func removeViewTypeMessage() async {
         try? await Task.sleep(nanoseconds: 5_500_000_000)
@@ -390,5 +405,16 @@ struct SettingsSheet: View {
     
     private func logout() async {
         await authenticationService.logout()
+    }
+    
+    private func updateSelectedAudio() {
+        guard let manager = fcsdkCallService.audioDeviceManager else { return }
+
+        DispatchQueue.global().async {
+            let currentDevice = manager.currentAudioDevice()
+            DispatchQueue.main.async {
+                selectedAudio = currentDevice.rawValue
+            }
+        }
     }
 }

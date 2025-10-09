@@ -80,15 +80,19 @@ struct CBAFusion: App {
                 .environmentObject(backgroundObserver)
                 .environmentObject(pipStateObject)
                 .environmentObject(pathState)
-                .onAppear(perform: setup)
+                .onAppear {
+                    Task {
+                        await setup()
+                    }
+                }
                 .onContinueUserActivity(String(describing: INStartCallIntent.self), perform: handleCallIntent)
                 .onChange(of: scenePhase, perform: handleScenePhaseChange)
         }
     }
     let monitor = NetworkMonitor()
     /// Sets up the initial state of the app when it appears.
-    private func setup() {
-        monitor.startMonitor(type: .all, pathState: self.pathState)
+    private func setup() async {
+        _ = await monitor.startMonitor(type: .all)
         // Configure services and defaults
         fcsdkCallService.delegate = authenticationService
         fcsdkCallService.appDelegate = delegate
@@ -205,7 +209,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .environmentObject(pipStateObject)
             .environmentObject(pathState)
             .onAppear {
-                self.monitor.startMonitor(type: .all, pathState: self.pathState)
+                Task {
+                    await self.monitor.startMonitor(type: .all)
+                }
                 self.fcsdkCallService.delegate = self.authenticationService
                 self.fcsdkCallService.contactService = self.contactService
                 self.providerDelegate = ProviderDelegate(callKitManager: self.callKitManager, authenticationService: self.authenticationService, fcsdkCallService: self.fcsdkCallService)

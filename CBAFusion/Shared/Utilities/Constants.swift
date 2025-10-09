@@ -9,5 +9,5 @@ import Foundation
 
 
 public final class Constants {
-static internal let BUNDLE_IDENTIFIER = Bundle.main.bundleIdentifier!
+    static internal let BUNDLE_IDENTIFIER = Bundle.main.bundleIdentifier ?? "com.cbajapan.fusion"
 }

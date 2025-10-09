@@ -11,12 +11,12 @@ import AVFoundation
 import OSLog
 import Combine
 
-class NetworkMonitor: @unchecked Sendable {
+actor NetworkMonitor {
     
-    var pathState: NWPathState?
+    private var monitor: NWPathMonitor?
+    private var continuation: AsyncStream<NWPath>.Continuation?
     
-    func startMonitor(type: RequiredInterfaceType, pathState: NWPathState) {
-        self.pathState = pathState
+    func startMonitor(type: RequiredInterfaceType) -> AsyncStream<NWPath> {
         var monitor: NWPathMonitor
         switch type {
         case .cell:
@@ -28,18 +28,29 @@ class NetworkMonitor: @unchecked Sendable {
         case .all:
             monitor = NWPathMonitor()
         }
+        
+        self.monitor = monitor
         let queue = DispatchQueue(label: "NWPathMonitor")
-        monitor.start(queue: queue)
-        monitor.pathUpdateHandler = { state in
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                self.pathState?.pathStatus = state.status
-//                self.pathState?.pathType = self.checkInterfaceType(state)
+        
+        let stream = AsyncStream<NWPath> { continuation in
+            self.continuation = continuation
+            monitor.pathUpdateHandler = { path in
+                continuation.yield(path)
             }
         }
+        
+        monitor.start(queue: queue)
+        return stream
     }
     
-    private func checkInterfaceType(_ path: NWPath) -> NWInterface.InterfaceType {
+    func stopMonitor() {
+        monitor?.cancel()
+        continuation?.finish()
+        monitor = nil
+        continuation = nil
+    }
+    
+    func checkInterfaceType(_ path: NWPath) -> NWInterface.InterfaceType {
         if path.usesInterfaceType(.wifi) {
             return .wifi
         } else if path.usesInterfaceType(.cellular) {
@@ -60,7 +71,32 @@ enum RequiredInterfaceType {
     case all
 }
 
+@MainActor
 class NWPathState: NSObject, ObservableObject {
     @Published var pathStatus: NWPath.Status?
     @Published var pathType: NWInterface.InterfaceType?
+    
+    private var networkMonitor: NetworkMonitor?
+    private var monitorTask: Task<Void, Never>?
+    
+    func startMonitoring(type: RequiredInterfaceType) {
+        networkMonitor = NetworkMonitor()
+        monitorTask = Task {
+            guard let stream = await networkMonitor?.startMonitor(type: type) else { return }
+            
+            for await path in stream {
+                self.pathStatus = path.status
+                self.pathType = await networkMonitor?.checkInterfaceType(path)
+            }
+        }
+    }
+    
+    func stopMonitoring() {
+        monitorTask?.cancel()
+        Task {
+            await networkMonitor?.stopMonitor()
+        }
+        networkMonitor = nil
+        monitorTask = nil
+    }
 }

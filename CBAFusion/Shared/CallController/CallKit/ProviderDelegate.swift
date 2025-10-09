@@ -12,7 +12,8 @@ import AVFoundation
 import FCSDKiOS
 import Logging
 
-final class ProviderDelegate: NSObject, CXProviderDelegate, @unchecked Sendable {
+@MainActor
+final class ProviderDelegate: NSObject, CXProviderDelegate {
     internal let provider: CXProvider?
     internal let callKitManager: CallKitManager
     internal let authenticationService: AuthenticationService

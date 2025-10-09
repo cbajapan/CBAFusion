@@ -55,7 +55,7 @@ extension ProviderDelegate {
     
     
     // Answer Call after we get notified that we have an incoming call
-    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+    nonisolated func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         self.logger.info("Answer call action")
         Task {
             await self.fcsdkCallService.answerFCSDKCall()
@@ -66,24 +66,26 @@ extension ProviderDelegate {
     
     //Start Call
     
-    func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+    nonisolated func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         self.logger.info("Start call action")
-        startCall { result in
-            switch result {
-            case .success(let packet):
-                provider.reportCall(with: packet.id, updated: packet.updated)
-            case .failure(let error):
-                self.logger.error("\(error)")
-                action.fail()
-            }
-            return provider
-        } completion: { result in
-            switch result {
-            case .success(_):
-                action.fulfill()
-            case .failure(let error):
-                self.logger.error("\(error)")
-                action.fail()
+        Task {
+            await startCall { result in
+                switch result {
+                case .success(let packet):
+                    provider.reportCall(with: packet.id, updated: packet.updated)
+                case .failure(let error):
+                    self.logger.error("\(error)")
+                    action.fail()
+                }
+                return provider
+            } completion: { result in
+                switch result {
+                case .success(_):
+                    action.fulfill()
+                case .failure(let error):
+                    self.logger.error("\(error)")
+                    action.fail()
+                }
             }
         }
     }
@@ -100,10 +102,10 @@ extension ProviderDelegate {
             do {
                 let callUpdate = CXCallUpdate()
                 callUpdate.supportsDTMF = true
-                callUpdate.hasVideo = await fcsdkCallService.hasVideo
+                callUpdate.hasVideo = fcsdkCallService.hasVideo
                 callUpdate.supportsHolding = false
                 
-                guard var outgoingFCSDKCall = await self.fcsdkCallService.fcsdkCall else { return }
+                guard var outgoingFCSDKCall = self.fcsdkCallService.fcsdkCall else { return }
                 await self.fcsdkCallService.startCall(previewView: outgoingFCSDKCall.communicationView?.previewView)
                 acbCall = try await self.fcsdkCallService.initializeFCSDKCall()
                 outgoingFCSDKCall.call = acbCall
@@ -128,22 +130,24 @@ extension ProviderDelegate {
     
     //Hold Call
     //TODO: - We want to keep track of which call we have and set it to an on hold state. Let's make it happen
-    func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
+    nonisolated func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
         print("Action", action)
         print("Provider", provider)
     }
     
     //End Call
     //TODO: - When we end the call we want to check if we have any calls on hold if it is on hold then resume the call. We also want to make sure the correct call is ended while handling multiple calls.
-    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        endCall { result in
-            switch result {
-            case .success:
-                print("Call ended successfully.")
-                action.fulfill()
-            case .failure(let error):
-                print("Error ending call: \(error)")
-                action.fail()
+    nonisolated func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        Task {
+            await endCall { result in
+                switch result {
+                case .success:
+                    print("Call ended successfully.")
+                    action.fulfill()
+                case .failure(let error):
+                    print("Error ending call: \(error)")
+                    action.fail()
+                }
             }
         }
     }
@@ -151,8 +155,8 @@ extension ProviderDelegate {
     func endCall(completion: @Sendable @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                if var call = await self.fcsdkCallService.fcsdkCall {
-                    if await fcsdkCallService.hasConnected == false && call.outbound == false {
+                if var call = self.fcsdkCallService.fcsdkCall {
+                    if fcsdkCallService.hasConnected == false && call.outbound == false {
                         call.missed = false
                         call.outbound = false
                         call.rejected = true
@@ -160,7 +164,7 @@ extension ProviderDelegate {
                     
                     // Attempt to end the call
                     try await self.fcsdkCallService.endFCSDKCall(call)
-                    await fcsdkCallService.stopAudioSession()
+                    fcsdkCallService.stopAudioSession()
                     
                     // If successful, call the completion handler with success
                     completion(.success(()))
@@ -177,7 +181,7 @@ extension ProviderDelegate {
     
     
     //DTMF
-    func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
+    nonisolated func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
         let digits = action.digits
         Task { [weak self] in
             guard let self else { return }
@@ -189,23 +193,23 @@ extension ProviderDelegate {
     }
     
     //Provider Began
-    func providerDidBegin(_ provider: CXProvider) {
+    nonisolated func providerDidBegin(_ provider: CXProvider) {
         self.logger.info("Provider began")
     }
     
-    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    nonisolated func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         self.logger.info("DID_ACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
         self.logger.info("\(audioSession.sampleRate)")
         ACBAudioDeviceManager.activeCallKitAudioSession(audioSession)
     }
     
-    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+    nonisolated func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         self.logger.info("DID_DEACTIVATE_AUDIO_SESSION \(#function) with \(audioSession)")
         ACBAudioDeviceManager.deactiveCallKitAudioSession(audioSession)
     }
     
     // Here we can reset the provider to remove any stale callkit calls
-    func providerDidReset(_ provider: CXProvider) {
+    nonisolated func providerDidReset(_ provider: CXProvider) {
         self.logger.info("Provider did reset")
     }
     

@@ -69,7 +69,9 @@ struct KeychainItem {
     
     func saveItem(_ password: String) throws {
         // Encode the password into an Data object.
-        let encodedPassword = password.data(using: String.Encoding.utf8)!
+        guard let encodedPassword = password.data(using: String.Encoding.utf8) else {
+            throw KeychainError.unexpectedPasswordData
+        }
         
         do {
             // Check for an existing item in the keychain.
@@ -130,7 +132,11 @@ struct KeychainItem {
     
     static func savePassword(password: String) {
         do {
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").saveItem(password)
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Bundle identifier is nil")
+                return
+            }
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-password").saveItem(password)
         } catch {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to save data to keychain. \(error)")
         }
@@ -138,7 +144,10 @@ struct KeychainItem {
     
     static var getPassword: String {
         do {
-            let password = try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").readItem()
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                return ""
+            }
+            let password = try KeychainItem(service: bundleIdentifier, account: "cba-japan-password").readItem()
             return password
         } catch {
             return ""
@@ -147,7 +156,11 @@ struct KeychainItem {
     
     static func deletePassword() {
         do {
-            try KeychainItem(service:  Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Bundle identifier is nil")
+                return
+            }
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-password").deleteItem()
         } catch {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete password from keychain")
         }
@@ -155,7 +168,11 @@ struct KeychainItem {
     
     static func saveSessionID(sessionid: String) {
         do {
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").saveItem(sessionid)
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Bundle identifier is nil")
+                return
+            }
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-session-id").saveItem(sessionid)
         } catch {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to save data to keychain. \(error)")
         }
@@ -163,7 +180,10 @@ struct KeychainItem {
     
     static var getSessionID: String {
         do {
-            let session = try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").readItem()
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                return ""
+            }
+            let session = try KeychainItem(service: bundleIdentifier, account: "cba-japan-session-id").readItem()
             return session
         } catch {
             return ""
@@ -172,7 +192,11 @@ struct KeychainItem {
     
     static func deleteSessionID() {
         do {
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").deleteItem()
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Bundle identifier is nil")
+                return
+            }
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-session-id").deleteItem()
         } catch {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete password from keychain")
         }
@@ -180,10 +204,14 @@ struct KeychainItem {
     
     static func deleteKeychainItems() {
         do {
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session-id").deleteItem()
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-session").deleteItem()
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan").deleteItem()
-            try KeychainItem(service: Bundle.main.bundleIdentifier!, account: "cba-japan-password").deleteItem()
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Bundle identifier is nil")
+                return
+            }
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-session-id").deleteItem()
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-session").deleteItem()
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan").deleteItem()
+            try KeychainItem(service: bundleIdentifier, account: "cba-japan-password").deleteItem()
         } catch {
             Logger(label: "\(Constants.BUNDLE_IDENTIFIER) - Keychain - ").error("Unable to delete sessionID from keychain")
         }

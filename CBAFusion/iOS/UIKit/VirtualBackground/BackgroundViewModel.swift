@@ -219,7 +219,6 @@ internal final class ImageProcessor {
     ///   - image: The full-size image to display.
     ///   - thumbnail: The thumbnail image to display.
     func setImage(image: UIImage?, thumbnail: UIImage?, title: String) {
-        image?.title = title
         backgroundObserver.displayImage = DisplayImageObject(image1: image, image2: thumbnail)
     }
 }

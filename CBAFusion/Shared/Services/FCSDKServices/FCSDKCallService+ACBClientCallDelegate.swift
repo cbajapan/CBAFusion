@@ -11,7 +11,7 @@ import AVFoundation
 import UIKit
 
 // Extension to handle call events and manage call state
-extension FCSDKCallService: ACBClientCallDelegate, @unchecked Sendable {
+extension FCSDKCallService: ACBClientCallDelegate {
     
     // Called when the remote display name changes
     func didChangeRemoteDisplayName(_ name: String, with call: FCSDKiOS.ACBClientCall) async {

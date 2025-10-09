@@ -118,7 +118,6 @@ class VirtualBackgroundViewController: UICollectionViewController {
     @MainActor
     fileprivate func setCollectionViewItem(item: BackgroundItemCell? = nil, background: BackgroundsViewModel) {
         item?.posterImage.image = background.thumbnail
-        item?.posterImage.image?.title = background.title
     }
     
     /// Configures the data source for the collection view.

@@ -143,7 +143,7 @@ struct Communication: View {
                                     // PiP Toggle Button (available from iOS 15 on iPads)
                                     if #available(iOS 15.0, *), fcsdkCallService.isBuffer, UIDevice.current.userInterfaceIdiom == .phone {
                                         Button {
-                                            pipStateObject.pip = true
+                                            pipStateObject.pip.toggle()
                                             pipStateObject.pipClickedID = UUID()
                                         } label: {
                                             ZStack {
@@ -200,7 +200,7 @@ struct Communication: View {
                             // PiP Toggle Button (available from iOS 15 on iPads)
                             if #available(iOS 15.0, *), fcsdkCallService.isBuffer, UIDevice.current.userInterfaceIdiom == .pad {
                                 Button {
-                                    pipStateObject.pip = true
+                                    pipStateObject.pip.toggle()
                                     pipStateObject.pipClickedID = UUID()
                                 } label: {
                                     ZStack {
